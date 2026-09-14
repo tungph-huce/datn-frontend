@@ -3,15 +3,14 @@
     <p>Đang tải dữ liệu nhật ký...</p>
 </div>
 
-<!-- Status Gate: Chặn truy cập nếu chưa hoàn thành TTTN-02 -->
+<!-- Status Gate: Chặn truy cập nếu chưa hoàn thành ĐATN-02 -->
 <div *ngIf="!isLoading && !canAccess" class="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-200 rounded-lg shadow-sm">
-  <span class="material-symbols-outlined text-[64px] text-amber-400 mb-4">lock</span>
-  <p class="text-slate-700 font-bold text-lg">Chưa thể truy cập TTTN-03</p>
-  <p class="text-slate-500 text-sm mt-2 text-center max-w-md">Bạn cần hoàn thành Kế hoạch Thực tập (TTTN-02) và được GVHD cùng Đơn vị hướng dẫn phê duyệt trước khi ghi nhật ký.</p>
-  <a routerLink="/student/internship-report" [queryParams]="{ step: 'TTTN-02' }" class="mt-6 px-6 py-2.5 bg-[#00429D] text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors shadow-sm flex items-center gap-2">
-    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-    Đi đến TTTN-02
-  </a>
+    <span class="material-symbols-outlined text-[64px] text-amber-400 mb-4">lock</span>
+    <p class="text-slate-700 font-bold text-lg">Chưa thể truy cập ĐATN-02</p>
+    <p class="text-slate-500 text-sm mt-2 text-center max-w-md">Bạn cần hoàn thành Kế hoạch ĐATN và được GVHD phê duyệt trước khi ghi nhật ký.</p>
+    <a routerLink="/student/datn-report" [queryParams]="{ step: 'ĐATN-02' }" class="mt-6 px-6 py-2.5 bg-[#00429D] text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors shadow-sm flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">arrow_forward</span> Đi đến ĐATN-02
+    </a>
 </div>
 
 <div *ngIf="!isLoading && canAccess" class="max-w-5xl mx-auto flex flex-col gap-10">
@@ -19,8 +18,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <span class="material-symbols-outlined text-[#00429D]">menu_book</span>
-                Sổ Nhật Ký &amp; Tiến Độ Thực Tập (TTTN-03)
+                <span class="material-symbols-outlined text-[#00429D]">menu_book</span> Sổ Nhật Ký &amp; Tiến Độ ĐATN (ĐATN-02)
             </h2>
             <p class="text-sm text-slate-500 mt-1">Ghi nhận công việc hàng tuần và xác nhận từ Đơn vị hướng dẫn.</p>
         </div>
@@ -28,7 +26,7 @@
 
     <!-- Timeline Structure -->
     <div class="relative ml-4 border-l-2 border-slate-200 pb-12 flex flex-col gap-10">
-        
+
         <ng-container *ngFor="let log of logs">
             <!-- WEEK: COMPLETED & CONFIRMED -->
             <div *ngIf="log.status === 'confirmed'" class="relative pl-8">
@@ -38,11 +36,9 @@
                 </div>
                 <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <!-- Week Header -->
-                    <div (click)="toggleWeekCollapse(log.weekNumber)"
-                         class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center cursor-pointer select-none hover:bg-slate-100 transition-colors">
+                    <div (click)="toggleWeekCollapse(log.weekNumber)" class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center cursor-pointer select-none hover:bg-slate-100 transition-colors">
                         <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-slate-500 transition-transform duration-200"
-                                  [ngClass]="{'rotate-180': !log.isCollapsed}">
+                            <span class="material-symbols-outlined text-slate-500 transition-transform duration-200" [ngClass]="{'rotate-180': !log.isCollapsed}">
                                 expand_more
                             </span>
                             <div>
@@ -59,12 +55,11 @@
                                 <span class="text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">{{ log.completionPercentage }}%</span>
                             </div>
                             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F5E9] text-[#2E7D32] text-xs font-semibold border border-[#C8E6C9]">
-                                <span class="material-symbols-outlined text-[14px]">verified</span>
-                                Đã xác nhận
+                                <span class="material-symbols-outlined text-[14px]">verified</span> Đã xác nhận
                             </span>
                         </div>
                     </div>
-                    
+
                     <div *ngIf="!log.isCollapsed">
                         <!-- Student Content (Read-only view) -->
                         <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -87,12 +82,10 @@
                                 <div class="flex gap-4">
                                     <ng-container *ngFor="let ev of log.evidences">
                                         <a *ngIf="ev.type === 'link'" class="flex items-center gap-2 px-3 py-2 rounded border border-slate-300 text-[#002d70] hover:bg-blue-100 transition-colors text-sm" [href]="ev.url">
-                                            <span class="material-symbols-outlined text-[18px]">link</span>
-                                            {{ ev.name }}
+                                            <span class="material-symbols-outlined text-[18px]">link</span> {{ ev.name }}
                                         </a>
                                         <div *ngIf="ev.type === 'image'" class="flex items-center gap-2 px-3 py-2 rounded border border-slate-300 text-slate-900 text-sm">
-                                            <span class="material-symbols-outlined text-[18px]">image</span>
-                                            {{ ev.name }}
+                                            <span class="material-symbols-outlined text-[18px]">image</span> {{ ev.name }}
                                         </div>
                                     </ng-container>
                                 </div>
@@ -136,8 +129,7 @@
                             <p class="text-sm text-[#002d70] mt-0.5">{{ log.startDate }} - {{ log.endDate }}</p>
                         </div>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-[#002d70] text-sm border border-blue-200">
-                            <span class="material-symbols-outlined text-[16px]">edit_document</span>
-                            Đang ghi nhận
+                            <span class="material-symbols-outlined text-[16px]">edit_document</span> Đang ghi nhận
                         </span>
                     </div>
                     <!-- Student Content (Editable Form) -->
@@ -149,9 +141,7 @@
                                     Nội dung công việc hàng ngày
                                     <span class="text-red-600">*</span>
                                 </label>
-                                <textarea class="w-full rounded-lg border-slate-300 focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] text-sm p-3" 
-                                          [(ngModel)]="activeLogTasks"
-                                          placeholder="Ghi chú chi tiết các công việc thực hiện theo từng ngày (Thứ 2, Thứ 3...)..." rows="5"></textarea>
+                                <textarea class="w-full rounded-lg border-slate-300 focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] text-sm p-3" [(ngModel)]="activeLogTasks" placeholder="Ghi chú chi tiết các công việc thực hiện theo từng ngày (Thứ 2, Thứ 3...)..." rows="5"></textarea>
                             </div>
                             <!-- Column 2: Results -->
                             <div class="flex flex-col gap-2">
@@ -159,9 +149,7 @@
                                     Kết quả đạt được
                                     <span class="text-red-600">*</span>
                                 </label>
-                                <textarea class="w-full rounded-lg border-slate-300 focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] text-sm p-3" 
-                                          [(ngModel)]="activeLogResults"
-                                          placeholder="Mô tả kết quả cụ thể, sản phẩm tạo ra..." rows="5"></textarea>
+                                <textarea class="w-full rounded-lg border-slate-300 focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] text-sm p-3" [(ngModel)]="activeLogResults" placeholder="Mô tả kết quả cụ thể, sản phẩm tạo ra..." rows="5"></textarea>
                             </div>
                         </div>
                         <div class="flex flex-col gap-2 mb-6">
@@ -169,9 +157,7 @@
                                 Mức độ hoàn thành (%)
                                 <span class="text-red-600">*</span>
                             </label>
-                            <input type="number" min="0" max="100" class="w-full md:w-1/3 rounded-lg border-slate-300 focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] text-sm p-3" 
-                                      [(ngModel)]="activeCompletion"
-                                      placeholder="Ví dụ: 80">
+                            <input type="number" min="0" max="100" class="w-full md:w-1/3 rounded-lg border-slate-300 focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] text-sm p-3" [(ngModel)]="activeCompletion" placeholder="Ví dụ: 80">
                         </div>
                         <!-- Evidence Upload -->
                         <div class="flex flex-col gap-2">
@@ -183,8 +169,8 @@
                             </div>
                         </div>
                         <!-- Messages -->
-                        
-                        
+
+
 
                         <!-- Actions -->
                         <div class="flex justify-end gap-4 pt-4 border-t border-slate-200">
@@ -223,8 +209,7 @@
                             <p class="text-sm text-slate-500 mt-0.5">{{ log.startDate }} - {{ log.endDate }}</p>
                         </div>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-200 text-slate-500 text-sm">
-                            <span class="material-symbols-outlined text-[16px]">lock</span>
-                            Chưa mở
+                            <span class="material-symbols-outlined text-[16px]">lock</span> Chưa mở
                         </span>
                     </div>
                 </div>

@@ -2,16 +2,14 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 min-w-0">
         <div class="min-w-0">
-            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">Bảng Tổng hợp Điểm Thực tập (TTTN-07)</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">Bảng Tổng hợp Điểm Đồ án Tốt nghiệp (ĐATN-08)</h2>
             <p class="text-slate-600 mt-1">Danh sách tổng hợp điểm và kết quả cuối cùng của sinh viên bạn hướng dẫn.</p>
         </div>
         <div class="flex flex-wrap gap-3 shrink-0">
-            <button (click)="exportTttn07Zip()"
-                    [disabled]="isExportingTttn07 || selectedCampaignId === null || filteredStudents.length === 0"
-                    [title]="selectedCampaignId === null ? 'Vui lòng chọn một đợt thực tập trước khi xuất TTTN-07' : 'Xuất TTTN-07 cho sinh viên trong đợt đang chọn'"
-                    class="flex items-center gap-2 bg-white text-[#00429D] border border-[#00429D] px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                <span class="material-symbols-outlined text-[20px]">{{ isExportingTttn07 ? 'autorenew' : 'folder_zip' }}</span>
-                {{ isExportingTttn07 ? 'Đang xuất...' : 'Xuất TTTN-07 theo đợt' }}
+            <button (click)="exportDatn07Zip()" [disabled]="isExportingDatn07 || selectedCampaignId === null || filteredStudents.length === 0" [title]="selectedCampaignId === null ? 'Vui lòng chọn một đợt ĐATN trước khi xuất ĐATN-08' : 'Xuất ĐATN-08 cho sinh viên trong đợt đang chọn'"
+                class="flex items-center gap-2 bg-white text-[#00429D] border border-[#00429D] px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                <span class="material-symbols-outlined text-[20px]">{{ isExportingDatn07 ? 'autorenew' : 'folder_zip' }}</span>
+                {{ isExportingDatn07 ? 'Đang xuất...' : 'Xuất ĐATN-08 theo đợt' }}
             </button>
             <button (click)="exportExcel()" class="flex items-center gap-2 bg-[#00429D] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors font-medium shadow-sm">
                 <span class="material-symbols-outlined text-[20px]">download</span>
@@ -46,19 +44,14 @@
             <!-- Search Query -->
             <div class="relative w-full min-w-0">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-                <input [(ngModel)]="searchQuery" 
-                       (input)="onFilterChange()" 
-                       class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] transition-shadow" 
-                       placeholder="Tìm kiếm MSSV, tên, lớp..." 
-                       type="text"/>
+                <input [(ngModel)]="searchQuery" (input)="onFilterChange()" class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] transition-shadow" placeholder="Tìm kiếm MSSV, tên, lớp..."
+                    type="text" />
             </div>
 
             <!-- Campaign Selector -->
             <div class="w-full min-w-0">
-                <select [(ngModel)]="selectedCampaignId" 
-                        (change)="onCampaignChange()" 
-                        class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
-                    <option [ngValue]="null">— Tất cả đợt thực tập —</option>
+                <select [(ngModel)]="selectedCampaignId" (change)="onCampaignChange()" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
+                    <option [ngValue]="null">— Tất cả đợt ĐATN —</option>
                     <option *ngFor="let camp of availableCampaigns" [ngValue]="camp.id">
                         {{ camp.name }} (HK{{ camp.semester }} - NH {{ camp.academic_year }})
                     </option>
@@ -67,9 +60,7 @@
 
             <!-- Status Selector -->
             <div class="w-full min-w-0">
-                <select [(ngModel)]="selectedStatus" 
-                        (change)="onFilterChange()" 
-                        class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
+                <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
                     <option value="">— Tất cả kết quả —</option>
                     <option value="Đạt">Đạt</option>
                     <option value="Không đạt">Không đạt</option>
@@ -79,8 +70,7 @@
         </div>
 
         <div class="flex items-center gap-2 text-sm text-slate-500 font-semibold w-full lg:w-auto lg:justify-end whitespace-nowrap">
-            <span class="material-symbols-outlined text-[18px] text-slate-400">groups</span>
-            Tổng cộng: <span class="font-bold text-[#00429D]">{{ totalItems }}</span> sinh viên
+            <span class="material-symbols-outlined text-[18px] text-slate-400">groups</span> Tổng cộng: <span class="font-bold text-[#00429D]">{{ totalItems }}</span> sinh viên
         </div>
     </div>
 
@@ -113,8 +103,8 @@
                             Họ và tên
                         </th>
                         <th class="px-2 py-3 border-r border-slate-200 text-center">Lớp</th>
-                        <th class="px-2 py-3 border-r border-slate-200 text-center bg-blue-50/50 leading-tight">Điểm Chặng 1<br/><span class="text-[10px] font-normal normal-case text-slate-500">(GVHD & DN)</span></th>
-                        <th class="px-2 py-3 border-r border-slate-200 text-center bg-purple-50/50 leading-tight">Điểm Chặng 2<br/><span class="text-[10px] font-normal normal-case text-slate-500">(GVHD & ĐVHD)</span></th>
+                        <th class="px-2 py-3 border-r border-slate-200 text-center bg-blue-50/50 leading-tight">Điểm mốc M1<br/><span class="text-[10px] font-normal normal-case text-slate-500">(GVHD)</span></th>
+                        <th class="px-2 py-3 border-r border-slate-200 text-center bg-purple-50/50 leading-tight">Điểm mốc M2<br/><span class="text-[10px] font-normal normal-case text-slate-500">(GVHD)</span></th>
                         <th class="px-2 py-3 border-r border-slate-200 text-center bg-orange-50/50 leading-tight">Tổng điểm HP<br/><span class="text-[10px] font-normal normal-case text-slate-500">(Hệ số 10)</span></th>
                         <th class="px-2 py-3 text-center">Kết quả</th>
                     </tr>
@@ -136,40 +126,34 @@
                             {{ student.firstName }}
                         </td>
                         <td class="px-2 py-3 border-r border-slate-200 text-slate-600 text-center break-words">{{ student.class }}</td>
-                        
+
                         <!-- Scores -->
                         <td class="px-2 py-3 border-r border-slate-200 text-center font-medium">
-                            <button type="button"
-                                    (click)="goToEvaluation(student, 'STAGE_1')"
-                                    class="inline-flex min-w-14 items-center justify-center rounded border border-transparent px-2 py-1 text-[#00429D] hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                    title="Mở Chặng 1 trong Chấm SV hướng dẫn">
-                                <span *ngIf="student.stage1Score !== null">{{ student.stage1Score | number:'1.1-1' }}</span>
-                                <span *ngIf="student.stage1Score === null" class="text-slate-400">-</span>
+                            <button type="button" (click)="goToEvaluation(student, 'M1')" class="inline-flex min-w-14 items-center justify-center rounded border border-transparent px-2 py-1 text-[#00429D] hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                title="Mở mốc M1 trong Chấm SV hướng dẫn">
+                                <span *ngIf="student.m1Score !== null">{{ student.m1Score | number:'1.1-1' }}</span>
+                                <span *ngIf="student.m1Score === null" class="text-slate-400">-</span>
                             </button>
                         </td>
                         <td class="px-2 py-3 border-r border-slate-200 text-center font-medium">
-                            <button type="button"
-                                    (click)="goToEvaluation(student, 'STAGE_2')"
-                                    class="inline-flex min-w-14 items-center justify-center rounded border border-transparent px-2 py-1 text-[#00429D] hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                    title="Mở Chặng 2 trong Chấm SV hướng dẫn">
-                                <span *ngIf="student.stage2Score !== null">{{ student.stage2Score | number:'1.1-1' }}</span>
-                                <span *ngIf="student.stage2Score === null" class="text-slate-400">-</span>
+                            <button type="button" (click)="goToEvaluation(student, 'M2')" class="inline-flex min-w-14 items-center justify-center rounded border border-transparent px-2 py-1 text-[#00429D] hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                title="Mở mốc M2 trong Chấm SV hướng dẫn">
+                                <span *ngIf="student.m2Score !== null">{{ student.m2Score | number:'1.1-1' }}</span>
+                                <span *ngIf="student.m2Score === null" class="text-slate-400">-</span>
                             </button>
                         </td>
-                        
+
                         <!-- Final Score -->
                         <td class="px-2 py-3 border-r border-slate-200 text-center">
-                            <button type="button"
-                                    (click)="goToEvaluation(student, 'SUMMARY')"
-                                    class="inline-flex min-w-14 items-center justify-center rounded border border-transparent px-2 py-1 hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                    title="Mở tổng hợp điểm chi tiết">
+                            <button type="button" (click)="goToEvaluation(student, 'SUMMARY')" class="inline-flex min-w-14 items-center justify-center rounded border border-transparent px-2 py-1 hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                title="Mở tổng hợp điểm chi tiết">
                                 <span *ngIf="student.totalScore !== null" class="font-bold text-base sm:text-lg" [ngClass]="{'text-green-600': student.totalScore >= 5, 'text-red-600': student.totalScore < 5}">
                                     {{ student.totalScore | number:'1.1-1' }}
                                 </span>
                                 <span *ngIf="student.totalScore === null" class="text-slate-400">-</span>
                             </button>
                         </td>
-                        
+
                         <!-- Status Badge -->
                         <td class="px-2 py-3 text-center">
                             <span class="inline-flex max-w-full items-center justify-center px-2 py-1 rounded-full text-[11px] sm:text-xs font-medium border leading-tight break-words" [ngClass]="getStatusClass(student.status)">
@@ -182,11 +166,7 @@
         </div>
         <!-- Pagination Controls -->
         <div *ngIf="!isLoading && paginatedStudents.length > 0" class="border-t border-slate-200 bg-slate-50">
-            <app-pagination [currentPage]="currentPage" 
-                            [totalItems]="totalItems" 
-                            [pageSize]="pageSize"
-                            itemLabel="sinh viên"
-                            (pageChange)="onPageChange($event)">
+            <app-pagination [currentPage]="currentPage" [totalItems]="totalItems" [pageSize]="pageSize" itemLabel="sinh viên" (pageChange)="onPageChange($event)">
             </app-pagination>
         </div>
     </div>

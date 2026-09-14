@@ -39,8 +39,7 @@ export class UserManagementComponent implements OnInit {
     { value: 'ADMIN', label: 'Quản trị viên (Admin)' },
     { value: 'LDKBM', label: 'Lãnh đạo Khoa/Bộ môn' },
     { value: 'GVHD', label: 'Giáo viên hướng dẫn' },
-    { value: 'STUDENT', label: 'Sinh viên' },
-    { value: 'COMPANY_SUPERVISOR', label: 'Cán bộ hướng dẫn (Doanh nghiệp)' }
+    { value: 'STUDENT', label: 'Sinh viên' }
   ];
 
   searchQuery = '';

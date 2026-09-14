@@ -41,28 +41,28 @@ export class NotificationManagementComponent implements OnInit {
     {
       name: 'Bảo trì hệ thống',
       title: 'Thông báo: Bảo trì hệ thống định kỳ',
-      message: 'Hệ thống Quản lý Thực tập HUCE CMS sẽ tiến hành bảo trì định kỳ vào lúc 23:00 ngày hôm nay để cập nhật tính năng mới. Thời gian bảo trì dự kiến kéo dài 1 tiếng. Vui lòng lưu trữ các nội dung đang làm việc dở dang.',
+      message: 'Hệ thống Quản lý ĐATN HUCE CMS sẽ tiến hành bảo trì định kỳ vào lúc 23:00 ngày hôm nay để cập nhật tính năng mới. Thời gian bảo trì dự kiến kéo dài 1 tiếng. Vui lòng lưu trữ các nội dung đang làm việc dở dang.',
       targetRole: 'ALL',
       icon: 'build'
     },
     {
       name: 'Nhắc nhở nộp Nhật ký tuần',
       title: 'Nhắc nhở: Thực hiện nộp Nhật ký tuần đúng hạn',
-      message: 'Yêu cầu tất cả sinh viên đang thực tập hoàn thành việc ghi nhận và gửi Nhật ký tuần thực tập đúng hạn (trước Chủ Nhật hàng tuần) để Giảng viên hướng dẫn và Doanh nghiệp tiện theo dõi, phê duyệt chặng.',
+      message: 'Yêu cầu tất cả sinh viên đang thực hiện ĐATN hoàn thành việc ghi nhận và gửi Nhật ký tuần thực hiện ĐATN đúng hạn (trước Chủ Nhật hàng tuần) để Giảng viên hướng dẫn tiện theo dõi, phê duyệt.',
       targetRole: 'STUDENT',
       icon: 'event_repeat'
     },
     {
       name: 'Nhắc nhở Cập nhật Điểm số',
-      title: 'Yêu cầu: Cập nhật điểm số đánh giá chặng',
-      message: 'Đề nghị quý Thầy/Cô Giảng viên hướng dẫn và Người hướng dẫn tại Doanh nghiệp truy cập cổng thông tin để cập nhật và phê duyệt điểm số đánh giá thực tập cho các sinh viên được phân công.',
+      title: 'Yêu cầu: Cập nhật điểm số đánh giá mốc M1/M2',
+      message: 'Đề nghị quý Thầy/Cô Giảng viên hướng dẫn truy cập cổng thông tin để cập nhật và phê duyệt điểm số đánh giá ĐATN cho các sinh viên được phân công.',
       targetRole: 'GVHD',
       icon: 'border_color'
     },
     {
       name: 'Thực hiện Khảo sát Phản hồi',
-      title: 'Thông báo: Mở đợt khảo sát phản hồi ý kiến thực tập',
-      message: 'Hệ thống đã mở tính năng Khảo sát phản hồi. Yêu cầu toàn bộ sinh viên đang trong đợt thực tập và người đại diện Doanh nghiệp hoàn thành phiếu đánh giá ý kiến khảo sát để làm cơ sở tổng hợp báo cáo.',
+      title: 'Thông báo: Mở đợt khảo sát phản hồi ý kiến ĐATN',
+      message: 'Hệ thống đã mở tính năng Khảo sát phản hồi (ĐATN-10). Yêu cầu toàn bộ sinh viên đang trong đợt ĐATN hoàn thành phiếu đánh giá ý kiến khảo sát để làm cơ sở tổng hợp báo cáo.',
       targetRole: 'ALL',
       icon: 'rate_review'
     }

@@ -30,7 +30,7 @@ export class FinalReportComponent implements OnInit {
   uploadingFile: UploadingFile | null = null;
 
   isAgreed: boolean = false;
-  canAccess = false; // Status Gate: chỉ mở khi STAGE1_EVALUATED trở lên
+  canAccess = false; // Status Gate: chỉ mở khi M1_EVALUATED trở lên
 
   constructor(private toastService: ToastService, private studentCampaignService: StudentCampaignService,
     private fileService: FileService,
@@ -49,9 +49,9 @@ export class FinalReportComponent implements OnInit {
         const campaigns = Array.isArray(res) ? res : (res.data || res.payload || []);
         if (campaigns.length > 0) {
           this.studentCampaign = campaigns[0];
-          const plans = this.studentCampaign!.internship_plans || [];
+          const plans = this.studentCampaign!.datn_plans || [];
           const planApproved = plans.length > 0 && plans.every((plan: any) =>
-            plan.gvhd_status === 'APPROVED' && plan.company_status === 'APPROVED'
+            plan.gvhd_status === 'APPROVED'
           );
           if (!planApproved) {
             this.canAccess = false;
@@ -207,7 +207,7 @@ export class FinalReportComponent implements OnInit {
           ...this.attachedFiles.filter(file => file.id > 0),
           ...this.unwrapList(res)
         ];
-        this.studentCampaign!.status = 'REPORT_SUBMITTED';
+        this.studentCampaign!.status = 'M2_EVALUATED';
         this.isAgreed = false;
         this.showSuccess('Đã nộp báo cáo tổng kết thành công!');
         this.loadFinalReports();
@@ -220,7 +220,7 @@ export class FinalReportComponent implements OnInit {
   }
 
   hasSubmittedReport(): boolean {
-    const submittedStatuses = ['REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'];
+    const submittedStatuses = ['M2_EVALUATED', 'COMPLETED'];
     return submittedStatuses.includes(this.studentCampaign?.status || '')
       || this.attachedFiles.some(file => file.id > 0);
   }
@@ -260,6 +260,20 @@ export class FinalReportComponent implements OnInit {
     if (!fileUrl) return '#';
     if (/^https?:\/\//i.test(fileUrl)) return fileUrl;
     return `${environment.apiUrl}${fileUrl}`;
+  }
+
+  downloadReport(file: FinalReportResponse): void {
+    if (!file.file_url.startsWith('/uploads/')) {
+      this.toastService.error('Đường dẫn báo cáo không hợp lệ.'); return;
+    }
+    this.fileService.downloadFile(file.file_url).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.download = file.file_name;
+        link.click(); URL.revokeObjectURL(url);
+      },
+      error: () => this.toastService.error('Không thể tải báo cáo.')
+    });
   }
 
   showError(msg: string): void {

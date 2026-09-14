@@ -9,6 +9,7 @@ import { HttpParams } from '@angular/common/http';
  * { code, name, academic_year, semester, description, start_date, end_date }
  */
 export interface CampaignRequest {
+  week_count?: number;
   code?: string;
   name: string;
   academic_year?: string;
@@ -16,16 +17,10 @@ export interface CampaignRequest {
   description?: string;
   start_date: string;  // ISO: "yyyy-MM-ddTHH:mm:ss"
   end_date: string;
-  tttn01_start_date?: string;
-  tttn01_deadline?: string;
-  tttn02_start_date?: string;
-  tttn02_deadline?: string;
-  tttn03_start_date?: string;
-  tttn03_deadline?: string;
-  midterm_start_date?: string;
-  midterm_deadline?: string;
-  tttn06_start_date?: string;
-  tttn06_deadline?: string;
+  m1_start_date?: string;
+  m1_deadline?: string;
+  m2_start_date?: string;
+  m2_deadline?: string;
   grade_deadline?: string;
 }
 
@@ -39,16 +34,10 @@ export interface CampaignTimelinePreviewResponse {
   week_count: number;
   start_date: string;
   end_date: string;
-  tttn01_start_date: string;
-  tttn01_deadline: string;
-  tttn02_start_date: string;
-  tttn02_deadline: string;
-  tttn03_start_date: string;
-  tttn03_deadline: string;
-  midterm_start_date: string;
-  midterm_deadline: string;
-  tttn06_start_date: string;
-  tttn06_deadline: string;
+  m1_start_date: string;
+  m1_deadline: string;
+  m2_start_date: string;
+  m2_deadline: string;
   grade_deadline: string;
 }
 

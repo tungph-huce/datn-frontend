@@ -96,7 +96,6 @@ export class HeaderComponent implements OnInit {
       'LDKBM': 'Lãnh đạo Khoa/BM',
       'GVHD': 'Giảng viên HD',
       'STUDENT': 'Sinh viên',
-      'COMPANY_SUPERVISOR': 'Doanh nghiệp',
     };
     return map[this.currentUser?.role || ''] || this.currentUser?.role || '';
   }

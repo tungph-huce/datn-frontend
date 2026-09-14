@@ -1,266 +1,231 @@
 <!-- Header -->
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-  <div>
-    <h2 class="font-headline-xl text-[24px] font-bold text-slate-800">Danh sách Sinh viên</h2>
-    <p class="font-body-md text-[14px] text-slate-500 mt-1">Quản lý và theo dõi tiến độ sinh viên do bạn hướng dẫn.</p>
-  </div>
+    <div>
+        <h2 class="font-headline-xl text-[24px] font-bold text-slate-800">Danh sách Sinh viên</h2>
+        <p class="font-body-md text-[14px] text-slate-500 mt-1">Quản lý và theo dõi tiến độ sinh viên do bạn hướng dẫn.</p>
+    </div>
 </div>
 
 <!-- Loading -->
 <div *ngIf="isLoading" class="flex justify-center items-center py-20">
-  <div class="flex flex-col items-center gap-3">
-    <span class="material-symbols-outlined animate-spin text-[40px] text-[#00429D]">progress_activity</span>
-    <p class="text-slate-500 text-sm font-medium">Đang tải danh sách...</p>
-  </div>
+    <div class="flex flex-col items-center gap-3">
+        <span class="material-symbols-outlined animate-spin text-[40px] text-[#00429D]">progress_activity</span>
+        <p class="text-slate-500 text-sm font-medium">Đang tải danh sách...</p>
+    </div>
 </div>
 
 <!-- Empty (DB) -->
-<div *ngIf="!isLoading && students.length === 0"
-  class="flex flex-col items-center justify-center py-16 bg-white border border-slate-200 rounded-lg shadow-sm">
-  <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">groups</span>
-  <p class="text-slate-500 font-medium text-lg">Bạn chưa được phân công hướng dẫn sinh viên nào.</p>
+<div *ngIf="!isLoading && students.length === 0" class="flex flex-col items-center justify-center py-16 bg-white border border-slate-200 rounded-lg shadow-sm">
+    <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">groups</span>
+    <p class="text-slate-500 font-medium text-lg">Bạn chưa được phân công hướng dẫn sinh viên nào.</p>
 </div>
 
 <!-- Data Table Section (Same as Admin Table style) -->
 <section *ngIf="!isLoading && students.length > 0" class="flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm">
-  <!-- Filters Header -->
-  <div class="px-5 py-4 border-b border-slate-200 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50 rounded-t-lg">
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 w-full xl:flex-1 xl:max-w-[980px]">
-      <div class="relative w-full">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-        <input [(ngModel)]="searchQuery" (input)="onFilterChange()" class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] transition-shadow" placeholder="Tìm kiếm tên, mã SV, lớp..." type="text"/>
-      </div>
-      <div class="w-full">
-        <select [(ngModel)]="selectedCampaignId" (change)="onFilterChange()" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
-          <option [ngValue]="null">— Tất cả đợt thực tập —</option>
+    <!-- Filters Header -->
+    <div class="px-5 py-4 border-b border-slate-200 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50 rounded-t-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 w-full xl:flex-1 xl:max-w-[980px]">
+            <div class="relative w-full">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                <input [(ngModel)]="searchQuery" (input)="onFilterChange()" class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] transition-shadow" placeholder="Tìm kiếm tên, mã SV, lớp..."
+                    type="text" />
+            </div>
+            <div class="w-full">
+                <select [(ngModel)]="selectedCampaignId" (change)="onFilterChange()" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
+          <option [ngValue]="null">— Tất cả đợt ĐATN —</option>
           <option *ngFor="let camp of campaigns" [ngValue]="camp.id">
             {{ camp.name || camp.code }}
           </option>
         </select>
-      </div>
-      <div class="w-full">
-        <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
+            </div>
+            <div class="w-full">
+                <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
           <option value="">— Tất cả trạng thái —</option>
           <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
         </select>
-      </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 w-full xl:w-auto xl:justify-end">
+            <div class="flex items-center gap-2 text-sm text-slate-500">
+                <span class="material-symbols-outlined text-[18px]">info</span> Tổng: <span class="font-bold text-slate-700">{{ totalItems }}</span> sinh viên
+            </div>
+        </div>
     </div>
-    <div class="flex items-center gap-4 w-full xl:w-auto xl:justify-end">
-      <div class="flex items-center gap-2 text-sm text-slate-500">
-        <span class="material-symbols-outlined text-[18px]">info</span>
-        Tổng: <span class="font-bold text-slate-700">{{ totalItems }}</span> sinh viên
-      </div>
+
+    <!-- Empty search results -->
+    <div *ngIf="paginatedStudents.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
+        <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">group_off</span>
+        <p class="text-slate-500 font-medium text-lg">Không tìm thấy sinh viên nào khớp bộ lọc</p>
     </div>
-  </div>
 
-  <!-- Empty search results -->
-  <div *ngIf="paginatedStudents.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
-    <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">group_off</span>
-    <p class="text-slate-500 font-medium text-lg">Không tìm thấy sinh viên nào khớp bộ lọc</p>
-  </div>
+    <!-- Table -->
+    <app-table *ngIf="paginatedStudents.length > 0" [data]="paginatedStudents" [columns]="columns">
 
-  <!-- Table -->
-  <app-table *ngIf="paginatedStudents.length > 0" 
-             [data]="paginatedStudents" 
-             [columns]="columns">
-             
-    <!-- student_code template -->
-    <ng-template appTableCell="STT" let-sv let-i="index">
-      <span class="text-slate-500">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
-    </ng-template>
+        <!-- student_code template -->
+        <ng-template appTableCell="STT" let-sv let-i="index">
+            <span class="text-slate-500">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
+        </ng-template>
 
-    <!-- student_code template -->
-    <ng-template appTableCell="student_code" let-sv>
-      <span class="font-medium text-[#002d70]">{{ sv.student_code }}</span>
-    </ng-template>
+        <!-- student_code template -->
+        <ng-template appTableCell="student_code" let-sv>
+            <span class="font-medium text-[#002d70]">{{ sv.student_code }}</span>
+        </ng-template>
 
-    <!-- full_name template -->
-    <ng-template appTableCell="full_name" let-sv>
-      <span class="font-medium text-slate-800">{{ sv.full_name }}</span>
-    </ng-template>
+        <!-- full_name template -->
+        <ng-template appTableCell="full_name" let-sv>
+            <span class="font-medium text-slate-800">{{ sv.full_name }}</span>
+        </ng-template>
 
-    <ng-template appTableCell="first_name" let-sv>
-      <span class="font-medium text-slate-700">{{ getStudentFirstName(sv) }}</span>
-    </ng-template>
+        <ng-template appTableCell="first_name" let-sv>
+            <span class="font-medium text-slate-700">{{ getStudentFirstName(sv) }}</span>
+        </ng-template>
 
-    <!-- class_name template -->
-    <ng-template appTableCell="class_name" let-sv>
-      <span class="text-slate-600">{{ sv.class_name || '---' }}</span>
-    </ng-template>
+        <!-- class_name template -->
+        <ng-template appTableCell="class_name" let-sv>
+            <span class="text-slate-600">{{ sv.class_name || '---' }}</span>
+        </ng-template>
 
-    <!-- company template -->
-    <ng-template appTableCell="company" let-sv>
-      <span *ngIf="sv.company_info?.company_name" class="text-slate-800">{{ sv.company_info?.company_name }}</span>
-      <span *ngIf="!sv.company_info?.company_name" class="text-slate-400 italic">Chưa có</span>
-    </ng-template>
+        <!-- thesis template -->
+        <ng-template appTableCell="thesis" let-sv>
+            <span *ngIf="sv.datn_info?.thesis_title" class="text-slate-800">{{ sv.datn_info?.thesis_title }}</span>
+            <span *ngIf="!sv.datn_info?.thesis_title" class="text-slate-400 italic">Chưa khai báo</span>
+        </ng-template>
 
-    <!-- status template -->
-    <ng-template appTableCell="status" let-sv>
-      <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ getStatusBadgeClass(sv.status) }}">
+        <!-- status template -->
+        <ng-template appTableCell="status" let-sv>
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ getStatusBadgeClass(sv.status) }}">
         {{ getStatusLabel(sv.status) }}
       </span>
-    </ng-template>
+        </ng-template>
 
-    <!-- actions template -->
-    <ng-template appTableCell="actions" let-sv>
-      <div class="flex items-center justify-center gap-2 w-full">
-        <!-- Nút Duyệt ĐVHD -->
-        <button *ngIf="sv.status === 'COMPANY_DECLARED' && isCampaignActive(sv.campaign_id)" (click)="openReviewModal(sv)"
-          class="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 font-medium rounded text-[13px] transition-colors border border-amber-200 flex items-center gap-1 mx-auto">
+        <!-- actions template -->
+        <ng-template appTableCell="actions" let-sv>
+            <div class="flex items-center justify-center gap-2 w-full">
+                <!-- Nút Duyệt ĐATN-01 -->
+                <button *ngIf="sv.status === 'DATN_DECLARED' && isCampaignActive(sv.campaign_id)" (click)="openReviewModal(sv)" class="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 font-medium rounded text-[13px] transition-colors border border-amber-200 flex items-center gap-1 mx-auto">
           <span class="material-symbols-outlined text-[16px]">rule</span>
-          Duyệt ĐVHD
+          Duyệt ĐATN-01
         </button>
 
-        <!-- Trạng thái khác hoặc đợt đã đóng -->
-        <button *ngIf="sv.status !== 'COMPANY_DECLARED' || !isCampaignActive(sv.campaign_id)" (click)="openReviewModal(sv)"
-          class="px-3 py-1.5 text-[#00429D] hover:bg-blue-50 font-medium rounded text-[13px] transition-colors flex items-center gap-1 mx-auto">
+                <!-- Trạng thái khác hoặc đợt đã đóng -->
+                <button *ngIf="sv.status !== 'DATN_DECLARED' || !isCampaignActive(sv.campaign_id)" (click)="openReviewModal(sv)" class="px-3 py-1.5 text-[#00429D] hover:bg-blue-50 font-medium rounded text-[13px] transition-colors flex items-center gap-1 mx-auto">
           <span class="material-symbols-outlined text-[16px]">visibility</span>
           Xem chi tiết
         </button>
-      </div>
-    </ng-template>
-  </app-table>
+            </div>
+        </ng-template>
+    </app-table>
 
-  <!-- Pagination -->
-  <app-pagination *ngIf="paginatedStudents.length > 0" 
-                  [currentPage]="currentPage" 
-                  [totalItems]="totalItems" 
-                  [pageSize]="pageSize"
-                  itemLabel="sinh viên"
-                  (pageChange)="onPageChange($event)">
-  </app-pagination>
+    <!-- Pagination -->
+    <app-pagination *ngIf="paginatedStudents.length > 0" [currentPage]="currentPage" [totalItems]="totalItems" [pageSize]="pageSize" itemLabel="sinh viên" (pageChange)="onPageChange($event)">
+    </app-pagination>
 </section>
 
-<!-- Modal Duyệt/Xem ĐVHD -->
-<div *ngIf="showModal && selectedStudent"
-  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-  <div
-    class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
-    <!-- Header -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-      <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-        <span class="material-symbols-outlined text-[#00429D]">domain_verification</span>
-        Thông tin Đơn vị Thực tập
-      </h3>
-      <button (click)="closeModal()"
-        class="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50">
+<!-- Modal Duyệt/Xem Nhiệm vụ ĐATN -->
+<div *ngIf="showModal && selectedStudent" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#00429D]">domain_verification</span> Nhiệm vụ Đồ án tốt nghiệp (ĐATN-01)
+            </h3>
+            <button (click)="closeModal()" class="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50">
         <span class="material-symbols-outlined">close</span>
       </button>
-    </div>
-
-    <!-- Body -->
-    <div class="p-6 overflow-y-auto">
-      <!-- Info Sinh viên -->
-      <div class="flex items-center gap-4 mb-6 p-4 bg-blue-50/50 rounded-lg border border-blue-100">
-        <div class="w-12 h-12 bg-[#00429D] text-white rounded-full flex items-center justify-center text-xl font-bold">
-          {{ selectedStudent.full_name.charAt(0) }}
         </div>
-        <div>
-          <p class="font-bold text-slate-800 text-base">{{ selectedStudent.full_name }} <span class="text-slate-500 font-normal ml-2">({{ selectedStudent.student_code }})</span></p>
-          <p class="text-sm text-slate-600 mt-0.5">Lớp: {{ selectedStudent.class_name }}</p>
-        </div>
-      </div>
 
-      <!-- Tab bar -->
-      <div class="flex border-b border-slate-200 mb-6">
-        <button (click)="activeTab = 'company'" 
-                class="pb-3 px-4 font-bold text-sm transition-colors border-b-2 flex items-center gap-2"
-                [ngClass]="activeTab === 'company' ? 'border-[#00429D] text-[#00429D]' : 'border-transparent text-slate-500 hover:text-slate-700'">
-          <span class="material-symbols-outlined text-[18px]">business</span>
-          Đơn vị thực tập
+        <!-- Body -->
+        <div class="p-6 overflow-y-auto">
+            <!-- Info Sinh viên -->
+            <div class="flex items-center gap-4 mb-6 p-4 bg-blue-50/50 rounded-lg border border-blue-100">
+                <div class="w-12 h-12 bg-[#00429D] text-white rounded-full flex items-center justify-center text-xl font-bold">
+                    {{ selectedStudent.full_name.charAt(0) }}
+                </div>
+                <div>
+                    <p class="font-bold text-slate-800 text-base">{{ selectedStudent.full_name }} <span class="text-slate-500 font-normal ml-2">({{ selectedStudent.student_code }})</span></p>
+                    <p class="text-sm text-slate-600 mt-0.5">Lớp: {{ selectedStudent.class_name }} &nbsp;|&nbsp; GVHD: {{ selectedStudent.gvhd_name || 'Chưa phân công' }}</p>
+                </div>
+            </div>
+
+            <!-- Tab bar -->
+            <div class="flex border-b border-slate-200 mb-6">
+                <button (click)="activeTab = 'company'" class="pb-3 px-4 font-bold text-sm transition-colors border-b-2 flex items-center gap-2" [ngClass]="activeTab === 'company' ? 'border-[#00429D] text-[#00429D]' : 'border-transparent text-slate-500 hover:text-slate-700'">
+          <span class="material-symbols-outlined text-[18px]">assignment</span>
+          Nhiệm vụ ĐATN
         </button>
-        <button (click)="activeTab = 'timeline'" 
-                class="pb-3 px-4 font-bold text-sm transition-colors border-b-2 flex items-center gap-2"
-                [ngClass]="activeTab === 'timeline' ? 'border-[#00429D] text-[#00429D]' : 'border-transparent text-slate-500 hover:text-slate-700'">
+                <button (click)="activeTab = 'timeline'" class="pb-3 px-4 font-bold text-sm transition-colors border-b-2 flex items-center gap-2" [ngClass]="activeTab === 'timeline' ? 'border-[#00429D] text-[#00429D]' : 'border-transparent text-slate-500 hover:text-slate-700'">
           <span class="material-symbols-outlined text-[18px]">route</span>
           Lộ trình & Tiến độ
         </button>
-      </div>
+            </div>
 
-      <!-- Tab Content 1: Company Info -->
-      <div *ngIf="activeTab === 'company'">
-        <div *ngIf="!selectedStudent.company_info?.company_name" class="text-center py-8 text-slate-500">
-          Sinh viên chưa cập nhật thông tin Đơn vị thực tập.
-        </div>
+            <!-- Tab Content 1: Nhiệm vụ ĐATN -->
+            <div *ngIf="activeTab === 'company'">
+                <div *ngIf="!selectedStudent.datn_info?.thesis_title" class="text-center py-8 text-slate-500">
+                    Sinh viên chưa kê khai Nhiệm vụ ĐATN.
+                </div>
 
-        <div *ngIf="selectedStudent.company_info?.company_name" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="col-span-2">
-              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Tên Doanh nghiệp / Đơn vị</p>
-              <p class="font-medium text-slate-800 text-[15px]">{{ selectedStudent.company_info?.company_name }}</p>
+                <div *ngIf="selectedStudent.datn_info?.thesis_title" class="space-y-6">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Tên đề tài ĐATN</p>
+                        <p class="font-medium text-slate-800 text-[15px]">{{ selectedStudent.datn_info?.thesis_title }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Mục tiêu và yêu cầu</p>
+                        <p class="font-medium text-slate-800 text-[14px] whitespace-pre-line">{{ selectedStudent.datn_info?.objectives || '---' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Phạm vi, nội dung và sản phẩm</p>
+                        <p class="font-medium text-slate-800 text-[14px] whitespace-pre-line">{{ selectedStudent.datn_info?.scope || '---' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Sản phẩm dự kiến</p>
+                        <p class="font-medium text-slate-800 text-[14px] whitespace-pre-line">{{ selectedStudent.datn_info?.deliverables || '---' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Dữ liệu đầu vào, giả thiết, tiêu chuẩn, phần mềm</p>
+                        <p class="font-medium text-slate-800 text-[14px] whitespace-pre-line">{{ selectedStudent.datn_info?.inputs || '---' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Kết quả dự kiến & kế hoạch mốc M1, M2</p>
+                        <p class="font-medium text-slate-800 text-[14px] whitespace-pre-line">{{ selectedStudent.datn_info?.expected_results || '---' }}</p>
+                    </div>
+                </div>
             </div>
-            <div>
-              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Mã số thuế</p>
-              <p class="font-medium text-slate-800 text-[14px]">{{ selectedStudent.company_info?.tax_code || '---' }}</p>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Địa chỉ</p>
-              <p class="font-medium text-slate-800 text-[14px]">{{ selectedStudent.company_info?.address || '---' }}</p>
-            </div>
-          </div>
 
-          <div class="border-t border-slate-100 pt-5">
-            <h4 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
-              <span class="material-symbols-outlined text-slate-400 text-[18px]">person</span>
-              Người hướng dẫn trực tiếp (CBHD)
-            </h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Họ và tên</p>
-                <p class="font-medium text-slate-800 text-[14px]">{{ selectedStudent.company_info?.supervisor_name }}</p>
-              </div>
-              <div>
-                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Chức vụ / Định hướng</p>
-                <p class="font-medium text-slate-800 text-[14px]">{{ selectedStudent.company_info?.expected_domain || '---' }}</p>
-              </div>
-              <div>
-                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Số điện thoại</p>
-                <p class="font-medium text-slate-800 text-[14px]">{{ selectedStudent.company_info?.supervisor_phone || '---' }}</p>
-              </div>
-              <div>
-                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Email</p>
-                <p class="font-medium text-slate-800 text-[14px]">{{ selectedStudent.company_info?.supervisor_email || '---' }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+            <!-- Tab Content 2: Milestone & Timeline Progress Stepper -->
+            <div *ngIf="activeTab === 'timeline'">
+                <div *ngIf="isLoadingTimeline" class="flex justify-center items-center py-12">
+                    <span class="material-symbols-outlined animate-spin text-[30px] text-[#00429D]">progress_activity</span>
+                </div>
 
-      <!-- Tab Content 2: Milestone & Timeline Progress Stepper -->
-      <div *ngIf="activeTab === 'timeline'">
-        <div *ngIf="isLoadingTimeline" class="flex justify-center items-center py-12">
-          <span class="material-symbols-outlined animate-spin text-[30px] text-[#00429D]">progress_activity</span>
-        </div>
+                <div *ngIf="!isLoadingTimeline" class="space-y-6">
+                    <!-- Calendar Progress Bar -->
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
+                                <span class="material-symbols-outlined text-[18px]">timeline</span> Tiến trình thời gian thực hiện ĐATN
+                            </h4>
+                            <span class="text-sm font-bold text-[#00429D]">{{ progressPercent | number:'1.0-0' }}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                            <div class="bg-[#00429D] h-2 rounded-full transition-all duration-1000" [style.width]="progressPercent + '%'"></div>
+                        </div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mt-1 font-medium">
+                            <span>Bắt đầu</span>
+                            <span>Tuần {{ currentWeek }}/{{ totalWeeks }}</span>
+                            <span>Kết thúc</span>
+                        </div>
+                    </div>
 
-        <div *ngIf="!isLoadingTimeline" class="space-y-6">
-          <!-- Calendar Progress Bar -->
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-            <div class="flex justify-between items-center mb-2">
-              <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
-                <span class="material-symbols-outlined text-[18px]">timeline</span>
-                Tiến trình thời gian thực tập
-              </h4>
-              <span class="text-sm font-bold text-[#00429D]">{{ progressPercent | number:'1.0-0' }}%</span>
-            </div>
-            <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-              <div class="bg-[#00429D] h-2 rounded-full transition-all duration-1000" [style.width]="progressPercent + '%'"></div>
-            </div>
-            <div class="flex justify-between text-[11px] text-slate-400 mt-1 font-medium">
-              <span>Bắt đầu</span>
-              <span>Tuần {{ currentWeek }}/{{ totalWeeks }}</span>
-              <span>Kết thúc</span>
-            </div>
-          </div>
+                    <!-- Stepper Checklist -->
+                    <div class="milestone-stepper">
+                        <div *ngFor="let m of milestones" class="milestone-item" [ngClass]="m.state">
+                            <div class="milestone-indicator">
+                                <span class="material-symbols-outlined text-white text-[10px]" *ngIf="m.state === 'COMPLETED'">check</span>
+                            </div>
 
-          <!-- Stepper Checklist -->
-          <div class="milestone-stepper">
-            <div *ngFor="let m of milestones" class="milestone-item" [ngClass]="m.state">
-              <div class="milestone-indicator">
-                <span class="material-symbols-outlined text-white text-[10px]" *ngIf="m.state === 'COMPLETED'">check</span>
-              </div>
-              
-              <div class="milestone-card border rounded-xl p-4 bg-white flex items-center justify-between gap-4"
-                   [ngClass]="{
+                            <div class="milestone-card border rounded-xl p-4 bg-white flex items-center justify-between gap-4" [ngClass]="{
                      'border-green-200 bg-green-50/20': m.state === 'COMPLETED',
                      'border-blue-200 bg-blue-50/10': m.state === 'IN_PROGRESS',
                      'border-amber-200 bg-amber-50/20': m.state === 'PENDING',
@@ -268,10 +233,9 @@
                      'border-slate-100 bg-slate-50/30': m.state === 'UPCOMING',
                      'border-slate-100 locked-card bg-slate-50/50 opacity-60': m.state === 'LOCKED'
                    }">
-                <div class="flex-1 space-y-1">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                          [ngClass]="{
+                                <div class="flex-1 space-y-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" [ngClass]="{
                             'bg-green-100 text-green-700': m.state === 'COMPLETED',
                             'bg-blue-100 text-blue-700': m.state === 'IN_PROGRESS',
                             'bg-amber-100 text-amber-700': m.state === 'PENDING',
@@ -281,16 +245,14 @@
                           }">
                       {{ m.code }}
                     </span>
-                    <h4 class="font-bold text-slate-800 text-[13px]">{{ m.title }}</h4>
-                  </div>
-                  <p class="text-xs text-slate-500">{{ m.description }}</p>
-                  <div class="flex items-center gap-4 text-[11px] font-semibold mt-2">
-                    <span class="text-slate-600 flex items-center gap-1">
-                      <span class="material-symbols-outlined text-sm">calendar_month</span>
-                      Thời hạn: {{ m.dateLabel }}
-                    </span>
-                    <span *ngIf="m.stateLabel" 
-                          [ngClass]="{
+                                        <h4 class="font-bold text-slate-800 text-[13px]">{{ m.title }}</h4>
+                                    </div>
+                                    <p class="text-xs text-slate-500">{{ m.description }}</p>
+                                    <div class="flex items-center gap-4 text-[11px] font-semibold mt-2">
+                                        <span class="text-slate-600 flex items-center gap-1">
+                      <span class="material-symbols-outlined text-sm">calendar_month</span> Thời hạn: {{ m.dateLabel }}
+                                        </span>
+                                        <span *ngIf="m.stateLabel" [ngClass]="{
                             'text-green-600': m.state === 'COMPLETED',
                             'text-blue-600': m.state === 'IN_PROGRESS',
                             'text-amber-600': m.state === 'PENDING',
@@ -299,35 +261,32 @@
                           }">
                       • {{ m.stateLabel }}
                     </span>
-                  </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Footer -->
-    <div class="border-t border-slate-100 px-6 py-4 bg-slate-50 flex justify-between items-center rounded-b-xl">
-      <div class="flex-1">
-        <div *ngIf="!isCampaignActive(selectedStudent.campaign_id)" class="text-red-500 font-medium text-sm flex items-center gap-1">
-          <span class="material-symbols-outlined text-[16px]">lock</span>
-          Đợt thực tập đã kết thúc, bạn chỉ có thể xem dữ liệu.
-        </div>
-      </div>
-      <div class="flex gap-3">
-        <button (click)="closeModal()"
-          class="px-5 py-2 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-sm">
+        <!-- Footer -->
+        <div class="border-t border-slate-100 px-6 py-4 bg-slate-50 flex justify-between items-center rounded-b-xl">
+            <div class="flex-1">
+                <div *ngIf="!isCampaignActive(selectedStudent.campaign_id)" class="text-red-500 font-medium text-sm flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">lock</span> Đợt ĐATN đã kết thúc, bạn chỉ có thể xem dữ liệu.
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button (click)="closeModal()" class="px-5 py-2 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors text-sm">
           Đóng
         </button>
-        <button *ngIf="selectedStudent.status === 'COMPANY_DECLARED' && isCampaignActive(selectedStudent.campaign_id)" (click)="approveCompany()" [disabled]="isApproving"
-          class="px-5 py-2 bg-[#00429D] text-white font-medium rounded-lg hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 text-sm flex items-center gap-2">
+                <button *ngIf="selectedStudent.status === 'DATN_DECLARED' && isCampaignActive(selectedStudent.campaign_id)" (click)="approveDatn()" [disabled]="isApproving" class="px-5 py-2 bg-[#00429D] text-white font-medium rounded-lg hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 text-sm flex items-center gap-2">
           <span *ngIf="isApproving" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
           <span *ngIf="!isApproving" class="material-symbols-outlined text-[18px]">check_circle</span>
-          Phê duyệt ĐVHD
+          Phê duyệt Nhiệm vụ ĐATN
         </button>
-      </div>
+            </div>
+        </div>
     </div>
-  </div>
 </div>

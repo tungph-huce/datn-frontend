@@ -1,477 +1,283 @@
-<div class="max-w-7xl mx-auto space-y-6">
-  <div *ngIf="isLoading" class="p-12 text-center text-gray-500 bg-white rounded-lg shadow-sm border border-slate-200">
-    <span class="material-symbols-outlined animate-spin text-4xl mb-4 text-[#00429D]">autorenew</span>
-    <p>Đang tải dữ liệu...</p>
-  </div>
-
-  <div *ngIf="!isCompanySupervisor && !selectedStudent" class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-    <div class="px-5 py-4 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-      <div>
-        <h2 class="text-2xl font-bold text-slate-800">Chấm điểm</h2>
-        <p class="text-sm text-slate-500 mt-1">Chọn sinh viên cần chấm theo vai trò hướng dẫn hiện tại.</p>
-      </div>
-    </div>
-  </div>
-
-  <div *ngIf="!selectedStudent && !isLoading" class="space-y-6">
-    <div *ngIf="allStudents.length === 0"
-         class="flex flex-col items-center justify-center py-16 bg-white border border-slate-200 rounded-lg shadow-sm">
-      <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">groups</span>
-      <p class="text-slate-500 font-medium text-lg">Không có sinh viên nào cần chấm điểm lúc này.</p>
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">Chấm điểm Đồ án tốt nghiệp</h2>
+            <p class="text-sm text-slate-500 mt-1">Đánh giá sinh viên theo các mốc M1 (đầu kỳ) và M2 (giữa kỳ) theo CLO/Rubric.</p>
+        </div>
     </div>
 
-    <section *ngIf="allStudents.length > 0" class="flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm">
-      <div class="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center gap-3 bg-slate-50 rounded-t-lg">
-        <div class="relative w-full md:w-64">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-          <input [(ngModel)]="searchTerm"
-                 (input)="onFilterChange()"
-                 class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]"
-                 placeholder="Tìm tên, mã SV, đơn vị..."
-                 type="text"/>
+    <!-- Filters -->
+    <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6 flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[220px]">
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Tìm kiếm</label>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
+                <input [(ngModel)]="searchTerm" (input)="onFilterChange()" type="text" placeholder="Tìm Mã SV, Tên, Đề tài..." class="w-full pl-8 pr-2.5 py-1.5 text-[13px] border border-slate-300 rounded focus:outline-none focus:border-[#00429D]" />
+            </div>
         </div>
-        <div class="w-full md:w-64">
-          <select [(ngModel)]="selectedCampaignId"
-                  (change)="onFilterChange()"
-                  class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] text-slate-700 focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
-            <option [ngValue]="null">Tất cả đợt thực tập</option>
-            <option *ngFor="let campaign of availableCampaigns" [ngValue]="campaign.id">
-              {{ campaign.name || campaign.code }}
-            </option>
-          </select>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Đợt ĐATN</label>
+            <select [(ngModel)]="selectedCampaignId" (change)="onFilterChange()" class="border border-slate-300 rounded px-3 py-1.5 text-[13px]">
+        <option [ngValue]="null">— Tất cả —</option>
+        <option *ngFor="let c of availableCampaigns" [ngValue]="c.id">{{ c.name }}</option>
+      </select>
         </div>
-        <div class="w-full md:w-56">
-          <select [(ngModel)]="selectedGradingStatus"
-                  (change)="onFilterChange()"
-                  class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] text-slate-700 focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
-            <option value="">Tất cả trạng thái chấm</option>
-            <option value="Chưa chấm">Chưa chấm</option>
-            <option value="DVHD chưa chấm">DVHD chưa chấm</option>
-            <option value="GVHD chưa chấm">GVHD chưa chấm</option>
-            <option value="GVHD chưa chấm C1">GVHD chưa chấm C1</option>
-            <option value="GVHD chưa chấm C2">GVHD chưa chấm C2</option>
-            <option value="Chưa chấm đủ">Chưa chấm đủ</option>
-            <option value="Đã chấm">Đã chấm</option>
-            <option value="Hoàn tất chấm điểm">Hoàn tất chấm điểm</option>
-          </select>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase">Trạng thái chấm</label>
+            <select [(ngModel)]="selectedGradingStatus" (change)="onFilterChange()" class="border border-slate-300 rounded px-3 py-1.5 text-[13px]">
+        <option value="">— Tất cả —</option>
+        <option value="Chưa chấm">Chưa chấm</option>
+        <option value="Đã chấm M1">Đã chấm M1</option>
+        <option value="Đã chấm M2">Đã chấm M2</option>
+        <option value="Hoàn tất chấm điểm">Hoàn tất</option>
+      </select>
         </div>
-      </div>
+    </div>
 
-      <div *ngIf="paginatedStudents.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
-        <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">search_off</span>
-        <p class="text-slate-500 font-medium text-lg">Không tìm thấy sinh viên nào khớp bộ lọc</p>
-      </div>
+    <div *ngIf="isLoading" class="py-16 text-center text-slate-500">Đang tải danh sách sinh viên hướng dẫn...</div>
 
-      <app-table *ngIf="paginatedStudents.length > 0"
-                 [data]="paginatedStudents"
-                 [columns]="columns">
-        <ng-template appTableCell="STT" let-s let-i="index">
-          <span class="text-slate-500">{{ (currentPage - 1) * pageSize + i + 1 }}</span>
-        </ng-template>
-
-        <ng-template appTableCell="student_code" let-s>
-          <span class="font-medium text-[#002d70]">{{ s.student_code }}</span>
-        </ng-template>
-
-        <ng-template appTableCell="full_name" let-s>
-          <span class="font-medium text-slate-800">{{ s.full_name }}</span>
-        </ng-template>
-
-        <ng-template appTableCell="first_name" let-s>
-          <span class="font-semibold text-slate-700">{{ getStudentFirstName(s) || '—' }}</span>
-        </ng-template>
-
-        <ng-template appTableCell="company" let-s>
-          <span class="text-slate-600">{{ s.company_info?.company_name || 'Chưa cập nhật' }}</span>
-        </ng-template>
-
-        <ng-template appTableCell="gradingStatus" let-s>
-          <span *ngIf="$any(s).gradingStatus === 'Đang tải...'" class="text-slate-400 italic text-xs">Đang tải...</span>
-          <span *ngIf="$any(s).gradingStatus === 'Chưa chấm'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
-            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Chưa chấm
-          </span>
-          <span *ngIf="$any(s).gradingStatus === 'DVHD chưa chấm'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-semibold border border-orange-200">
-            <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> DVHD chưa chấm
-          </span>
-          <span *ngIf="$any(s).gradingStatus === 'GVHD chưa chấm' || $any(s).gradingStatus === 'GVHD chưa chấm C1' || $any(s).gradingStatus === 'GVHD chưa chấm C2' || $any(s).gradingStatus === 'Chưa chấm đủ'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-200">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> {{ $any(s).gradingStatus }}
-          </span>
-          <span *ngIf="$any(s).gradingStatus === 'Đã chấm' || $any(s).gradingStatus === 'Hoàn tất chấm điểm'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs font-semibold border border-green-200">
-            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> {{ $any(s).gradingStatus }}
-          </span>
-        </ng-template>
-
-        <ng-template appTableCell="actions" let-s>
-          <div class="flex items-center justify-center w-full">
-            <button (click)="selectStudent(s)"
-                    class="text-sm font-medium bg-blue-50 text-[#00429D] px-3 py-1.5 rounded hover:bg-[#00429D] hover:text-white transition-colors border border-blue-200 shadow-sm">
+    <!-- Student Table -->
+    <div *ngIf="!isLoading" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table class="w-full text-left text-[13px]">
+            <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <tr class="border-b border-slate-200">
+                    <th class="py-3 px-4 text-center w-14">STT</th>
+                    <th class="py-3 px-4">Mã SV</th>
+                    <th class="py-3 px-4">Họ và tên</th>
+                    <th class="py-3 px-4">Đề tài ĐATN</th>
+                    <th class="py-3 px-4">Trạng thái</th>
+                    <th class="py-3 px-4 text-center w-32">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                <tr *ngIf="paginatedStudents.length === 0">
+                    <td colspan="6" class="py-12 text-center text-slate-500">Không có sinh viên hướng dẫn nào.</td>
+                </tr>
+                <tr *ngFor="let s of paginatedStudents; let i = index" class="hover:bg-slate-50">
+                    <td class="py-3 px-4 text-center text-slate-500">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+                    <td class="py-3 px-4 font-mono text-xs">{{ s.student_code }}</td>
+                    <td class="py-3 px-4">
+                        <span class="font-semibold text-slate-900">{{ s.full_name }}</span>
+                    </td>
+                    <td class="py-3 px-4 text-slate-600 max-w-[260px] truncate">{{ s.datn_info?.thesis_title || 'Chưa khai báo' }}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold" [ngClass]="{
+                'bg-slate-100 text-slate-600': $any(s).gradingStatus === 'Chưa chấm',
+                'bg-amber-100 text-amber-700': $any(s).gradingStatus === 'Đã chấm M1' || $any(s).gradingStatus === 'Đã chấm M2',
+                'bg-green-100 text-green-700': $any(s).gradingStatus === 'Hoàn tất chấm điểm'
+              }">
+              {{ $any(s).gradingStatus }}
+            </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <button (click)="selectStudent(s)" class="text-[#00429D] hover:text-blue-800 font-semibold text-[13px] inline-flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">edit_note</span>
               Chấm điểm
             </button>
-          </div>
-        </ng-template>
-      </app-table>
-
-      <app-pagination *ngIf="paginatedStudents.length > 0"
-                      [currentPage]="currentPage"
-                      [totalItems]="totalItems"
-                      [pageSize]="pageSize"
-                      itemLabel="sinh viên"
-                      (pageChange)="onPageChange($event)">
-      </app-pagination>
-    </section>
-  </div>
-
-  <div *ngIf="selectedStudent && !isLoading" class="space-y-6 min-w-0">
-    <div class="flex items-center gap-4">
-      <button (click)="selectedStudent = null"
-              class="w-11 h-11 rounded-full border border-slate-300 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-[#00429D] transition-colors shadow-sm"
-              title="Quay lại danh sách">
-        <span class="material-symbols-outlined">arrow_back</span>
-      </button>
-      <div>
-        <h2 class="text-2xl font-bold text-slate-900">Phiếu đánh giá thực tập tốt nghiệp</h2>
-        <p class="text-slate-600 text-sm mt-0.5">{{ getStageLabel() }} - điểm theo thang 10 và mức đạt 0-4.</p>
-      </div>
-    </div>
-
-    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col xl:flex-row xl:items-center gap-5">
-      <div class="w-16 h-16 bg-[#00429D] text-white rounded-full flex items-center justify-center text-xl font-bold shadow-sm">
-        {{ selectedStudent.full_name.charAt(0) }}
-      </div>
-      <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <p class="text-sm text-slate-500 mb-1">Sinh viên</p>
-          <p class="text-lg font-bold text-slate-900">{{ selectedStudent.full_name }}</p>
-          <p class="text-xs text-slate-500">{{ selectedStudent.student_code }}</p>
-        </div>
-        <div>
-          <p class="text-sm text-slate-500 mb-1">Đơn vị thực tập</p>
-          <p class="text-base font-semibold text-slate-900">{{ selectedStudent.company_info?.company_name || 'Chưa có' }}</p>
-        </div>
-        <div>
-          <p class="text-sm text-slate-500 mb-1">Tiến độ nhập</p>
-          <p class="text-base font-semibold text-[#00429D]">{{ getProgressText() }}</p>
-        </div>
-      </div>
-      <div class="bg-white border-2 border-[#00429D] p-4 rounded-lg text-center min-w-[130px] shadow-sm flex flex-col justify-center items-center">
-        <p class="text-xs font-bold text-[#00429D] uppercase mb-1 text-center">
-          {{ activeTab === 'STAGE_1' ? 'Điểm TB Chặng 1' : activeTab === 'STAGE_2' ? 'Điểm TB Chặng 2' : 'Điểm Học Phần' }}
-        </p>
-        <div class="text-3xl font-black text-[#00429D]">
-          {{ activeTab === 'SUMMARY' ? (getSummaryHpScore() !== null ? (getSummaryHpScore() | number:'1.1-1') : 'Chưa có') : getAverageScoreText() }}
-        </div>
-      </div>
-    </div>
-
-    <div *ngIf="!isCampaignActive" class="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 flex items-start gap-3 shadow-sm">
-      <span class="material-symbols-outlined text-[24px] text-red-600 shrink-0">lock</span>
-      <div>
-        <h4 class="font-bold text-red-900">Đợt thực tập đã kết thúc</h4>
-        <p class="text-sm mt-1">Bạn chỉ có thể xem dữ liệu, không thể chấm hoặc sửa điểm.</p>
-      </div>
-    </div>
-
-    <div *ngIf="selectedStage === 'STAGE_1' && !isStage1Open && isCampaignActive"
-         class="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 flex items-start gap-3 shadow-sm">
-      <span class="material-symbols-outlined text-[24px] text-amber-600 shrink-0">schedule</span>
-      <div>
-        <h4 class="font-bold text-amber-900">Chưa đến thời gian mở chấm Chặng 1</h4>
-        <p class="text-sm mt-1">Chặng 1 sẽ cho phép nhập điểm từ ngày <strong>{{ midtermStartDateStr }}</strong>.</p>
-      </div>
-    </div>
-
-    <div *ngIf="selectedStage === 'STAGE_2' && !isStage2Open && isCampaignActive"
-         class="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 flex items-start gap-3 shadow-sm">
-      <span class="material-symbols-outlined text-[24px] text-amber-600 shrink-0">schedule</span>
-      <div>
-        <h4 class="font-bold text-amber-900">Chưa đến thời gian mở chấm Chặng 2</h4>
-        <p class="text-sm mt-1">Chặng 2 sẽ cho phép nhập điểm từ ngày <strong>{{ tttn06StartDateStr }}</strong>.</p>
-      </div>
-    </div>
-
-    <div *ngIf="selectedStage === 'STAGE_2' && isStage2Open && !isStage1FullyLocked() && isCampaignActive"
-         class="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 flex items-start gap-3 shadow-sm">
-      <span class="material-symbols-outlined text-[24px] text-amber-600 shrink-0">lock_clock</span>
-      <div>
-        <h4 class="font-bold text-amber-900">Chưa khóa điểm Chặng 1</h4>
-        <p class="text-sm mt-1">Cần khóa đầy đủ điểm Chặng 1 trước khi nhập hoặc cập nhật điểm Chặng 2.</p>
-      </div>
-    </div>
-
-    <section class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden min-w-0">
-      <div class="p-5 border-b border-slate-200 bg-slate-50 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <h3 class="text-lg font-semibold text-slate-900 uppercase">{{ getActiveTabTitle() }}</h3>
-          <p class="text-sm text-slate-600 mt-1">{{ getActiveTabSubtitle() }}</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-2 bg-white p-1.5 rounded-lg border border-slate-200 shadow-inner">
-            <button type="button"
-                    (click)="onStageChange('STAGE_1')"
-                    [class]="activeTab === 'STAGE_1' ? 'bg-[#00429D] text-white px-3 py-1.5 rounded-md font-medium text-sm shadow-sm' : 'text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-md text-sm'">
-              Chặng 1
-            </button>
-            <button type="button"
-                    (click)="onStageChange('STAGE_2')"
-                    [class]="activeTab === 'STAGE_2' ? 'bg-[#00429D] text-white px-3 py-1.5 rounded-md font-medium text-sm shadow-sm' : 'text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-md text-sm'">
-              Chặng 2
-            </button>
-            <button type="button"
-                    (click)="onSummaryTab()"
-                    [class]="activeTab === 'SUMMARY' ? 'bg-[#00429D] text-white px-3 py-1.5 rounded-md font-medium text-sm shadow-sm' : 'text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-md text-sm'">
-              Tổng hợp điểm
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="activeTab === 'SUMMARY'" class="p-4 md:p-6 space-y-5 min-w-0">
-        <div *ngIf="isSummaryLoading" class="py-10 text-center text-slate-500">
-          <span class="material-symbols-outlined animate-spin text-4xl mb-3 text-[#00429D]">autorenew</span>
-          <p class="font-medium">Đang tổng hợp điểm...</p>
-        </div>
-
-        <ng-container *ngIf="!isSummaryLoading">
-          <div class="text-sm text-slate-700">
-            <span class="font-bold text-slate-900">{{ selectedStudent.full_name }}</span>
-            <span class="mx-2 text-slate-300">|</span>
-            <span class="font-mono">{{ selectedStudent.student_code }}</span>
-          </div>
-
-          <div class="w-full max-w-full overflow-x-auto border border-slate-200 rounded">
-            <table class="w-full min-w-[860px] table-fixed text-xs border-collapse">
-              <colgroup>
-                <col class="w-[4%]">
-                <col class="w-[6%]">
-                <col class="w-[22%]">
-                <col class="w-[9%]">
-                <col class="w-[7%]">
-                <col class="w-[5%]">
-                <col class="w-[7%]">
-                <col class="w-[5%]">
-                <col class="w-[9%]">
-                <col class="w-[12%]">
-                <col class="w-[13%]">
-              </colgroup>
-              <thead class="text-slate-700">
-                <tr>
-                  <th rowspan="2" class="px-2 py-2 border border-slate-200 bg-slate-100 text-center">STT</th>
-                  <th rowspan="2" class="px-2 py-2 border border-slate-200 bg-slate-100 text-center">CLO</th>
-                  <th rowspan="2" class="px-3 py-2 border border-slate-200 bg-slate-100 text-center">Mô tả năng lực</th>
-                  <th rowspan="2" class="px-2 py-2 border border-slate-200 bg-slate-100 text-center">Trọng số HP<br>(alpha_i)</th>
-                  <th colspan="2" class="px-2 py-2 border border-slate-200 bg-emerald-50 text-emerald-900 text-center">Điểm Chặng 1 ({{ departmentStage1Weight }}%)</th>
-                  <th colspan="2" class="px-2 py-2 border border-slate-200 bg-orange-50 text-orange-900 text-center">Điểm Chặng 2 ({{ departmentStage2Weight }}%)</th>
-                  <th rowspan="2" class="px-2 py-2 border border-slate-200 bg-blue-50 text-blue-900 text-center">Điểm CLOi</th>
-                  <th rowspan="2" class="px-2 py-2 border border-slate-200 bg-blue-50 text-blue-900 text-center">Mức đạt</th>
-                  <th rowspan="2" class="px-2 py-2 border border-slate-200 bg-blue-50 text-blue-900 text-center">Đóng góp<br>(CLOi*ai)</th>
+                    </td>
                 </tr>
-                <tr>
-                  <th class="px-2 py-2 border border-slate-200 bg-emerald-50/70 text-emerald-900 text-center">TB C1</th>
-                  <th class="px-2 py-2 border border-slate-200 bg-emerald-50/70 text-emerald-900 text-center">W1</th>
-                  <th class="px-2 py-2 border border-slate-200 bg-orange-50/70 text-orange-900 text-center">TB C2</th>
-                  <th class="px-2 py-2 border border-slate-200 bg-orange-50/70 text-orange-900 text-center">W2</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let row of summaryRows; let i = index"
-                    class="odd:bg-white even:bg-slate-50 hover:bg-slate-100/70">
-                  <td class="px-2 py-2 border border-slate-200 text-center font-semibold text-slate-800">{{ i + 1 }}</td>
-                  <td class="px-2 py-2 border border-slate-200 text-center font-bold text-slate-900">{{ row.criterion.id }}</td>
-                  <td class="px-3 py-2 border border-slate-200 text-slate-800 leading-snug break-words">{{ row.criterion.description }}</td>
-                  <td class="px-2 py-2 border border-slate-200 text-center font-semibold">{{ row.criterion.alphaWeight }}%</td>
-                  <td class="px-2 py-2 border border-slate-200 text-center bg-emerald-50/50">{{ formatSummaryScore(row.stage1Average) }}</td>
-                  <td class="px-2 py-2 border border-slate-200 text-center bg-emerald-50/30">{{ row.criterion.stage1Weight }}%</td>
-                  <td class="px-2 py-2 border border-slate-200 text-center bg-orange-50/50">{{ formatSummaryScore(row.stage2Average) }}</td>
-                  <td class="px-2 py-2 border border-slate-200 text-center bg-orange-50/30">{{ row.criterion.stage2Weight }}%</td>
-                  <td class="px-2 py-2 border border-slate-200 text-center bg-blue-50/50 text-base font-bold text-slate-900">{{ formatSummaryScore(row.cloScore) }}</td>
-                  <td class="px-2 py-2 border border-slate-200 text-center bg-blue-50/30">{{ getScoreLevelName(row.cloScore) }}</td>
-                  <td class="px-2 py-2 border border-slate-200 text-center bg-blue-50/30">{{ formatSummaryContribution(row.contribution) }}</td>
-                </tr>
-                <tr *ngIf="summaryRows.length === 0">
-                  <td colspan="11" class="px-4 py-8 border border-slate-200 text-center text-slate-500">
-                    Chưa có dữ liệu CLO để tổng hợp điểm.
-                  </td>
-                </tr>
-                <tr class="bg-blue-50 text-slate-900 border-t-2 border-blue-200">
-                  <td colspan="8" class="px-2 py-3 border border-slate-200 text-center text-base font-bold">
-                    ĐIỂM HỌC PHẦN (HP = Sum CLOi * alpha_i)
-                  </td>
-                  <td class="px-2 py-3 border border-slate-200 text-center text-xl font-bold">
-                    {{ getSummaryHpScore() !== null ? (getSummaryHpScore() | number:'1.1-1') : '-' }}
-                  </td>
-                  <td colspan="2" class="px-2 py-3 border border-slate-200"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </ng-container>
-      </div>
-
-      <div *ngIf="activeTab !== 'SUMMARY' && visibleCriteria.length === 0" class="p-14 text-center text-slate-500">
-        <span class="material-symbols-outlined text-5xl mb-4 text-slate-300">inventory_2</span>
-        <p class="text-lg font-semibold">{{ getNoVisibleCriteriaMessage() }}</p>
-      </div>
-
-      <div *ngIf="activeTab !== 'SUMMARY' && visibleCriteria.length > 0" class="overflow-x-auto">
-        <table class="w-full min-w-[980px] table-fixed text-left text-sm border-collapse">
-          <colgroup>
-            <col class="w-12">
-            <col class="w-16">
-            <col>
-            <col class="w-20">
-            <col class="w-20">
-            <col class="w-16">
-            <col class="w-16">
-            <col class="w-24">
-            <col class="w-24">
-            <col class="w-44">
-          </colgroup>
-          <thead class="text-white">
-            <tr class="bg-[#00429D]">
-              <th rowspan="2" class="px-2 py-3 border-r border-blue-300/40 text-center">STT</th>
-              <th rowspan="2" class="px-2 py-3 border-r border-blue-300/40 text-center">CLO</th>
-              <th rowspan="2" class="px-3 py-3 border-r border-blue-300/40">Mô tả năng lực</th>
-              <th colspan="4" class="px-2 py-3 border-r border-blue-300/40 text-center">Đánh giá (Thang điểm 10)</th>
-              <th rowspan="2" class="px-2 py-3 border-r border-blue-300/40 text-center leading-tight">{{ getStageAverageTitle() }}</th>
-              <th rowspan="2" class="px-2 py-3 border-r border-blue-300/40 text-center">Mức đạt</th>
-              <th rowspan="2" class="px-3 py-3 text-left">Ghi chú / Nhận xét</th>
-            </tr>
-            <tr class="bg-[#00347c]">
-              <th class="px-2 py-2 border-r border-blue-300/40 text-center leading-tight">Điểm ĐVHD</th>
-              <th class="px-2 py-2 border-r border-blue-300/40 text-center leading-tight">Điểm GVHD</th>
-              <th class="px-1.5 py-2 border-r border-blue-300/40 text-center leading-tight">TS ĐVHD (%)</th>
-              <th class="px-1.5 py-2 border-r border-blue-300/40 text-center leading-tight">TS GVHD (%)</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-200">
-            <tr *ngFor="let criterion of visibleCriteria; let i = index; trackBy: trackCriterion" class="align-top odd:bg-white even:bg-slate-50 hover:bg-blue-50/40">
-              <td class="px-2 py-3 border-r border-slate-200 text-center font-semibold text-slate-700">{{ i + 1 }}</td>
-              <td class="px-2 py-3 border-r border-slate-200 text-center">
-                <span class="inline-flex items-center justify-center px-2 py-1 rounded bg-blue-50 text-[#00429D] text-xs font-bold border border-blue-200">
-                  {{ criterion.id }}
-                </span>
-              </td>
-              <td class="px-3 py-3 border-r border-slate-200">
-                <p class="font-semibold text-slate-900">{{ criterion.description || 'Chưa có mô tả tiêu chí.' }}</p>
-                <p class="text-xs text-slate-500 mt-1">Alpha HP: {{ criterion.alphaWeight }}% | Trọng số chặng: {{ getStageWeight(criterion) }}%</p>
-              </td>
-              <td class="px-2 py-3 border-r border-slate-200 bg-amber-50/60">
-                <ng-container *ngIf="isCurrentEvaluatorColumn('COMPANY_SUPERVISOR', criterion); else readonlyCompanyScore">
-                  <input type="number"
-                         min="0"
-                         max="10"
-                         step="0.1"
-                         [(ngModel)]="criterion.selectedScore"
-                         (blur)="normalizeScore(criterion)"
-                         [disabled]="isScoringLocked()"
-                         [ngClass]="getScoreInputClass(criterion)"
-                         class="w-full px-1.5 py-1.5 text-center text-sm font-bold border rounded focus:outline-none focus:ring-1 disabled:bg-slate-100 disabled:text-slate-400"/>
-                </ng-container>
-                <ng-template #readonlyCompanyScore>
-                  <div class="min-h-[36px] flex items-center justify-center text-center text-sm font-semibold text-slate-700">
-                    {{ getCompanyScoreText(criterion) }}
-                  </div>
-                </ng-template>
-              </td>
-              <td class="px-2 py-3 border-r border-slate-200 bg-amber-50/60">
-                <ng-container *ngIf="isCurrentEvaluatorColumn('GVHD', criterion); else readonlyGvhdScore">
-                  <input type="number"
-                         min="0"
-                         max="10"
-                         step="0.1"
-                         [(ngModel)]="criterion.selectedScore"
-                         (blur)="normalizeScore(criterion)"
-                         [disabled]="isScoringLocked()"
-                         [ngClass]="getScoreInputClass(criterion)"
-                         class="w-full px-1.5 py-1.5 text-center text-sm font-bold border rounded focus:outline-none focus:ring-1 disabled:bg-slate-100 disabled:text-slate-400"/>
-                </ng-container>
-                <ng-template #readonlyGvhdScore>
-                  <div class="min-h-[36px] flex items-center justify-center text-center text-sm font-semibold text-slate-700">
-                    {{ getGvhdScoreText(criterion) }}
-                  </div>
-                </ng-template>
-              </td>
-              <td class="px-1.5 py-3 border-r border-slate-200 text-center text-slate-700">
-                {{ criterion.companyBeta | number:'1.0-0' }}%
-              </td>
-              <td class="px-1.5 py-3 border-r border-slate-200 text-center text-slate-700">
-                {{ criterion.gvhdBeta | number:'1.0-0' }}%
-              </td>
-              <td class="px-2 py-3 border-r border-slate-200 text-center bg-blue-50/70">
-                <span class="font-black text-[#00429D]">{{ getStageAverageScoreText(criterion) }}</span>
-              </td>
-              <td class="px-2 py-3 border-r border-slate-200 text-center bg-blue-50/70">
-                <span class="inline-flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-md text-xs font-bold border leading-tight"
-                      [ngClass]="getStageResultBadgeClass(criterion)">
-                  <span>{{ getScoreLevelName(getStageAverageScore(criterion)) }}</span>
-                  <span class="text-[10px] font-semibold">{{ getScoreLevelRange(getStageAverageScore(criterion)) }}</span>
-                </span>
-              </td>
-              <td class="px-3 py-3">
-                <textarea [(ngModel)]="criterion.comment"
-                          [disabled]="isScoringLocked() || !canCurrentEvaluatorScore(criterion)"
-                          maxlength="500"
-                          placeholder="Nhận xét theo CLO..."
-                          class="w-full min-h-[64px] px-2.5 py-2 border border-slate-300 rounded text-sm leading-relaxed focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] disabled:bg-slate-100 disabled:text-slate-400 resize-y"></textarea>
-                <p class="mt-1 text-[11px] text-slate-400">{{ (criterion.comment || '').length }}/500</p>
-              </td>
-            </tr>
-            <tr class="bg-[#00429D] text-white font-semibold">
-              <td colspan="7" class="px-4 py-3 border-r border-blue-300/40 text-right">
-                ĐIỂM TRUNG BÌNH {{ selectedStage === 'STAGE_1' ? 'CHẶNG 1' : 'CHẶNG 2' }} (chưa có trọng số HP)
-              </td>
-              <td class="px-3 py-3 border-r border-blue-300/40 text-center text-lg font-black whitespace-nowrap">{{ getAverageScoreText() }}</td>
-              <td colspan="2" class="px-4 py-3"></td>
-            </tr>
-          </tbody>
+            </tbody>
         </table>
-      </div>
-
-      <div *ngIf="activeTab !== 'SUMMARY'" class="p-5 border-t border-slate-200 bg-slate-50 space-y-3">
-        <label class="block text-sm font-semibold text-slate-700">Nhận xét chung</label>
-        <textarea [(ngModel)]="generalComment"
-                  [disabled]="isScoringLocked()"
-                  [placeholder]="getCommentPlaceholder()"
-                  class="w-full min-h-[96px] px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] disabled:bg-slate-100 disabled:text-slate-400"></textarea>
-      </div>
-    </section>
-
-    <div *ngIf="activeTab !== 'SUMMARY'" class="flex justify-end gap-4 pb-10">
-      <button (click)="selectedStudent = null"
-              class="px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors">
-        Hủy bỏ
-      </button>
-      <button *ngIf="activeTab === 'STAGE_1'"
-              (click)="exportStage1Tttn04()"
-              [disabled]="!canExportTttn04"
-              title="Xuất phiếu đánh giá tổng kết giữa kỳ TTTN-04"
-              class="px-6 py-2.5 bg-white text-[#00429D] font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-        <span *ngIf="isExportingTttn04" class="material-symbols-outlined animate-spin text-[20px]">autorenew</span>
-        <span *ngIf="!isExportingTttn04" class="material-symbols-outlined text-[20px]">download</span>
-        Xuất TTTN-04
-      </button>
-      <button *ngIf="activeTab === 'STAGE_2'"
-              (click)="exportStage2Tttn05()"
-              [disabled]="!canExportTttn05"
-              title="Xuất phiếu đánh giá tổng kết cuối kỳ TTTN-05"
-              class="px-6 py-2.5 bg-white text-[#00429D] font-semibold rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-        <span *ngIf="isExportingTttn05" class="material-symbols-outlined animate-spin text-[20px]">autorenew</span>
-        <span *ngIf="!isExportingTttn05" class="material-symbols-outlined text-[20px]">download</span>
-        Xuất TTTN-05
-      </button>
-      <button (click)="submitEvaluation()"
-              [disabled]="!canSubmit"
-              class="px-8 py-2.5 bg-[#00429D] text-white font-semibold rounded-lg hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-        <span *ngIf="isSaving" class="material-symbols-outlined animate-spin text-[20px]">autorenew</span>
-        <span *ngIf="!isSaving" class="material-symbols-outlined text-[20px]">save</span>
-        Lưu điểm
-      </button>
-      <button (click)="lockCurrentStage()"
-              [disabled]="!canLockCurrentStage"
-              class="px-6 py-2.5 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
-        <span class="material-symbols-outlined text-[20px]">lock</span>
-        Khóa điểm chặng {{ selectedStage === 'STAGE_1' ? '1' : '2' }}
-      </button>
+        <div class="px-4 py-3 border-t border-slate-100 flex justify-between items-center">
+            <span class="text-xs text-slate-500">Tổng: {{ totalItems }} sinh viên</span>
+            <app-pagination *ngIf="paginatedStudents.length > 0" [currentPage]="currentPage" [totalItems]="totalItems" [pageSize]="pageSize" itemLabel="sinh viên" (pageChange)="onPageChange($event)"></app-pagination>
+        </div>
     </div>
-  </div>
+
+    <!-- Detail Modal -->
+    <div *ngIf="selectedStudent" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-lg">{{ selectedStudent.full_name }} <span class="text-slate-500 font-normal text-sm">({{ selectedStudent.student_code }})</span></h3>
+                    <p class="text-slate-600 text-sm mt-0.5">{{ getStageLabel() }} - điểm theo thang 10 và mức đạt 0-4.</p>
+                </div>
+                <button (click)="closeStudent()" class="text-slate-400 hover:text-red-500 p-1 rounded-lg hover:bg-red-50">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+            </div>
+
+            <!-- Student info + progress -->
+            <div class="px-6 py-4 border-b border-slate-100 bg-blue-50/40 flex flex-wrap items-center gap-4">
+                <div class="w-11 h-11 bg-[#00429D] text-white rounded-full flex items-center justify-center text-lg font-bold">
+                    {{ selectedStudent.full_name.charAt(0) }}
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm text-slate-700"><b>Đề tài:</b> {{ selectedStudent.datn_info?.thesis_title || 'Chưa khai báo' }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5">GVHD: {{ selectedStudent.gvhd_name || 'Bạn' }} &nbsp;•&nbsp; {{ getProgressText() }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-base font-semibold text-[#00429D]">{{ activeTab === 'SUMMARY' ? (getSummaryHpScore() !== null ? (getSummaryHpScore() | number:'1.1-1') : 'Chưa có') : getAverageScoreText() }}</p>
+                    <p class="text-[11px] text-slate-500">{{ activeTab === 'SUMMARY' ? 'Điểm học phần (dự kiến)' : 'Điểm TB các CLO' }}</p>
+                </div>
+            </div>
+
+            <!-- Warning: M2 requires M1 locked -->
+            <div *ngIf="selectedStage === 'M2' && isM2Open && !isStage1FullyLocked() && isCampaignActive" class="px-6 py-2.5 bg-amber-50 border-b border-amber-200 text-amber-700 text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">warning</span> Phải chấm và khóa điểm mốc M1 trước khi chấm mốc M2.
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto">
+                <!-- Tabs -->
+                <div class="flex border-b border-slate-200 mb-6">
+                    <button (click)="onStageChange('M1')" class="pb-3 px-4 font-bold text-sm border-b-2 flex items-center gap-2" [ngClass]="activeTab === 'M1' ? 'border-[#00429D] text-[#00429D]' : 'border-transparent text-slate-500'">
+            <span class="material-symbols-outlined text-[18px]">flag</span> Mốc M1 (Đầu kỳ)
+          </button>
+                    <button (click)="onStageChange('M2')" class="pb-3 px-4 font-bold text-sm border-b-2 flex items-center gap-2" [ngClass]="activeTab === 'M2' ? 'border-[#00429D] text-[#00429D]' : 'border-transparent text-slate-500'">
+            <span class="material-symbols-outlined text-[18px]">flag</span> Mốc M2 (Giữa kỳ)
+          </button>
+                    <button (click)="onSummaryTab()" class="pb-3 px-4 font-bold text-sm border-b-2 flex items-center gap-2" [ngClass]="activeTab === 'SUMMARY' ? 'border-[#00429D] text-[#00429D]' : 'border-transparent text-slate-500'">
+            <span class="material-symbols-outlined text-[18px]">table_view</span> Tổng hợp
+          </button>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-slate-900">{{ getActiveTabTitle() }}</h3>
+                    <p class="text-sm text-slate-600 mt-1">{{ getActiveTabSubtitle() }}</p>
+                </div>
+
+                <!-- SUMMARY TAB -->
+                <div *ngIf="activeTab === 'SUMMARY'">
+                    <div *ngIf="isSummaryLoading" class="py-10 text-center text-slate-500">Đang tải...</div>
+                    <div *ngIf="!isSummaryLoading" class="overflow-x-auto">
+                        <table class="w-full text-left border border-slate-200 text-[12px]">
+                            <thead>
+                                <tr class="bg-slate-100">
+                                    <th class="px-2 py-2 border border-slate-200">CLO</th>
+                                    <th class="px-2 py-2 border border-slate-200">Mô tả năng lực</th>
+                                    <th class="px-2 py-2 border border-slate-200 text-center">Trọng số αi</th>
+                                    <th class="px-2 py-2 border border-slate-200 text-center bg-blue-50">Điểm CLOi</th>
+                                    <th class="px-2 py-2 border border-slate-200 text-center bg-blue-50">Mức đạt</th>
+                                    <th class="px-2 py-2 border border-slate-200 text-center bg-blue-50">Đóng góp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let row of getSummaryRows()">
+                                    <td class="px-2 py-2 border border-slate-200 font-semibold">{{ row.criterion.id }}</td>
+                                    <td class="px-2 py-2 border border-slate-200">{{ row.criterion.description }}</td>
+                                    <td class="px-2 py-2 border border-slate-200 text-center">{{ row.criterion.alphaWeight }}%</td>
+                                    <td class="px-2 py-2 border border-slate-200 text-center">{{ formatSummaryScore(row.cloScore) }}</td>
+                                    <td class="px-2 py-2 border border-slate-200 text-center">{{ getScoreLevelName(row.cloScore) }}</td>
+                                    <td class="px-2 py-2 border border-slate-200 text-center">{{ formatSummaryContribution(row.contribution) }}</td>
+                                </tr>
+                                <tr *ngIf="getSummaryRows().length === 0">
+                                    <td colspan="6" class="px-2 py-8 text-center text-slate-500">{{ getNoVisibleCriteriaMessage() }}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-slate-50 font-bold">
+                                    <td colspan="5" class="px-2 py-2 border border-slate-200 text-right">ĐIỂM HỌC PHẦN ĐATN (tạm tính)</td>
+                                    <td class="px-2 py-2 border border-slate-200 text-center text-[#00429D]">
+                                        {{ getSummaryHpScore() !== null ? (getSummaryHpScore() | number:'1.1-1') : '-' }}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SCORING TAB (M1/M2) -->
+                <div *ngIf="activeTab !== 'SUMMARY'">
+                    <div *ngIf="criteria.length === 0" class="py-10 text-center text-slate-500">{{ getNoVisibleCriteriaMessage() }}</div>
+
+                    <div *ngIf="criteria.length > 0" class="space-y-5">
+                        <div *ngFor="let criterion of criteria" class="border border-slate-200 rounded-lg p-4 bg-slate-50/40">
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <div>
+                                    <p class="font-bold text-slate-800">{{ criterion.name }}</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">{{ criterion.description }}</p>
+                                    <p class="text-xs text-slate-500 mt-1">Alpha HP: {{ criterion.alphaWeight }}% | Trọng số mốc: {{ getStageWeight(criterion) }}%</p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <p class="text-lg font-black text-[#00429D]">{{ getStageAverageScoreText(criterion) }}</p>
+                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold {{ getStageResultBadgeClass(criterion) }}">
+                    {{ getScoreLevelName(getStageAverageScore(criterion)) }}
+                    <span class="text-[10px]">({{ getScoreLevelRange(getStageAverageScore(criterion)) }})</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Điểm GVHD (thang 10)</label>
+                                    <input type="number" min="0" max="10" step="0.1" [(ngModel)]="criterion.selectedScore" (blur)="normalizeScore(criterion)" [disabled]="isScoringLocked()" [ngClass]="getScoreInputClass(criterion)" class="w-full border rounded px-3 py-2 text-sm disabled:bg-slate-100 disabled:text-slate-400"
+                                        placeholder="0.0 - 10.0" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nhận xét</label>
+                                    <textarea [(ngModel)]="criterion.comment" [disabled]="isScoringLocked()" rows="2" class="w-full border border-slate-300 rounded px-3 py-2 text-sm disabled:bg-slate-100" placeholder="Nhận xét ngắn gọn..."></textarea>
+                                </div>
+                            </div>
+
+                            <div *ngIf="criterion.levels.length" class="mt-3">
+                                <p class="text-[11px] font-semibold text-slate-500 mb-1">Rubric:</p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <span *ngFor="let lv of criterion.levels" class="text-[10px] px-2 py-0.5 rounded-full border" [ngClass]="lv.level === getScoreLevel(criterion.selectedScore ?? -1) ? 'bg-[#00429D] text-white border-[#00429D]' : 'bg-white text-slate-600 border-slate-200'"
+                                        [title]="lv.description">{{ lv.label }}: {{ lv.range }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-lg p-4 bg-slate-100/50">
+                            <p class="font-bold text-slate-800 text-sm mb-2">ĐIỂM TRUNG BÌNH {{ selectedStage === 'M1' ? 'MỐC M1' : 'MỐC M2' }}</p>
+                            <p class="text-2xl font-black text-[#00429D]">{{ getAverageScoreText() }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nhận xét chung của GVHD</label>
+                        <div class="space-y-2 mb-3">
+                          <label *ngIf="canReassess()" class="block text-sm"><input type="checkbox" [(ngModel)]="isReassessment"> Đánh giá lại (tối đa 1 lần trong 7 ngày)</label>
+                          <label class="block text-sm">Kết luận mốc
+                            <select [(ngModel)]="conclusion" [disabled]="isScoringLocked()" class="block w-full border rounded p-2 mt-1">
+                              <option value="PASSED">Đạt</option><option value="REVISION_REQUIRED">Đạt nhưng yêu cầu chỉnh sửa</option><option value="FAILED">Chưa đạt</option>
+                            </select>
+                          </label>
+                          <label *ngIf="conclusion === 'REVISION_REQUIRED'" class="block text-sm"><input type="checkbox" [(ngModel)]="revisionResolved" [disabled]="isScoringLocked()"> Đã kiểm tra và xác nhận hoàn tất chỉnh sửa</label>
+                        </div>
+                        <textarea [(ngModel)]="generalComment" [disabled]="isScoringLocked()" rows="3" class="w-full border border-slate-300 rounded p-2 text-sm" [placeholder]="getCommentPlaceholder()"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="border-t border-slate-100 px-6 py-4 bg-slate-50 flex flex-wrap justify-between items-center gap-3">
+                <div class="text-xs text-slate-500">
+                    <span *ngIf="!isCampaignActive" class="text-red-500 font-medium inline-flex items-center gap-1">
+            <span class="material-symbols-outlined text-[15px]">lock</span> Đợt ĐATN đã kết thúc, chỉ xem.
+                    </span>
+                    <span *ngIf="isCampaignActive && selectedStage === 'M1' && !isM1Open" class="text-amber-600 font-medium">
+            Mốc M1 chưa mở (bắt đầu: {{ m1StartDateStr || '...' }})
+          </span>
+                    <span *ngIf="isCampaignActive && selectedStage === 'M2' && !isM2Open" class="text-amber-600 font-medium">
+            Mốc M2 chưa mở (bắt đầu: {{ m2StartDateStr || '...' }})
+          </span>
+                </div>
+                <div class="flex gap-2.5 flex-wrap">
+                    <button (click)="exportStageSummary()" class="px-4 py-2 border rounded text-sm">Tổng hợp CLO mốc (ĐATN-07)</button>
+                    <button (click)="selectedStudent = null" class="px-4 py-2 border border-slate-300 rounded text-slate-700 hover:bg-slate-50 text-sm">Đóng</button>
+                    <button *ngIf="selectedStage === 'M1'" (click)="exportM1()" [disabled]="isExportingM1" class="px-4 py-2 border border-slate-300 rounded text-slate-700 hover:bg-slate-50 text-sm flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">download</span> Phiếu M1 (ĐATN-03)
+          </button>
+                    <button *ngIf="selectedStage === 'M2'" (click)="exportM2()" [disabled]="isExportingM2" class="px-4 py-2 border border-slate-300 rounded text-slate-700 hover:bg-slate-50 text-sm flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">download</span> Phiếu M2 (ĐATN-04)
+          </button>
+                    <button *ngIf="!isScoringLocked()" (click)="submitEvaluation()" [disabled]="isSaving || !canSubmit()" class="px-5 py-2 bg-[#00429D] text-white rounded hover:bg-blue-800 text-sm font-semibold disabled:opacity-50 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">send</span>
+            {{ isSaving ? 'Đang nộp...' : 'Nộp phiếu đánh giá' }}
+          </button>
+                    <button *ngIf="isScoringLocked()" disabled class="px-5 py-2 bg-green-100 text-green-700 rounded text-sm font-semibold flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">lock</span> Đã khóa điểm
+          </button>
+                    <button *ngIf="!isScoringLocked() && canSubmit()" (click)="lockCurrentStage()" [disabled]="isLocking" class="px-5 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 text-sm font-semibold disabled:opacity-50 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">lock</span>
+            {{ isLocking ? 'Đang khóa...' : 'Khóa điểm mốc này' }}
+          </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

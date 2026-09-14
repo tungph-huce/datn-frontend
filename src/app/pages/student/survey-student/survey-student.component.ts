@@ -84,16 +84,16 @@ export class SurveyStudentComponent implements OnInit {
                 const gConfig = campaign.group_config || null;
                 const activeSource = gConfig ? gConfig : camp;
 
-                const tttn06Start = parseDate(activeSource.tttn06_start_date);
-                const tttn06Deadline = parseDate(activeSource.tttn06_deadline);
+                const m2Deadline = parseDate(activeSource.m2_deadline);
+                const endDate = parseDate(activeSource.end_date);
 
-                if (tttn06Start && now < tttn06Start) {
+                if (m2Deadline && now < m2Deadline) {
                   this.isLocked = true;
-                  this.lockReason = `Chưa đến thời gian thực hiện khảo sát phản hồi thực tập (TTTN-08b). Thời gian mở: ${activeSource.tttn06_start_date}`;
+                  this.lockReason = `Chưa đến thời gian thực hiện khảo sát phản hồi ĐATN (ĐATN-10). Thời gian mở: ${activeSource.m2_deadline}`;
                   this.isLoading = false;
-                } else if (tttn06Deadline && now > tttn06Deadline) {
+                } else if (endDate && now > endDate) {
                   this.isLocked = true;
-                  this.lockReason = `Đã quá hạn thực hiện khảo sát phản hồi thực tập (TTTN-08b) cho đợt này (Hạn chót: ${activeSource.tttn06_deadline})`;
+                  this.lockReason = `Đã quá hạn thực hiện khảo sát phản hồi ĐATN (ĐATN-10) cho đợt này (Hạn chót: ${activeSource.end_date})`;
                   this.isLoading = false;
                 } else {
                   this.loadExistingSurvey();
@@ -197,7 +197,7 @@ export class SurveyStudentComponent implements OnInit {
 
   submitSurvey() {
     if (!this.studentCampaignId) {
-      alert('Không tìm thấy thông tin đợt thực tập của sinh viên.');
+      alert('Không tìm thấy thông tin đợt ĐATN của sinh viên.');
       return;
     }
 

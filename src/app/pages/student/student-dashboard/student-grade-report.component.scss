@@ -1,18 +1,20 @@
-/* Scoped styling for TTTN-07 Grade Report Component */
+/* Scoped styling for ĐATN-07 Grade Report Component */
+
 :host {
-  display: block;
+    display: block;
 }
 
 table {
-  border-spacing: 0;
-  width: 100%;
+    border-spacing: 0;
+    width: 100%;
 }
 
-th, td {
-  border: 1px solid #e2e8f0;
+th,
+td {
+    border: 1px solid #e2e8f0;
 }
 
 th {
-  background-color: #f8fafc;
-  vertical-align: middle;
+    background-color: #f8fafc;
+    vertical-align: middle;
 }

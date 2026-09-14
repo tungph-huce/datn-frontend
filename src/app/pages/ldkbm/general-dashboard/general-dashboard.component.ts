@@ -32,14 +32,14 @@ export class GeneralDashboardComponent implements OnInit {
   tableCurrentPage = 1;
   tablePageSize = 10;
 
-  // Phân phối tiến độ thực tập
+  // Phân phối tiến độ ĐATN
   statusGroups = [
     { key: 'ASSIGNMENT', label: 'Chưa phân công GVHD', count: 0, percentage: 0, color: 'bg-rose-500' },
-    { key: 'COMPANY', label: 'Kê khai / Đợi duyệt đơn vị', count: 0, percentage: 0, color: 'bg-orange-500' },
-    { key: 'PLAN', label: 'Chuẩn bị / Đang duyệt đề cương', count: 0, percentage: 0, color: 'bg-amber-500' },
-    { key: 'IN_PROGRESS', label: 'Đang thực tập & Viết nhật ký', count: 0, percentage: 0, color: 'bg-blue-600' },
-    { key: 'EVALUATION', label: 'Đang nộp báo cáo & Đánh giá', count: 0, percentage: 0, color: 'bg-indigo-600' },
-    { key: 'COMPLETED', label: 'Đã hoàn thành đợt thực tập', count: 0, percentage: 0, color: 'bg-emerald-600' }
+    { key: 'DECLARE', label: 'Kê khai / Đợi duyệt Nhiệm vụ ĐATN', count: 0, percentage: 0, color: 'bg-orange-500' },
+    { key: 'PLAN', label: 'Chuẩn bị / Đang duyệt kế hoạch', count: 0, percentage: 0, color: 'bg-amber-500' },
+    { key: 'IN_PROGRESS', label: 'Đang thực hiện ĐATN', count: 0, percentage: 0, color: 'bg-blue-600' },
+    { key: 'EVALUATION', label: 'Đang đánh giá mốc M1/M2', count: 0, percentage: 0, color: 'bg-indigo-600' },
+    { key: 'COMPLETED', label: 'Đã hoàn thành ĐATN', count: 0, percentage: 0, color: 'bg-emerald-600' }
   ];
 
   constructor(
@@ -91,17 +91,17 @@ export class GeneralDashboardComponent implements OnInit {
         this.totalStudents = res.total || students.length;
         
         this.assignedStudents = students.filter((s: any) => this.hasAssignedGvhd(s)).length;
-        this.approvedPlans = students.filter((s: any) => ['PLAN_APPROVED', 'IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(s.status)).length;
-        this.completedStudents = students.filter((s: any) => s.status === 'COMPLETED' || s.status === 'STAGE2_EVALUATED').length;
+        this.approvedPlans = students.filter((s: any) => ['DATN_APPROVED', 'IN_PROGRESS', 'M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(s.status)).length;
+        this.completedStudents = students.filter((s: any) => s.status === 'COMPLETED' || s.status === 'M2_EVALUATED').length;
         
         // Tính toán phân phối tiến độ
         if (students.length > 0) {
           const unassignedCount = students.filter((s: any) => !this.hasAssignedGvhd(s)).length;
-          const companyDeclaredCount = students.filter((s: any) => s.status === 'COMPANY_DECLARED' || s.status === 'IMPORTED').length;
-          const planPendingCount = students.filter((s: any) => s.status === 'COMPANY_APPROVED' || s.status === 'PLAN_SUBMITTED').length;
-          const inProgressCount = students.filter((s: any) => s.status === 'PLAN_APPROVED' || s.status === 'IN_PROGRESS').length;
-          const evaluatingCount = students.filter((s: any) => s.status === 'STAGE1_EVALUATED' || s.status === 'REPORT_SUBMITTED').length;
-          const completedCount = students.filter((s: any) => s.status === 'COMPLETED' || s.status === 'STAGE2_EVALUATED').length;
+          const companyDeclaredCount = students.filter((s: any) => s.status === 'DATN_DECLARED' || s.status === 'IMPORTED').length;
+          const planPendingCount = students.filter((s: any) => s.status === 'DATN_APPROVED').length;
+          const inProgressCount = students.filter((s: any) => s.status === 'IN_PROGRESS').length;
+          const evaluatingCount = students.filter((s: any) => s.status === 'M1_EVALUATED' || s.status === 'M2_EVALUATED').length;
+          const completedCount = students.filter((s: any) => s.status === 'COMPLETED').length;
 
           this.statusGroups[0].count = unassignedCount;
           this.statusGroups[1].count = companyDeclaredCount;
@@ -190,79 +190,63 @@ export class GeneralDashboardComponent implements OnInit {
 
   getStatusStep(studentOrStatus: any, formCode: string): 'success' | 'warning' | 'none' {
     const status = typeof studentOrStatus === 'string' ? studentOrStatus : studentOrStatus?.status;
-    const hasCompanyInfo = typeof studentOrStatus === 'string' ? true : this.hasCompanyInfo(studentOrStatus);
-    if (!hasCompanyInfo && ['TTTN-01', 'TTTN-02', 'TTTN-03', 'TTTN-04', 'TTTN-05', 'TTTN-06', 'TTTN-07'].includes(formCode)) {
+    const hasDatnInfo = typeof studentOrStatus === 'string' ? true : this.hasDatnInfo(studentOrStatus);
+    if (!hasDatnInfo && ['DATN-01', 'DATN-02', 'DATN-03', 'DATN-04', 'DATN-07', 'DATN-08'].includes(formCode)) {
       return 'none';
     }
 
     switch (formCode) {
-      case 'TTTN-01':
-        if (['COMPANY_APPROVED', 'PLAN_SUBMITTED', 'PLAN_APPROVED', 'IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status)) {
+      case 'DATN-01':
+        if (['DATN_APPROVED', 'IN_PROGRESS', 'M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status)) {
           return 'success';
         }
-        if (status === 'COMPANY_DECLARED') return 'warning';
+        if (status === 'DATN_DECLARED') return 'warning';
         return 'none';
-        
-      case 'TTTN-02':
-        if (['PLAN_APPROVED', 'IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status)) {
-          return 'success';
-        }
-        if (status === 'PLAN_SUBMITTED') return 'warning';
-        return 'none';
-        
-      case 'TTTN-03':
-        if (['IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status)) {
+
+      case 'DATN-02':
+        if (['IN_PROGRESS', 'M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status)) {
           return 'success';
         }
         return 'none';
-        
-      case 'TTTN-04':
-        if (['STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status)) {
+
+      case 'DATN-03':
+        if (['M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status)) {
           return 'success';
         }
         return 'none';
-        
-      case 'TTTN-06':
-        if (['REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status)) {
+
+      case 'DATN-04':
+        if (['M2_EVALUATED', 'COMPLETED'].includes(status)) {
           return 'success';
         }
         return 'none';
-        
-      case 'TTTN-05':
-        if (['STAGE2_EVALUATED', 'COMPLETED'].includes(status)) {
-          return 'success';
-        }
-        return 'none';
-        
-      case 'TTTN-07':
+
+      case 'DATN-08':
         if (status === 'COMPLETED') return 'success';
         return 'none';
-        
+
       default:
         return 'none';
     }
   }
 
-  hasCompanyInfo(student: any): boolean {
-    return !!student?.company_info?.company_name;
+  hasDatnInfo(student: any): boolean {
+    return !!student?.datn_info?.thesis_title;
   }
 
-  isMissingCompanyInfoAfterProgress(student: any): boolean {
-    return !this.hasCompanyInfo(student)
-      && !['IMPORTED', 'COMPANY_DECLARED'].includes(student?.status);
+  isMissingDatnInfoAfterProgress(student: any): boolean {
+    return !this.hasDatnInfo(student)
+      && !['IMPORTED', 'DATN_DECLARED'].includes(student?.status);
   }
 
   getStatusLabel(status: string): string {
     switch (status) {
       case 'IMPORTED': return 'Mới nhập';
-      case 'COMPANY_DECLARED': return 'Kê khai nơi TT';
-      case 'COMPANY_APPROVED': return 'Duyệt nơi TT';
-      case 'PLAN_SUBMITTED': return 'Nộp kế hoạch';
-      case 'PLAN_APPROVED': return 'Duyệt kế hoạch';
-      case 'IN_PROGRESS': return 'Đang thực tập';
-      case 'STAGE1_EVALUATED': return 'Đã chấm Chặng 1';
-      case 'REPORT_SUBMITTED': return 'Đã nộp báo cáo';
-      case 'STAGE2_EVALUATED': return 'Đã chấm Chặng 2';
+      case 'DATN_DECLARED': return 'Chờ duyệt Nhiệm vụ ĐATN';
+      case 'DATN_APPROVED': return 'Đã duyệt ĐATN-01';
+      case 'IN_PROGRESS': return 'Đang thực hiện ĐATN';
+      case 'M1_EVALUATED': return 'Đã đánh giá mốc M1';
+      case 'M2_EVALUATED': return 'Đã đánh giá mốc M2';
       case 'COMPLETED': return 'Hoàn thành';
       case 'SUSPENDED': return 'Bị đình chỉ';
       default: return status || 'Không rõ';
@@ -272,14 +256,11 @@ export class GeneralDashboardComponent implements OnInit {
   getStatusClass(status: string): string {
     switch (status) {
       case 'IMPORTED': return 'bg-slate-100 text-slate-700';
-      case 'COMPANY_DECLARED': return 'bg-orange-50 text-orange-700 border border-orange-200';
-      case 'COMPANY_APPROVED': return 'bg-amber-50 text-amber-700 border border-amber-200';
-      case 'PLAN_SUBMITTED': return 'bg-sky-50 text-sky-700 border border-sky-200';
-      case 'PLAN_APPROVED': return 'bg-sky-100 text-sky-800';
+      case 'DATN_DECLARED': return 'bg-orange-50 text-orange-700 border border-orange-200';
+      case 'DATN_APPROVED': return 'bg-amber-50 text-amber-700 border border-amber-200';
       case 'IN_PROGRESS': return 'bg-blue-50 text-blue-700 border border-blue-200';
-      case 'STAGE1_EVALUATED': return 'bg-indigo-50 text-indigo-700 border border-indigo-200';
-      case 'REPORT_SUBMITTED': return 'bg-purple-50 text-purple-700 border border-purple-200';
-      case 'STAGE2_EVALUATED': return 'bg-teal-50 text-teal-700 border border-teal-200';
+      case 'M1_EVALUATED': return 'bg-indigo-50 text-indigo-700 border border-indigo-200';
+      case 'M2_EVALUATED': return 'bg-teal-50 text-teal-700 border border-teal-200';
       case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
       case 'SUSPENDED': return 'bg-rose-50 text-rose-700 border border-rose-200';
       default: return 'bg-slate-50 text-slate-700';

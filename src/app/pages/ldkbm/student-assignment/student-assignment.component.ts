@@ -248,7 +248,7 @@ export class StudentAssignmentComponent implements OnInit {
 
   openManualModal(): void {
     if (!this.selectedCampaignId) {
-      this.showError('Vui lòng chọn đợt thực tập trước.');
+      this.showError('Vui lòng chọn đợt ĐATN trước.');
       return;
     }
     if (!this.ensureStudentTargetDepartmentSelected()) {
@@ -319,7 +319,7 @@ export class StudentAssignmentComponent implements OnInit {
     this.studentCampaignService.deleteStudentCampaign(id).subscribe({
       next: () => {
         this.closeDeleteConfirm();
-        this.showSuccess('Đã xóa sinh viên khỏi đợt thực tập.');
+        this.showSuccess('Đã xóa sinh viên khỏi đợt ĐATN.');
         this.loadStudents();
       },
       error: (err) => {
@@ -341,7 +341,7 @@ export class StudentAssignmentComponent implements OnInit {
 
   triggerFileInput(): void {
     if (!this.selectedCampaignId) {
-      this.showError('Vui lòng chọn đợt thực tập trước.');
+      this.showError('Vui lòng chọn đợt ĐATN trước.');
       return;
     }
     if (!this.ensureStudentTargetDepartmentSelected()) {
@@ -367,7 +367,7 @@ export class StudentAssignmentComponent implements OnInit {
         const workbook = XLSX.read(data, { type: 'array' });
         const importSheet = this.findImportSheet(workbook);
         if (!importSheet) {
-          this.showError('Không tìm thấy sheet danh sách sinh viên. File cần có các cột "MSSV", "Họ và tên", "Lớp" và "Đơn vị thực tập".');
+          this.showError('Không tìm thấy sheet danh sách sinh viên. File cần có các cột "MSSV", "Họ và tên", "Lớp".');
           return;
         }
 
@@ -433,7 +433,7 @@ export class StudentAssignmentComponent implements OnInit {
             className = lopIdx >= 0 ? String(row[lopIdx] || '').trim() : '';
             companyName = companyIdx >= 0 ? String(row[companyIdx] || '').trim() : '';
           } else {
-            // Fallback mẫu chuẩn: A=MSSV, B=Họ đệm, C=Tên, D=Lớp, E=Đơn vị thực tập.
+            // Fallback mẫu chuẩn: A=MSSV, B=Họ đệm, C=Tên, D=Lớp.
             // Header gộp B1:C1 là "Họ và tên" như file mẫu.
             studentCode = String(row[0] || '').trim();
             if (row.length >= 5 && String(row[4] || '').trim()) {
@@ -457,14 +457,13 @@ export class StudentAssignmentComponent implements OnInit {
               student_code: studentCode,
               full_name: fullName,
               class_name: className,
-              email: '',
-              company_name: companyName
+              email: ''
             });
           }
         }
 
         if (students.length === 0) {
-          this.showError('Không tìm thấy dữ liệu hợp lệ trong file Excel. File cần có cột "MSSV", "Họ và tên", "Lớp" và "Đơn vị thực tập".');
+          this.showError('Không tìm thấy dữ liệu hợp lệ trong file Excel. File cần có cột "MSSV", "Họ và tên", "Lớp".');
           return;
         }
 
@@ -497,16 +496,16 @@ export class StudentAssignmentComponent implements OnInit {
 
   downloadTemplate(): void {
     const rows: any[][] = [
-      ['MSSV', 'Họ và tên', '', 'Lớp', 'Đơn vị thực tập'],
-      ['1501665', 'Lại Thế', 'Anh', '65PM4', 'sdc'],
-      ['0002267', 'Mai Văn', 'Cường', '67CNPM', 'sdc'],
-      ['85365', 'Vũ Huy', 'Hoàng', '65PM4', 'sc'],
-      ['113465', 'Lê Ngọc', 'Lâm', '65PM4', 'scdc'],
-      ['119365', 'Vũ Ngọc Hoài', 'Linh', '65PM3', 'sdc'],
-      ['0197766', 'Nguyễn Hoàng', 'Nam', '66CNPM', ''],
-      ['142165', 'Nguyễn Phương', 'Nam', '65PM6', ''],
-      ['154765', 'Đỗ Khoa Hải', 'Phong', '65PM6', ''],
-      ['181165', 'Lê Bá', 'Thắng', '65PM6', '']
+      ['MSSV', 'Họ và tên', '', 'Lớp'],
+      ['1501665', 'Lại Thế', 'Anh', '65PM4'],
+      ['0002267', 'Mai Văn', 'Cường', '67CNPM'],
+      ['85365', 'Vũ Huy', 'Hoàng', '65PM4'],
+      ['113465', 'Lê Ngọc', 'Lâm', '65PM4'],
+      ['119365', 'Vũ Ngọc Hoài', 'Linh', '65PM3'],
+      ['0197766', 'Nguyễn Hoàng', 'Nam', '66CNPM'],
+      ['142165', 'Nguyễn Phương', 'Nam', '65PM6'],
+      ['154765', 'Đỗ Khoa Hải', 'Phong', '65PM6'],
+      ['181165', 'Lê Bá', 'Thắng', '65PM6']
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -519,8 +518,7 @@ export class StudentAssignmentComponent implements OnInit {
       { wch: 10 },  // A: MSSV
       { wch: 20 },  // B: Họ đệm
       { wch: 12 },  // C: Tên
-      { wch: 12 },  // D: Lớp
-      { wch: 28 }   // E: Đơn vị thực tập
+      { wch: 12 }   // D: Lớp
     ];
 
     const wb = XLSX.utils.book_new();
@@ -583,7 +581,7 @@ export class StudentAssignmentComponent implements OnInit {
 
   openAssignModal(mode: 'MANUAL' | 'AUTO' = 'MANUAL'): void {
     if (!this.selectedCampaignId || !this.departmentId) {
-      this.showError('Vui lòng chọn đợt thực tập và kiểm tra khoa/bộ môn trước.');
+      this.showError('Vui lòng chọn đợt ĐATN và kiểm tra khoa/bộ môn trước.');
       return;
     }
 
@@ -803,7 +801,7 @@ export class StudentAssignmentComponent implements OnInit {
 
   openAssignmentStats(): void {
     if (!this.selectedCampaignId || !this.departmentId) {
-      this.showError('Vui lòng chọn đợt thực tập và kiểm tra khoa/bộ môn trước.');
+      this.showError('Vui lòng chọn đợt ĐATN và kiểm tra khoa/bộ môn trước.');
       return;
     }
 

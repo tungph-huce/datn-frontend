@@ -1,67 +1,89 @@
-# Internship Management System - Frontend Web Application
+# Hệ thống Quản lý Đồ án Tốt nghiệp (ĐATN) — Frontend Web Application
 
-Đây là giao diện Frontend (Client-side) của Hệ thống Quản lý Thực tập Tốt nghiệp (HUCE Internship Management System). Ứng dụng cung cấp các Web Portal chuyên biệt dành cho các vai trò khác nhau (Admin, Sinh viên, Giảng viên, ĐVHD, Trưởng nhóm chuyên môn, Ban Lãnh đạo Khoa).
+Giao diện Frontend (Client-side) của **Hệ thống Quản lý Đồ án Tốt nghiệp (ĐATN)** HUCE. Ứng dụng cung cấp các Web Portal chuyên biệt theo vai trò: **Admin**, **LDKBM** (Lãnh đạo Khoa/Bộ môn), **GVHD** (Giảng viên hướng dẫn) và **Sinh viên**.
+
+> Dự án này là phiên bản **Đồ án Tốt nghiệp (ĐATN)**, được chuyển đổi từ hệ thống Thực tập Tốt nghiệp của HUCE. Tài liệu tổng quan và lịch sử chuyển đổi nằm tại thư mục [`../docs/`](../docs/).
+
+---
 
 ## 🎨 Công nghệ sử dụng (Tech Stack)
 
-Dự án được xây dựng dựa trên các công nghệ và thư viện Frontend hiện đại:
-
-*   **Framework chính:** Angular 15
-*   **Ngôn ngữ:** TypeScript 4.9
-*   **Styling & UI Framework:** Tailwind CSS 3.4
-*   **Icons:** Google Material Symbols
-*   **Font chữ:** Inter & Public Sans
-*   **State Management / Reactivity:** RxJS 7.8
-*   **Package Manager:** npm (hoặc yarn)
-
-## 📁 Cấu trúc thư mục cốt lõi (Core Structure)
-
-Ứng dụng được thiết kế theo kiến trúc Module hóa (Feature-based Modular Architecture) của Angular:
-*   `src/app/`
-    *   `core/`: Chứa các Services dùng chung (Auth, API Interceptors, Error Handling), Guards, và Configurations.
-    *   `shared/`: Chứa các UI Components có thể tái sử dụng (Button, Modal, Pagination, Table...), Pipes, Directives.
-    *   `layout/`: Chứa cấu trúc khung giao diện cho từng Role (AdminLayout, StudentLayout, CompanyLayout...). Chứa Header, Sidebar, Footer.
-    *   `pages/`: Chứa logic và giao diện chi tiết của các trang, phân chia theo vai trò:
-        *   `/admin/`: Quản lý danh mục, đợt thực tập.
-        *   `/student/`: Lập kế hoạch, khai báo đơn vị, viết nhật ký.
-        *   `/teacher/`: Phê duyệt biểu mẫu, chấm điểm, theo dõi tiến độ.
-        *   `/company/`: Xác nhận thực tập sinh, đánh giá thái độ.
-        *   `/tncm/` & `/ldkbm/`: Báo cáo thống kê, cấu hình chuẩn đầu ra (CLO), chốt điểm.
-
-## 🚀 Hướng dẫn cài đặt và chạy dự án (Getting Started)
-
-### 1. Yêu cầu hệ thống (Prerequisites)
-*   **Node.js:** Phiên bản 18.x hoặc 20.x (Khuyên dùng bản LTS).
-*   **Angular CLI:** Phiên bản 15.x (`npm install -g @angular/cli@15`).
-
-### 2. Cài đặt thư viện (Install Dependencies)
-Mở Terminal/Command Prompt tại thư mục `intership-frontend` và chạy:
-```bash
-npm install
-```
-
-### 3. Khởi chạy môi trường Dev (Development Server)
-Chạy lệnh sau để khởi động dự án:
-```bash
-ng serve
-```
-Mở trình duyệt và truy cập vào `http://localhost:4200/`. 
-*Lưu ý: Ứng dụng sẽ tự động tải lại (hot-reload) khi bạn lưu file mã nguồn.*
-
-### 4. Build môi trường Production
-Để đóng gói source code đưa lên Server/Hosting:
-```bash
-ng build
-```
-Thư mục sau khi build sẽ nằm ở `dist/intership-frontend/`.
-
-## 🌐 Môi trường API (Environment Setup)
-Hệ thống kết nối đến Backend thông qua các file cấu hình môi trường nằm tại `src/environments/`:
-*   `environment.ts`: Cấu hình cho local development (Mặc định gọi `http://localhost:8080/api`).
-*   `environment.prod.ts`: Cấu hình URL khi deploy lên server thật.
-
-## 👥 Hệ thống Roles & Routing
-Ứng dụng tuân theo cơ chế **Role-Based Access Control (RBAC)**. Navigation Menu (Sidebar) và các Routes sẽ tự động thay đổi dựa trên quyền hạn của người đăng nhập, được cấu hình tập trung tại `menu.config.ts` và `app-routing.module.ts`.
+- **Framework chính:** Angular 15
+- **Ngôn ngữ:** TypeScript 4.9
+- **Styling:** Tailwind CSS 3.4 + SCSS
+- **Icons:** Google Material Symbols
+- **Reactivity:** RxJS 7.8
+- **Xuất Excel:** xlsx / xlsx-js-style
 
 ---
-*Developed for HUCE Internship Management System.*
+
+## 📁 Cấu trúc thư mục cốt lõi
+
+```
+src/app/
+├── core/     # Services dùng chung (ApiService, AuthService...), guards, interceptors, models, config (menu.config.ts)
+├── shared/   # Components tái sử dụng (Modal, Pagination, StatusBadge, MetricCard, WelcomeHeader...)
+├── layout/   # Khung giao diện theo role: admin-layout, ldkbm-layout, teacher-layout, student-layout, auth-layout, main-layout
+└── pages/
+    ├── admin/    # Campaign management (Đợt ĐATN), dashboard, user, notification, system settings
+    ├── ldkbm/    # Student assignment (import + phân công GVHD), CLO/Rubric config, score summary, survey, dashboard
+    ├── teacher/  # Manage students, approval requests, rubric evaluation (M1/M2), score summary, dashboard
+    └── student/  # Datn declaration (ĐATN-01), datn report (stepper), plan, weekly log, final report, survey, dashboard
+```
+
+---
+
+## 🚀 Hướng dẫn cài đặt & chạy
+
+### Yêu cầu
+- **Node.js** 18+ (đã test với Node 24)
+- **Angular CLI** 15.x
+
+### Cài đặt & chạy Dev
+```bash
+npm install
+# Windows + Node 24: bắt buộc bật legacy OpenSSL
+$env:NODE_OPTIONS="--openssl-legacy-provider"
+ng serve
+```
+Mở `http://localhost:4200/` (hot-reload).
+
+### Build Production
+```bash
+$env:NODE_OPTIONS="--openssl-legacy-provider"
+ng build
+```
+Thư mục build: `dist/datn-frontend/`.
+
+> Khi build dev để kiểm tra lỗi: `ng build --configuration development` (strictTemplates bật).
+
+---
+
+## 🌐 Môi trường API
+
+Cấu hình tại `src/environments/`:
+- `environment.ts`: local → `http://localhost:8081`
+- `environment.prod.ts`: production → `/api` (proxy qua `vercel.json` → backend)
+
+---
+
+## 👥 Vai trò & Routing (RBAC)
+
+Navigation menu và route tự động thay đổi theo vai trò người đăng nhập, cấu hình tập trung tại `core/config/menu.config.ts` và `app-routing.module.ts`.
+
+| Vai trò | Việc chính |
+|---|---|
+| **ADMIN** | Tạo/quản lý đợt ĐATN, tài khoản, thông báo, cài đặt |
+| **LDKBM** | Import SV, phân công GVHD, cấu hình CLO/Rubric, chốt điểm, khảo sát |
+| **GVHD** | Duyệt Nhiệm vụ ĐATN, chấm mốc M1/M2, xuất điểm |
+| **STUDENT** | Kê khai ĐATN-01, kế hoạch, nhật ký, nộp báo cáo, khảo sát, xem điểm |
+
+Trang sinh viên chính: `/student/datn-report` (stepper ĐATN-01 → 02 → 03 → 08), `/student/datn-declaration`, `/student/student-dashboard`.
+
+---
+
+## ✅ Build status
+- `ng build` — **BUILD SUCCESS**
+
+---
+*Developed for HUCE ĐATN (Đồ án Tốt nghiệp) Management System.*

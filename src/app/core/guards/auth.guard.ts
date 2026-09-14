@@ -34,10 +34,6 @@ export class AuthGuard implements CanActivate {
         this.router.navigate([this.authService.getRoleDashboardRoute()]);
         return false;
       }
-      if (url.startsWith('/company') && role !== 'COMPANY_SUPERVISOR') {
-        this.router.navigate([this.authService.getRoleDashboardRoute()]);
-        return false;
-      }
 
       return true;
     }

@@ -8,47 +8,20 @@ import { ToastService } from '../../../core/services/toast.service';
 import { CampaignService } from '../../../core/services/campaign.service';
 import { ActivatedRoute } from '@angular/router';
 
-interface RubricLevel {
-  label: string;
-  level: number;
-  range: string;
-  description: string;
-}
-
 interface RubricCriterion {
   id: string;
   name: string;
   description: string;
-  maxScore: number;
   alphaWeight: number;
-  stage1Weight: number;
-  stage2Weight: number;
-  gvhdBeta: number;
-  companyBeta: number;
-  levels: RubricLevel[];
+  m1Weight: number;
+  m2Weight: number;
   selectedScore?: number | null;
   comment?: string;
-  gvhdScore?: number | null;
-  companyScore?: number | null;
-  gvhdComment?: string;
-  companyComment?: string;
-  gvhdEvaluatorIds?: number[];
+  levels: { level: number; label: string; range: string; description: string }[];
 }
 
-interface ScoreAccumulator {
-  total: number;
-  count: number;
-  comments: string[];
-  evaluatorIds: Set<number>;
-}
-
-interface SummaryCloRow {
-  criterion: RubricCriterion;
-  stage1Average: number | null;
-  stage2Average: number | null;
-  cloScore: number | null;
-  contribution: number | null;
-}
+type Stage = 'M1' | 'M2';
+type Tab = 'M1' | 'M2' | 'SUMMARY';
 
 @Component({
   selector: 'app-rubric-evaluation',
@@ -58,8 +31,9 @@ interface SummaryCloRow {
 export class RubricEvaluationComponent implements OnInit {
   isLoading = true;
   isSaving = false;
-  isExportingTttn04 = false;
-  isExportingTttn05 = false;
+  isLocking = false;
+  isExportingM1 = false;
+  isExportingM2 = false;
 
   allStudents: StudentCampaignResponse[] = [];
   students: StudentCampaignResponse[] = [];
@@ -73,37 +47,39 @@ export class RubricEvaluationComponent implements OnInit {
   criteria: RubricCriterion[] = [];
   existingEvaluation: any = null;
   generalComment = '';
+  conclusion: 'PASSED' | 'REVISION_REQUIRED' | 'FAILED' = 'PASSED';
+  revisionResolved = false;
+  isReassessment = false;
 
-  selectedStage: 'STAGE_1' | 'STAGE_2' = 'STAGE_1';
-  activeTab: 'STAGE_1' | 'STAGE_2' | 'SUMMARY' = 'STAGE_1';
+  selectedStage: Stage = 'M1';
+  activeTab: Tab = 'M1';
   finalResult: any = null;
   summaryEvaluations: any[] = [];
   isSummaryLoading = false;
   campaign: any = null;
   isCampaignActive = true;
-  isStage1Open = false;
-  isStage2Open = false;
-  midtermStartDateStr = '';
-  tttn06StartDateStr = '';
-  departmentStage1Weight = 30;
-  departmentStage2Weight = 70;
+  isM1Open = false;
+  isM2Open = false;
+  m1StartDateStr = '';
+  m2StartDateStr = '';
+  departmentM1Weight = 40;
+  departmentM2Weight = 60;
 
   currentPage = 1;
   pageSize = 10;
   totalItems = 0;
   paginatedStudents: StudentCampaignResponse[] = [];
 
-  isCompanySupervisor = false;
   private pendingStudentCampaignId: number | null = null;
-  private pendingStage: 'STAGE_1' | 'STAGE_2' | null = null;
-  private pendingTab: 'STAGE_1' | 'STAGE_2' | 'SUMMARY' | null = null;
+  private pendingStage: Stage | null = null;
+  private pendingTab: Tab | null = null;
 
   columns = [
     { key: 'STT', label: 'STT', width: '60px', align: 'center' },
     { key: 'student_code', label: 'Mã SV', width: '120px' },
     { key: 'full_name', label: 'Họ và tên' },
     { key: 'first_name', label: 'Tên', width: '110px' },
-    { key: 'company', label: 'Đơn vị thực tập' },
+    { key: 'thesis', label: 'Đề tài ĐATN' },
     { key: 'gradingStatus', label: 'Trạng thái', width: '150px', align: 'center' },
     { key: 'actions', label: 'Thao tác', align: 'center', width: '150px' }
   ];
@@ -127,8 +103,6 @@ export class RubricEvaluationComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const currentUser = this.authService.getCurrentUser();
-    this.isCompanySupervisor = currentUser?.role === 'COMPANY_SUPERVISOR';
     this.readNavigationContext();
     this.loadCampaigns();
     this.loadEligibleStudents();
@@ -151,11 +125,7 @@ export class RubricEvaluationComponent implements OnInit {
 
   loadEligibleStudents(): void {
     this.isLoading = true;
-    const source$ = this.isCompanySupervisor
-      ? this.studentCampaignService.getCompanyStudents()
-      : this.studentCampaignService.getMyGuidedStudents();
-
-    source$.subscribe({
+    this.studentCampaignService.getMyGuidedStudents().subscribe({
       next: (res) => {
         const all = Array.isArray(res) ? res : (res.data || res.payload || []);
         this.allStudents = all
@@ -179,20 +149,16 @@ export class RubricEvaluationComponent implements OnInit {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser || this.allStudents.length === 0) return;
 
-    const studentIds = this.allStudents
-      .map(student => Number(student.id))
-      .filter(id => Number.isFinite(id));
+    const studentIds = this.allStudents.map(student => Number(student.id)).filter(id => Number.isFinite(id));
 
     this.evaluationService.findEvaluationsByStudents(studentIds).subscribe({
       next: (res) => {
         const evaluations = Array.isArray(res) ? res : (res.data || res.payload || []);
-        const evaluationsByStudent = this.groupEvaluationsByStudent(evaluations);
-
+        const byStudent = this.groupEvaluationsByStudent(evaluations);
         this.allStudents.forEach(student => {
-          const evals = evaluationsByStudent.get(Number(student.id)) || [];
-          (student as any).gradingStatus = this.resolveGradingStatus(evals, currentUser);
+          const evals = byStudent.get(Number(student.id)) || [];
+          (student as any).gradingStatus = this.resolveGradingStatus(evals);
         });
-
         this.filterStudents();
       },
       error: () => {
@@ -205,42 +171,25 @@ export class RubricEvaluationComponent implements OnInit {
   private groupEvaluationsByStudent(evaluations: any[]): Map<number, any[]> {
     const grouped = new Map<number, any[]>();
     evaluations.forEach((evaluation: any) => {
-      const studentCampaignId = Number(evaluation.student_campaign_id);
-      if (!Number.isFinite(studentCampaignId)) return;
-      const current = grouped.get(studentCampaignId) || [];
-      current.push(evaluation);
-      grouped.set(studentCampaignId, current);
+      const id = Number(evaluation.student_campaign_id);
+      if (!Number.isFinite(id)) return;
+      const list = grouped.get(id) || [];
+      list.push(evaluation);
+      grouped.set(id, list);
     });
     return grouped;
   }
 
-  private resolveGradingStatus(evaluations: any[], currentUser: any): string {
-    if (currentUser.role === 'COMPANY_SUPERVISOR') {
-      const myCompanyEvals = evaluations.filter((evaluation: any) =>
-        this.isCompanyEvaluation(evaluation) && evaluation.evaluator_id === currentUser.userId
-      );
-      const hasStage1 = myCompanyEvals.some((evaluation: any) => evaluation.stage === 'STAGE_1');
-      const hasStage2 = myCompanyEvals.some((evaluation: any) => evaluation.stage === 'STAGE_2');
-      if (hasStage1 && hasStage2) return 'Đã chấm';
-      return myCompanyEvals.length > 0 ? 'Chưa chấm đủ' : 'Chưa chấm';
-    }
-
-    const myGvhdEvals = evaluations.filter((evaluation: any) =>
-      evaluation.evaluator_type === 'GVHD' && evaluation.evaluator_id === currentUser.userId
-    );
-    const hasGvhdStage1 = myGvhdEvals.some((evaluation: any) => evaluation.stage === 'STAGE_1');
-    const hasGvhdStage2 = myGvhdEvals.some((evaluation: any) => evaluation.stage === 'STAGE_2');
-    const hasCompanyStage1 = evaluations.some((evaluation: any) =>
-      evaluation.stage === 'STAGE_1' && this.isCompanyEvaluation(evaluation)
-    );
-
-    if (hasGvhdStage1 && hasCompanyStage1 && hasGvhdStage2) return 'Hoàn tất chấm điểm';
-    if (!hasGvhdStage1 && !hasCompanyStage1 && !hasGvhdStage2) return 'Chưa chấm';
-    if (!hasCompanyStage1 && (hasGvhdStage1 || hasGvhdStage2)) return 'DVHD chưa chấm';
-    if (!hasGvhdStage1 && hasCompanyStage1 && !hasGvhdStage2) return 'GVHD chưa chấm';
-    if (!hasGvhdStage1) return 'GVHD chưa chấm C1';
-    if (!hasGvhdStage2) return 'GVHD chưa chấm C2';
-    return 'Chưa chấm đủ';
+  private resolveGradingStatus(evaluations: any[]): string {
+    const currentUser = this.authService.getCurrentUser();
+    const myEvals = evaluations.filter((e: any) =>
+      e.evaluator_type === 'GVHD' && Number(e.evaluator_id) === Number(currentUser?.userId));
+    const hasM1 = myEvals.some((e: any) => e.stage === 'M1');
+    const hasM2 = myEvals.some((e: any) => e.stage === 'M2');
+    if (hasM1 && hasM2) return 'Hoàn tất chấm điểm';
+    if (hasM1) return 'Đã chấm M1';
+    if (hasM2) return 'Đã chấm M2';
+    return 'Chưa chấm';
   }
 
   filterStudents(): void {
@@ -250,8 +199,8 @@ export class RubricEvaluationComponent implements OnInit {
       const campaignId = Number(this.selectedCampaignId);
       result = result.filter(s => Number(s.campaign_id) === campaignId);
     } else if (this.campaigns.length > 0) {
-      const activeCampaignIds = new Set(this.campaigns.map(c => Number(c.id)));
-      result = result.filter(s => activeCampaignIds.has(Number(s.campaign_id)));
+      const activeIds = new Set(this.campaigns.map(c => Number(c.id)));
+      result = result.filter(s => activeIds.has(Number(s.campaign_id)));
     }
 
     if (this.searchTerm) {
@@ -259,7 +208,7 @@ export class RubricEvaluationComponent implements OnInit {
       result = result.filter(s =>
         (s.full_name && s.full_name.toLowerCase().includes(term)) ||
         (s.student_code && s.student_code.toLowerCase().includes(term)) ||
-        (s.company_info?.company_name && s.company_info.company_name.toLowerCase().includes(term))
+        (s.datn_info?.thesis_title && s.datn_info.thesis_title.toLowerCase().includes(term))
       );
     }
 
@@ -271,9 +220,7 @@ export class RubricEvaluationComponent implements OnInit {
     this.totalItems = result.length;
 
     const totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
-    if (this.currentPage > totalPages) {
-      this.currentPage = totalPages;
-    }
+    if (this.currentPage > totalPages) this.currentPage = totalPages;
 
     this.paginate();
   }
@@ -289,962 +236,491 @@ export class RubricEvaluationComponent implements OnInit {
   }
 
   private refreshAvailableCampaigns(): void {
-    const assignedCampaignIds = new Set(
-      this.allStudents
-        .map(s => Number(s.campaign_id))
-        .filter(id => Number.isFinite(id))
-    );
-
-    this.availableCampaigns = this.campaigns
-      .filter(c => assignedCampaignIds.has(Number(c.id)))
-      ;
-
-    if (this.selectedCampaignId !== null && !assignedCampaignIds.has(Number(this.selectedCampaignId))) {
+    const assignedIds = new Set(this.allStudents.map(s => Number(s.campaign_id)).filter(id => Number.isFinite(id)));
+    this.availableCampaigns = this.campaigns.filter(c => assignedIds.has(Number(c.id)));
+    if (this.selectedCampaignId !== null && !assignedIds.has(Number(this.selectedCampaignId))) {
       this.selectedCampaignId = null;
       this.onFilterChange();
     }
   }
 
   private compareStudentsByName(a: StudentCampaignResponse, b: StudentCampaignResponse): number {
-    const firstNameCompare = this.getStudentFirstName(a).localeCompare(this.getStudentFirstName(b), 'vi', { sensitivity: 'base' });
-    if (firstNameCompare !== 0) return firstNameCompare;
-
-    const lastNameCompare = this.getStudentLastName(a).localeCompare(this.getStudentLastName(b), 'vi', { sensitivity: 'base' });
-    if (lastNameCompare !== 0) return lastNameCompare;
-
+    const fa = this.getStudentFirstName(a).localeCompare(this.getStudentFirstName(b), 'vi', { sensitivity: 'base' });
+    if (fa !== 0) return fa;
     return (a.student_code || '').localeCompare(b.student_code || '', 'vi', { numeric: true });
   }
 
   getStudentFirstName(student: StudentCampaignResponse): string {
     if (student.first_name) return student.first_name;
     const parts = (student.full_name || '').trim().split(/\s+/).filter(Boolean);
-    return parts.length > 0 ? parts[parts.length - 1] : '';
+    return parts.length > 1 ? parts[parts.length - 1] : (student.full_name || '');
   }
 
-  private getStudentLastName(student: StudentCampaignResponse): string {
+  getStudentLastName(student: StudentCampaignResponse): string {
     if (student.last_name) return student.last_name;
     const parts = (student.full_name || '').trim().split(/\s+/).filter(Boolean);
     return parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
   }
 
-  onPageChange(page: number): void {
-    this.currentPage = page;
-    this.paginate();
-  }
-
-  selectStudent(
-    student: StudentCampaignResponse,
-    initialStage: 'STAGE_1' | 'STAGE_2' = 'STAGE_1',
-    initialTab: 'STAGE_1' | 'STAGE_2' | 'SUMMARY' = initialStage
-  ): void {
-    this.selectedStudent = student;
+  selectStudent(s: StudentCampaignResponse): void {
+    this.selectedStudent = s;
     this.criteria = [];
     this.existingEvaluation = null;
     this.generalComment = '';
-    this.campaign = null;
-    this.isStage1Open = false;
-    this.isStage2Open = false;
-    this.selectedStage = initialStage;
-    this.activeTab = initialTab;
+    this.isReassessment = false;
+    this.conclusion = 'PASSED';
+    this.revisionResolved = false;
     this.finalResult = null;
-    this.loadCampaignInfo(student.campaign_id);
-    this.loadRubricConfig();
-    this.loadFinalResult();
-    if (initialTab === 'SUMMARY') {
-      this.loadSummaryEvaluations();
-    }
+    this.summaryEvaluations = [];
+    this.activeTab = this.pendingStage || 'M1';
+    this.selectedStage = this.pendingStage || 'M1';
+    this.loadStudentDetail();
   }
 
-  private readNavigationContext(): void {
-    const params = this.route.snapshot.queryParamMap;
-    const studentCampaignId = Number(params.get('studentCampaignId'));
-    this.pendingStudentCampaignId = Number.isFinite(studentCampaignId) && studentCampaignId > 0 ? studentCampaignId : null;
-
-    const campaignId = Number(params.get('campaignId'));
-    this.selectedCampaignId = Number.isFinite(campaignId) && campaignId > 0 ? campaignId : null;
-
-    const stage = params.get('stage');
-    this.pendingStage = stage === 'STAGE_2' ? 'STAGE_2' : stage === 'STAGE_1' ? 'STAGE_1' : null;
-
-    const tab = params.get('tab');
-    this.pendingTab = tab === 'SUMMARY' ? 'SUMMARY' : tab === 'STAGE_2' ? 'STAGE_2' : tab === 'STAGE_1' ? 'STAGE_1' : null;
-  }
-
-  private openPendingGuidedStudentIfNeeded(): void {
-    if (this.pendingStudentCampaignId === null) {
-      return;
-    }
-
-    const student = this.allStudents.find(item => Number(item.id) === Number(this.pendingStudentCampaignId));
-    if (!student) {
-      return;
-    }
-
-    const tab = this.pendingTab || this.pendingStage || 'STAGE_1';
-    const stage = tab === 'SUMMARY' ? (this.pendingStage || 'STAGE_1') : tab;
-    this.selectStudent(student, stage, tab);
+  closeStudent(): void {
+    this.selectedStudent = null;
     this.pendingStudentCampaignId = null;
     this.pendingStage = null;
     this.pendingTab = null;
   }
 
-  loadCampaignInfo(campaignId: number): void {
-    this.campaignService.getById(campaignId).subscribe({
-      next: (camp: any) => {
-        const campaign = camp.data || camp.payload || camp;
-        this.campaign = campaign;
-        this.isCampaignActive = campaign.status === 'ACTIVE';
-        const now = new Date();
-
-        const groupConfig = this.selectedStudent?.group_config || null;
-        const activeSource = groupConfig || campaign;
-
-        const startDate = activeSource.start_date || campaign.start_date;
-        const endDate = activeSource.end_date || campaign.end_date;
-        const midtermStart = activeSource.midterm_start_date
-          ? new Date(activeSource.midterm_start_date)
-          : new Date(new Date(startDate).getTime() + 21 * 24 * 60 * 60 * 1000);
-        this.midtermStartDateStr = midtermStart.toLocaleDateString('vi-VN');
-        this.isStage1Open = now >= midtermStart;
-
-        const tttn06Start = activeSource.tttn06_start_date
-          ? new Date(activeSource.tttn06_start_date)
-          : new Date(new Date(endDate).getTime() - 7 * 24 * 60 * 60 * 1000);
-        this.tttn06StartDateStr = tttn06Start.toLocaleDateString('vi-VN');
-        this.isStage2Open = now >= tttn06Start;
-      },
-      error: () => {
-        this.toastService.error('Không thể tải thông tin đợt thực tập.');
-      }
-    });
-  }
-
-  onStageChange(stage: 'STAGE_1' | 'STAGE_2'): void {
+  onStageChange(stage: Stage): void {
     this.selectedStage = stage;
-    this.activeTab = stage;
-    this.existingEvaluation = null;
+    this.isReassessment = false;
+    this.conclusion = 'PASSED';
+    this.revisionResolved = false;
+    this.criteria = [];
     this.generalComment = '';
-    this.resetCriteriaEvaluationState();
-    this.checkExistingEvaluation();
+    this.activeTab = stage;
+    this.loadStudentDetail();
   }
 
   onSummaryTab(): void {
     this.activeTab = 'SUMMARY';
-    this.loadFinalResult();
-    this.loadSummaryEvaluations();
+    this.loadSummaryData();
   }
 
-  loadRubricConfig(): void {
+  private loadStudentDetail(): void {
     if (!this.selectedStudent) return;
     this.isLoading = true;
+    const id = this.selectedStudent.id;
 
-    this.departmentCampaignService.findOrCreate(this.selectedStudent.campaign_id, this.selectedStudent.department_id)
-      .subscribe({
-        next: (deptRes) => {
-          const deptCampaign = deptRes.id !== undefined ? deptRes : (deptRes.data || deptRes.payload || {});
-          const deptCampId = deptCampaign.id;
-          this.departmentStage1Weight = this.toNumber(deptCampaign.stage1_weight, 30);
-          this.departmentStage2Weight = this.toNumber(deptCampaign.stage2_weight, 70);
-
-          this.departmentCampaignService.getCloConfigs(deptCampId).subscribe({
-            next: (cloRes) => {
-              this.buildCriteriaFromApi(Array.isArray(cloRes) ? cloRes : (cloRes.data || cloRes.payload || []));
-              this.checkExistingEvaluation();
-            },
-            error: () => this.handleError('Không thể tải cấu hình Rubric.')
-          });
-        },
-        error: () => this.handleError('Không thể lấy thông tin Đợt thực tập Khoa.')
-      });
-  }
-
-  buildCriteriaFromApi(clos: any[]): void {
-    this.criteria = clos.map(clo => {
-      const rubrics = [...(clo.rubrics || [])].sort((a: any, b: any) => Number(a.score_level) - Number(b.score_level));
-      const usesLevelCode = rubrics.length > 0 && rubrics.every((r: any) => {
-        const value = Number(r.score_level);
-        return Number.isInteger(value) && value >= 0 && value <= 4;
-      });
-
-      return {
-        id: clo.clo_code,
-        name: `CLO: ${clo.clo_code}`,
-        description: clo.description,
-        maxScore: 10,
-        alphaWeight: this.toNumber(clo.alpha_weight, 0),
-        stage1Weight: this.toNumber(clo.stage1_weight, this.departmentStage1Weight),
-        stage2Weight: this.toNumber(clo.stage2_weight, this.departmentStage2Weight),
-        gvhdBeta: this.toNumber(clo.gvhd_beta, 0),
-        companyBeta: this.toNumber(clo.company_beta, 0),
-        gvhdScore: null,
-        companyScore: null,
-        levels: rubrics.map((r: any, index: number) => {
-          const level = usesLevelCode ? Number(r.score_level) : index;
-          const band = this.scoreBands.find(b => b.level === level) || this.scoreBands[index] || this.scoreBands[0];
-          return {
-            label: band.label,
-            level: band.level,
-            range: band.range,
-            description: r.description || ''
-          };
-        })
-      };
+    this.campaignService.getById(this.selectedStudent.campaign_id).subscribe({
+      next: (camp) => {
+        this.campaign = camp;
+        this.isCampaignActive = camp.status === 'ACTIVE';
+        const parseDate = (str?: string) => str ? new Date(str.includes(' ') ? str.replace(' ', 'T') : str) : null;
+        const m1Start = parseDate(camp.m1_start_date);
+        const m2Start = parseDate(camp.m2_start_date) || (camp.end_date ? new Date(new Date(camp.end_date).getTime() - 7 * 24 * 3600 * 1000) : null);
+        const now = new Date();
+        this.isM1Open = !!m1Start && now >= m1Start && !!camp.m1_deadline && now <= new Date(camp.m1_deadline.replace(' ', 'T'));
+        this.isM2Open = !!m2Start && now >= m2Start && !!camp.m2_deadline && now <= new Date(camp.m2_deadline.replace(' ', 'T'));
+        this.m1StartDateStr = m1Start ? m1Start.toISOString().slice(0, 16).replace('T', ' ') : '';
+        this.m2StartDateStr = m2Start ? m2Start.toISOString().slice(0, 16).replace('T', ' ') : '';
+      },
+      error: () => {
+        this.isCampaignActive = false;
+      }
     });
-  }
 
-  checkExistingEvaluation(): void {
-    if (!this.selectedStudent) return;
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) return;
-    const evaluatorType = this.getCurrentEvaluatorType();
+    // Load CLO config
+    this.departmentCampaignService.findOrCreate(this.selectedStudent.campaign_id, this.selectedStudent.department_id).subscribe({
+      next: (dc) => {
+        if (dc) {
+          this.departmentM1Weight = this.toNumber(dc.m1_weight, 40);
+          this.departmentM2Weight = this.toNumber(dc.m2_weight, 60);
+          if (dc.clo_configs && dc.clo_configs.length) {
+            this.criteria = dc.clo_configs.map((clo: any, idx: number) => this.buildCriterion(clo, idx));
+            this.applySavedScores();
+          }
+        }
+      }
+    });
 
-    this.evaluationService.findEvaluations(this.selectedStudent.id).subscribe({
-      next: (res) => {
-        const evaluations = Array.isArray(res) ? res : (res.data || res.payload || []);
-        const stageEvaluations = evaluations.filter((e: any) => e.stage === this.selectedStage);
-        this.resetCriteriaEvaluationState();
-        this.applyAggregatedScores(stageEvaluations);
-
-        const myEval = stageEvaluations.find((e: any) =>
-          e.evaluator_type === evaluatorType &&
-          e.evaluator_id === currentUser.userId
-        );
+    // Load existing evaluations
+    this.evaluationService.findEvaluations(id).subscribe({
+      next: (evals) => {
+        this.summaryEvaluations = Array.isArray(evals) ? evals : (evals.data || evals.payload || []);
+        const currentUser = this.authService.getCurrentUser();
+        const myEval = this.summaryEvaluations.find((e: any) =>
+          e.evaluator_type === 'GVHD' && Number(e.evaluator_id) === Number(currentUser?.userId) && e.stage === this.selectedStage);
+        this.existingEvaluation = myEval || null;
+        this.conclusion = myEval?.conclusion || 'PASSED';
+        this.revisionResolved = myEval?.revision_resolved === true;
+        this.applySavedScores();
         if (myEval) {
-          this.existingEvaluation = myEval;
-          this.generalComment = myEval.general_comment || '';
-          (myEval.scores || []).forEach((score: any) => {
-            const crit = this.criteria.find(c => c.id === score.clo_code);
-            if (crit) {
-              crit.selectedScore = this.clampScore(score.score_level);
-              crit.comment = score.comment || score.short_comment || '';
+          const scoreByClo = new Map<string, any>();
+          (myEval.scores || []).forEach((s: any) => scoreByClo.set(String(s.clo_code).toUpperCase(), s));
+          this.criteria.forEach(c => {
+            const score = scoreByClo.get(c.id.toUpperCase());
+            if (score) {
+              c.selectedScore = score.score_level;
+              c.comment = score.comment || '';
             }
           });
+          this.generalComment = myEval.general_comment || '';
         }
         this.isLoading = false;
       },
-      error: () => this.isLoading = false
+      error: () => {
+        this.isLoading = false;
+      }
+    });
+
+    this.evaluationService.getFinalResult(id).subscribe({
+      next: (fr) => {
+        this.finalResult = fr || null;
+      }
     });
   }
 
-  get visibleCriteria(): RubricCriterion[] {
-    return this.criteria.filter(c => this.getStageWeight(c) > 0);
+  private applySavedScores(): void {
+    const scores = this.existingEvaluation?.scores || [];
+    for (const c of this.criteria) {
+      const s = scores.find((item: any) => item.clo_code === c.id);
+      if (s) { c.selectedScore = s.score_level; c.comment = s.comment || ''; }
+    }
   }
 
-  get hiddenCriteriaCount(): number {
-    return this.criteria.length - this.visibleCriteria.length;
+  canReassess(): boolean {
+    const e = this.existingEvaluation;
+    if (!e || e.conclusion !== 'FAILED' || (e.reassessment_count || 0) >= 1 || !e.first_failed_at) return false;
+    return Date.now() <= new Date(e.first_failed_at.replace(' ', 'T')).getTime() + 7 * 86400000;
   }
 
-  get hasRubricConfig(): boolean {
-    return this.criteria.length > 0;
+  private buildCriterion(clo: any, index: number): RubricCriterion {
+    const levels = (clo.rubrics || []).map((r: any) => ({
+      level: r.score_level,
+      label: `Mức ${r.score_level}`,
+      range: this.getLevelRange(r.score_level),
+      description: r.description || ''
+    }));
+    return {
+      id: clo.clo_code,
+      name: `CLO: ${clo.clo_code}`,
+      description: clo.description || '',
+      alphaWeight: this.toNumber(clo.alpha_weight, 0),
+      m1Weight: this.toNumber(clo.m1_weight, this.departmentM1Weight),
+      m2Weight: this.toNumber(clo.m2_weight, this.departmentM2Weight),
+      levels,
+      selectedScore: null,
+      comment: ''
+    };
   }
 
-  get canSubmit(): boolean {
-    return !this.isSaving && Boolean(this.selectedStudent) && !this.isScoringLocked();
-  }
-
-  get canExportTttn04(): boolean {
-    return this.activeTab === 'STAGE_1'
-      && Boolean(this.selectedStudent)
-      && Boolean(this.existingEvaluation)
-      && !this.isSaving
-      && !this.isExportingTttn04;
-  }
-
-  get canExportTttn05(): boolean {
-    return this.activeTab === 'STAGE_2'
-      && Boolean(this.selectedStudent)
-      && Boolean(this.existingEvaluation)
-      && !this.isSaving
-      && !this.isExportingTttn05;
-  }
-
-  getStageWeight(criterion: RubricCriterion): number {
-    return this.selectedStage === 'STAGE_1' ? criterion.stage1Weight : criterion.stage2Weight;
-  }
-
-  getStageLabel(): string {
-    if (this.activeTab === 'SUMMARY') return 'Tổng hợp điểm';
-    return this.selectedStage === 'STAGE_1' ? 'Chặng 1 (Giữa kỳ)' : 'Chặng 2 (Cuối kỳ)';
-  }
-
-  getStageTemplateTitle(): string {
-    return this.selectedStage === 'STAGE_1'
-      ? 'Chặng 1 - Đánh giá tổng kết giữa kỳ'
-      : 'Chặng 2 - Đánh giá tổng kết cuối kỳ';
-  }
-
-  getStageTemplateSubtitle(): string {
-    const weight = this.selectedStage === 'STAGE_1' ? this.departmentStage1Weight : this.departmentStage2Weight;
-    const evaluator = 'GVHD + ĐVHD';
-    return `Trọng số chặng ${this.selectedStage === 'STAGE_1' ? '1' : '2'}: ${weight}% tổng điểm học phần | Người đánh giá: ${evaluator}`;
+  getLevelRange(level: number): string {
+    const band = this.scoreBands.find(b => b.level === level);
+    return band ? band.range : '';
   }
 
   getActiveTabTitle(): string {
-    return this.activeTab === 'SUMMARY' ? 'Tổng hợp điểm' : this.getStageTemplateTitle();
+    if (this.activeTab === 'SUMMARY') return 'Tổng hợp điểm CLO';
+    return this.activeTab === 'M1' ? 'Đánh giá mốc M1 (đầu kỳ)' : 'Đánh giá mốc M2 (giữa kỳ)';
   }
 
   getActiveTabSubtitle(): string {
-    return this.activeTab === 'SUMMARY'
-      ? 'Xem trực tiếp điểm trung bình Chặng 1, Chặng 2 và điểm học phần cuối cùng.'
-      : this.getStageTemplateSubtitle();
+    if (this.activeTab === 'SUMMARY') return 'Điểm học phần ĐATN = Tổng (CLOi × αi)';
+    const w = this.activeTab === 'M1' ? this.departmentM1Weight : this.departmentM2Weight;
+    return `GVHD chấm theo CLO/Rubric. Trọng số mốc: ${w}% tổng điểm học phần.`;
   }
 
-  getStageAverageTitle(): string {
-    return this.selectedStage === 'STAGE_1' ? 'Điểm TB Chặng 1' : 'Điểm TB Chặng 2';
+  getStageLabel(): string {
+    return this.selectedStage === 'M1' ? 'Mốc M1 (đầu kỳ)' : 'Mốc M2 (giữa kỳ)';
   }
 
-  getStageStartText(): string {
-    return this.selectedStage === 'STAGE_1' ? this.midtermStartDateStr : this.tttn06StartDateStr;
+  getStageWeight(criterion: RubricCriterion): number {
+    return this.selectedStage === 'M1' ? criterion.m1Weight : criterion.m2Weight;
   }
 
-  getScoreLevel(score: number | null | undefined): number | null {
-    if (score === null || score === undefined || Number.isNaN(Number(score))) return null;
-    const value = Number(score);
-    if (value < 0 || value > 10) return null;
-    if (value < 4) return 0;
-    if (value < 5.5) return 1;
-    if (value < 7) return 2;
-    if (value < 8.5) return 3;
-    return 4;
+  getStageAverageScore(criterion: RubricCriterion): number | null {
+    return criterion.selectedScore ?? null;
   }
 
-  getScoreLevelLabel(score: number | null | undefined): string {
-    const level = this.getScoreLevel(score);
-    if (level === null) return 'Chưa nhập';
-    const band = this.scoreBands.find(b => b.level === level);
-    return band ? `${band.label} (${band.range})` : `Mức ${level}`;
-  }
-
-  getScoreLevelName(score: number | null | undefined): string {
-    const level = this.getScoreLevel(score);
-    if (level === null) return 'Chưa nhập';
-    return this.scoreBands.find(b => b.level === level)?.label || `Mức ${level}`;
-  }
-
-  getScoreLevelRange(score: number | null | undefined): string {
-    const level = this.getScoreLevel(score);
-    if (level === null) return '';
-    return this.scoreBands.find(b => b.level === level)?.range || '';
-  }
-
-  getLevelBadgeClass(criterion: RubricCriterion): string {
-    const level = this.getScoreLevel(criterion.selectedScore);
-    if (level === null) return 'bg-slate-100 text-slate-500 border-slate-200';
-    if (level === 0) return 'bg-red-50 text-red-700 border-red-200';
-    if (level === 1) return 'bg-amber-50 text-amber-700 border-amber-200';
-    if (level === 2) return 'bg-blue-50 text-blue-700 border-blue-200';
-    return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  }
-
-  getLevelClass(criterion: RubricCriterion, level: RubricLevel): string {
-    return this.getScoreLevel(criterion.selectedScore) === level.level
-      ? 'border-[#00429D] bg-blue-50 text-[#00429D]'
-      : 'border-slate-200 bg-white text-slate-600';
+  getStageAverageScoreText(criterion: RubricCriterion): string {
+    const v = this.getStageAverageScore(criterion);
+    return v === null || v === undefined ? '—' : this.formatScore(v);
   }
 
   getStageResultBadgeClass(criterion: RubricCriterion): string {
-    const level = this.getScoreLevel(this.getStageAverageScore(criterion));
-    if (level === null) return 'bg-slate-100 text-slate-500 border-slate-200';
-    if (level === 0) return 'bg-red-50 text-red-700 border-red-200';
-    if (level === 1) return 'bg-amber-50 text-amber-700 border-amber-200';
-    if (level === 2) return 'bg-blue-50 text-blue-700 border-blue-200';
-    return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    const v = this.getStageAverageScore(criterion);
+    const level = this.getScoreLevel(v);
+    if (level <= 0) return 'bg-red-100 text-red-700';
+    if (level <= 1) return 'bg-orange-100 text-orange-700';
+    if (level <= 2) return 'bg-amber-100 text-amber-700';
+    if (level <= 3) return 'bg-green-100 text-green-700';
+    return 'bg-emerald-100 text-emerald-700';
   }
 
-  getScoreInputClass(criterion: RubricCriterion): string {
-    return this.isScoreValid(criterion) || criterion.selectedScore === undefined || criterion.selectedScore === null
-      ? 'border-slate-300 focus:border-[#00429D] focus:ring-[#00429D]'
-      : 'border-red-300 focus:border-red-500 focus:ring-red-500';
+  getScoreLevelName(score: number | null | undefined): string {
+    if (score === null || score === undefined) return '—';
+    return `Mức ${this.getScoreLevel(score)}`;
   }
 
-  normalizeScore(criterion: RubricCriterion): void {
-    if (criterion.selectedScore === null || criterion.selectedScore === undefined || criterion.selectedScore === ('' as any)) {
-      criterion.selectedScore = undefined;
-      return;
-    }
-    const value = Number(criterion.selectedScore);
-    if (Number.isNaN(value)) {
-      criterion.selectedScore = undefined;
-      return;
-    }
-    criterion.selectedScore = this.clampScore(value);
+  getScoreLevelRange(score: number | null | undefined): string {
+    if (score === null || score === undefined) return '';
+    const band = this.scoreBands.find(b => b.level === this.getScoreLevel(score));
+    return band ? band.range : '';
   }
 
-  isScoreValid(criterion: RubricCriterion): boolean {
-    const value = Number(criterion.selectedScore);
-    return criterion.selectedScore !== null && criterion.selectedScore !== undefined && !Number.isNaN(value) && value >= 0 && value <= 10;
-  }
-
-  getAverageScore(): number {
-    const scores = this.visibleCriteria
-      .map(c => this.getStageAverageScore(c))
-      .filter((score): score is number => score !== null && score !== undefined);
-    return scores.length === 0 ? 0 : scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  getScoreLevel(score: number | null | undefined): number {
+    if (score === null || score === undefined || score < 4) return 0;
+    if (score < 5.5) return 1;
+    if (score < 7) return 2;
+    if (score < 8.5) return 3;
+    return 4;
   }
 
   getAverageScoreText(): string {
-    const scores = this.visibleCriteria
-      .map(c => this.getStageAverageScore(c))
-      .filter((score): score is number => score !== null && score !== undefined);
-    if (scores.length === 0) return 'Chưa có';
-    return this.formatScore(scores.reduce((sum, score) => sum + score, 0) / scores.length);
-  }
-
-  getFilledCriteriaCount(): number {
-    return this.scorableCriteria.filter(c => this.isScoreValid(c)).length;
+    const vals = this.criteria.map(c => c.selectedScore).filter((v): v is number => v !== null && v !== undefined);
+    if (vals.length === 0) return '—';
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    return this.formatScore(avg);
   }
 
   getProgressText(): string {
-    return `${this.getFilledCriteriaCount()}/${this.scorableCriteria.length} CLO đã nhập điểm`;
+    const graded = this.criteria.filter(c => this.getStageWeight(c) > 0 && c.selectedScore !== null && c.selectedScore !== undefined).length;
+    return `${graded}/${this.criteria.length} CLO đã chấm`;
   }
 
-  getNoVisibleCriteriaMessage(): string {
-    if (!this.hasRubricConfig) {
-      return 'Khoa chưa thiết lập cấu hình CLO & Rubric.';
-    }
-    return `Không có CLO nào cần chấm ở ${this.getStageLabel()} vì trọng số chặng bằng 0%.`;
+  normalizeScore(criterion: RubricCriterion): void {
+    if (criterion.selectedScore === null || criterion.selectedScore === undefined) return;
+    const v = Math.min(10, Math.max(0, Number(criterion.selectedScore)));
+    criterion.selectedScore = Math.round(v * 10) / 10;
   }
 
-  getExistingEvaluationMessage(): string {
-    return `Bạn đã chấm điểm ${this.getStageLabel()} cho sinh viên này. Có thể cập nhật và lưu lại điểm.`;
-  }
-
-  getSubmitText(): string {
-    return this.existingEvaluation ? 'Lưu cập nhật điểm' : 'Hoàn tất đánh giá';
-  }
-
-  getCommentPlaceholder(): string {
-    return this.selectedStage === 'STAGE_1'
-      ? 'Nhận xét chung về kết quả giữa kỳ, tiến độ, thái độ và các điểm cần cải thiện...'
-      : 'Nhận xét chung về kết quả cuối kỳ, báo cáo/sản phẩm và mức độ đạt chuẩn đầu ra...';
-  }
-
-  getRubricLevels(criterion: RubricCriterion): RubricLevel[] {
-    return criterion.levels.length > 0
-      ? criterion.levels
-      : this.scoreBands.map(b => ({ label: b.label, level: b.level, range: b.range, description: '' }));
+  getScoreInputClass(criterion: RubricCriterion): string {
+    const v = criterion.selectedScore;
+    if (v === null || v === undefined) return 'border-slate-300';
+    const level = this.getScoreLevel(v);
+    if (level <= 1) return 'border-red-300 bg-red-50';
+    if (level <= 2) return 'border-amber-300 bg-amber-50';
+    return 'border-emerald-300 bg-emerald-50';
   }
 
   isScoringLocked(): boolean {
-    if (!this.isCampaignActive) return true;
-    if (this.isStageManuallyLocked()) return true;
-    if (this.selectedStage === 'STAGE_1') return !this.isStage1Open;
-    return !this.isStage2Open || !this.isStage1FullyLocked();
-  }
-
-  isStageManuallyLocked(stage: 'STAGE_1' | 'STAGE_2' = this.selectedStage): boolean {
+    if (this.isReassessment && this.canReassess()) return false;
     if (!this.finalResult) return false;
-    const evaluatorType = this.getCurrentEvaluatorType();
-    if (stage === 'STAGE_1') {
-      return evaluatorType === 'COMPANY_SUPERVISOR'
-        ? Boolean(this.finalResult.stage1_company_locked)
-        : Boolean(this.finalResult.stage1_gvhd_locked);
-    }
-    return evaluatorType === 'COMPANY_SUPERVISOR'
-      ? Boolean(this.finalResult.stage2_company_locked)
-      : Boolean(this.finalResult.stage2_gvhd_locked);
+    if (this.selectedStage === 'M1') return this.finalResult.m1_locked === true || this.finalResult.m1_gvhd_locked === true;
+    return this.finalResult.m2_locked === true || this.finalResult.m2_gvhd_locked === true;
   }
 
   isStage1FullyLocked(): boolean {
+    return this.finalResult?.m1_locked === true;
+  }
+
+  isStageManuallyLocked(): boolean {
     if (!this.finalResult) return false;
-    return Boolean(this.finalResult.stage1_locked);
+    if (this.selectedStage === 'M1') return this.finalResult.m1_gvhd_locked === true;
+    return this.finalResult.m2_gvhd_locked === true;
   }
 
-  get canLockCurrentStage(): boolean {
-    return Boolean(this.selectedStudent && !this.isStageManuallyLocked() && !this.isSaving);
+  canSubmit(): boolean {
+    if (!this.isCampaignActive) return false;
+    if (this.selectedStudent?.datn_info?.datn_status !== 'APPROVED') return false;
+    if (this.isReassessment) return this.canReassess();
+    if (this.isScoringLocked()) return false;
+    if (this.selectedStage === 'M1') return this.isM1Open;
+    if (this.selectedStage === 'M2') return this.isM2Open && this.isStage1FullyLocked();
+    return false;
   }
 
-  isFullyScored(): boolean {
-    return this.scorableCriteria.length > 0 && this.scorableCriteria.every(c => this.isScoreValid(c));
+  getCommentPlaceholder(): string {
+    return this.selectedStage === 'M1'
+      ? 'Nhận xét chung của GVHD cho mốc M1 (đầu kỳ)...'
+      : 'Nhận xét chung của GVHD cho mốc M2 (giữa kỳ)...';
   }
 
   submitEvaluation(): void {
-    this.scorableCriteria.forEach(c => this.normalizeScore(c));
-
-    if (!this.selectedStudent || !this.isFullyScored()) {
-      this.toastService.error('Vui lòng nhập điểm thang 10 cho tất cả CLO có trọng số ở chặng này.');
+    if (!this.selectedStudent) return;
+    if (!this.canSubmit()) {
+      this.toastService.error('Chưa đủ điều kiện nộp phiếu đánh giá cho mốc này.');
       return;
     }
 
-    if (this.selectedStage === 'STAGE_1' && !this.isStage1Open) {
-      this.toastService.error(`Chưa đến thời gian mở chấm Chặng 1. Chặng này bắt đầu từ ${this.midtermStartDateStr}.`);
-      return;
-    }
-    if (this.selectedStage === 'STAGE_2' && !this.isStage2Open) {
-      this.toastService.error(`Chưa đến thời gian mở chấm Chặng 2. Chặng này bắt đầu từ ${this.tttn06StartDateStr}.`);
-      return;
-    }
-    if (this.selectedStage === 'STAGE_2' && !this.isStage1FullyLocked()) {
-      this.toastService.error('Phải khóa đầy đủ điểm Chặng 1 trước khi nhập điểm Chặng 2.');
+    const scores = this.criteria
+      .filter(c => this.getStageWeight(c) > 0 && c.selectedScore !== null && c.selectedScore !== undefined)
+      .map(c => ({ clo_code: c.id, score_level: Number(c.selectedScore), comment: c.comment || '' }));
+
+    if (scores.length !== this.criteria.filter(c => this.getStageWeight(c) > 0).length || scores.length === 0) {
+      this.toastService.error('Vui lòng nhập điểm đầy đủ các CLO của mốc.');
       return;
     }
 
     const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) return;
-    const evaluatorType = this.getCurrentEvaluatorType();
-
-    this.isSaving = true;
-    const payload: EvaluationRequest = {
+    const request: EvaluationRequest = {
       student_campaign_id: this.selectedStudent.id,
-      evaluator_type: evaluatorType as any,
-      evaluator_id: currentUser.userId,
+      evaluator_type: 'GVHD',
+      evaluator_id: Number(currentUser?.userId),
       stage: this.selectedStage,
       general_comment: this.generalComment,
-      scores: this.scorableCriteria.map(c => ({
-        clo_code: c.id,
-        score_level: Number(c.selectedScore),
-        comment: c.comment?.trim() || undefined
-      }))
+      conclusion: this.conclusion,
+      revision_resolved: this.revisionResolved,
+      reassessment: this.isReassessment,
+      scores
     };
 
-    this.evaluationService.submitEvaluation(payload).subscribe({
-      next: (res) => {
-        this.existingEvaluation = res?.payload || res?.data || res;
-        this.toastService.success('Lưu bảng điểm thành công!');
+    this.isSaving = true;
+    this.evaluationService.submitEvaluation(request).subscribe({
+      next: () => {
+        this.toastService.success(`Đã nộp phiếu đánh giá mốc ${this.selectedStage} thành công!`);
         this.isSaving = false;
-        this.evaluationService.calculateFinalResult(this.selectedStudent!.id).subscribe({
-          next: (scoreRes) => this.finalResult = this.unwrapResponse(scoreRes)
-        });
-
-        const index = this.allStudents.findIndex(s => s.id === this.selectedStudent!.id);
-        if (index !== -1) {
-          this.refreshStudentGradingStatus(this.allStudents[index]);
-        }
+        this.loadStudentDetail();
+        this.checkAllEvaluationsStatus();
       },
       error: (err) => {
-        const msg = err?.error?.message || err?.message || 'Có lỗi khi lưu bảng điểm.';
-        this.toastService.error(msg);
+        this.toastService.error(err.error?.message || 'Có lỗi khi nộp phiếu đánh giá.');
         this.isSaving = false;
       }
     });
   }
 
-  exportStage1Tttn04(): void {
-    if (!this.selectedStudent) {
-      return;
-    }
-    if (this.activeTab !== 'STAGE_1') {
-      this.toastService.error('Phiếu TTTN-04 chỉ xuất ở Chặng 1.');
-      return;
-    }
-    if (!this.existingEvaluation) {
-      this.toastService.error('Bạn cần lưu điểm Chặng 1 trước khi xuất phiếu TTTN-04.');
-      return;
-    }
-
-    this.isExportingTttn04 = true;
-    this.evaluationService.exportStage1Tttn04(this.selectedStudent.id).subscribe({
-      next: (blob) => {
-        this.isExportingTttn04 = false;
-        this.downloadBlob(blob, `TTTN-04-${this.sanitizeFileName(this.selectedStudent!.student_code || 'sinh-vien')}.docx`);
+  lockCurrentStage(): void {
+    if (!this.selectedStudent) return;
+    this.isLocking = true;
+    this.evaluationService.lockFinalResultStage(this.selectedStudent.id, this.selectedStage, 'GVHD').subscribe({
+      next: () => {
+        this.toastService.success(`Đã khóa điểm mốc ${this.selectedStage}.`);
+        this.isLocking = false;
+        this.loadStudentDetail();
+        this.checkAllEvaluationsStatus();
       },
       error: (err) => {
-        this.isExportingTttn04 = false;
-        this.showExportError(err, 'Không thể xuất phiếu TTTN-04.');
+        this.toastService.error(err.error?.message || 'Có lỗi khi khóa điểm.');
+        this.isLocking = false;
       }
     });
   }
 
-  exportStage2Tttn05(): void {
-    if (!this.selectedStudent) {
-      return;
-    }
-    if (this.activeTab !== 'STAGE_2') {
-      this.toastService.error('Phiếu TTTN-05 chỉ xuất ở Chặng 2.');
-      return;
-    }
-    if (!this.existingEvaluation) {
-      this.toastService.error('Bạn cần lưu điểm Chặng 2 trước khi xuất phiếu TTTN-05.');
-      return;
-    }
-
-    this.isExportingTttn05 = true;
-    this.evaluationService.exportStage2Tttn05(this.selectedStudent.id).subscribe({
+  exportM1(): void {
+    if (!this.selectedStudent) return;
+    this.isExportingM1 = true;
+    this.evaluationService.exportM1Datn03(this.selectedStudent.id).subscribe({
       next: (blob) => {
-        this.isExportingTttn05 = false;
-        this.downloadBlob(blob, `TTTN-05-${this.sanitizeFileName(this.selectedStudent!.student_code || 'sinh-vien')}.docx`);
+        this.downloadBlob(blob, `DATN-03-${this.selectedStudent!.student_code}.docx`);
+        this.isExportingM1 = false;
       },
-      error: (err) => {
-        this.isExportingTttn05 = false;
-        this.showExportError(err, 'Không thể xuất phiếu TTTN-05.');
+      error: () => {
+        this.toastService.error('Không thể xuất phiếu ĐATN-03.');
+        this.isExportingM1 = false;
       }
     });
   }
 
-  private showExportError(err: any, fallbackMessage: string): void {
-    const errorBlob = err?.error;
-    if (errorBlob instanceof Blob && errorBlob.type?.includes('application/json')) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const parsed = JSON.parse(String(reader.result || '{}'));
-          this.toastService.error(parsed?.message || fallbackMessage);
-        } catch {
-          this.toastService.error(fallbackMessage);
-        }
-      };
-      reader.readAsText(errorBlob);
-      return;
-    }
-    this.toastService.error(err?.error?.message || err?.message || fallbackMessage);
+  exportStageSummary(): void {
+    if (!this.selectedStudent) return;
+    this.evaluationService.exportStageDatn07(this.selectedStudent.id, this.selectedStage).subscribe({
+      next: blob => this.downloadBlob(blob, `DATN-07-${this.selectedStage}.docx`),
+      error: () => this.toastService.error('Chưa thể xuất tổng hợp CLO của mốc này.')
+    });
+  }
+
+  exportM2(): void {
+    if (!this.selectedStudent) return;
+    this.isExportingM2 = true;
+    this.evaluationService.exportM2Datn04(this.selectedStudent.id).subscribe({
+      next: (blob) => {
+        this.downloadBlob(blob, `DATN-04-${this.selectedStudent!.student_code}.docx`);
+        this.isExportingM2 = false;
+      },
+      error: () => {
+        this.toastService.error('Không thể xuất phiếu ĐATN-04.');
+        this.isExportingM2 = false;
+      }
+    });
   }
 
   private downloadBlob(blob: Blob, fileName: string): void {
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
     window.URL.revokeObjectURL(url);
   }
 
-  private sanitizeFileName(value: string): string {
-    return value.replace(/[\\/:*?"<>|]+/g, '-').trim() || 'sinh-vien';
-  }
-
-  lockCurrentStage(): void {
-    if (!this.selectedStudent) {
-      return;
-    }
-    const stageName = this.selectedStage === 'STAGE_1' ? 'Chặng 1' : 'Chặng 2';
-    if (this.isStageManuallyLocked()) {
-      this.toastService.error(`Điểm ${stageName} đã khóa.`);
-      return;
-    }
-    if (!this.existingEvaluation) {
-      this.toastService.error(`Bạn cần lưu điểm ${stageName} trước khi khóa.`);
-      return;
-    }
-    if (this.selectedStage === 'STAGE_1' && !this.isStage1Open) {
-      this.toastService.error(`Chưa đến thời gian mở chấm Chặng 1. Chặng này bắt đầu từ ${this.midtermStartDateStr}.`);
-      return;
-    }
-    if (this.selectedStage === 'STAGE_2' && !this.isStage2Open) {
-      this.toastService.error(`Chưa đến thời gian mở chấm Chặng 2. Chặng này bắt đầu từ ${this.tttn06StartDateStr}.`);
-      return;
-    }
-    if (this.selectedStage === 'STAGE_2' && !this.isStage1FullyLocked()) {
-      this.toastService.error('Phải khóa đầy đủ điểm Chặng 1 trước khi khóa điểm Chặng 2.');
-      return;
-    }
-    const ok = window.confirm(`Sau khi khóa điểm ${stageName}, bạn sẽ không thể sửa điểm của chặng này. Tiếp tục khóa?`);
-    if (!ok) return;
-
-    this.isSaving = true;
-    this.evaluationService.lockFinalResultStage(
-      this.selectedStudent.id,
-      this.selectedStage,
-      this.getCurrentEvaluatorType()
-    ).subscribe({
-      next: (res) => {
-        this.finalResult = this.unwrapResponse(res);
-        this.isSaving = false;
-        this.toastService.success(`Đã khóa điểm ${stageName}.`);
-      },
-      error: (err) => {
-        this.isSaving = false;
-        this.toastService.error(err?.error?.message || `Không thể khóa điểm ${stageName}.`);
-      }
-    });
-  }
-
-  private getCurrentEvaluatorType(): 'GVHD' | 'COMPANY_SUPERVISOR' {
-    const currentUser = this.authService.getCurrentUser();
-    return currentUser?.role === 'COMPANY_SUPERVISOR' ? 'COMPANY_SUPERVISOR' : 'GVHD';
-  }
-
-  loadFinalResult(): void {
+  // ---- Summary ----
+  loadSummaryData(): void {
     if (!this.selectedStudent) return;
     this.isSummaryLoading = true;
     this.evaluationService.getFinalResult(this.selectedStudent.id).subscribe({
-      next: (res) => {
-        this.finalResult = this.unwrapResponse(res);
+      next: (fr) => {
+        this.finalResult = fr || null;
         this.isSummaryLoading = false;
       },
       error: () => {
-        this.finalResult = null;
         this.isSummaryLoading = false;
       }
     });
   }
 
-  loadSummaryEvaluations(): void {
-    if (!this.selectedStudent) return;
-    this.evaluationService.findEvaluations(this.selectedStudent.id).subscribe({
-      next: (res) => {
-        this.summaryEvaluations = Array.isArray(res) ? res : (res.data || res.payload || []);
-      },
-      error: () => {
-        this.summaryEvaluations = [];
-      }
-    });
-  }
-
-  getStageScore(stage: 'STAGE_1' | 'STAGE_2'): number | null {
-    if (!this.finalResult) return null;
-    return stage === 'STAGE_1'
-      ? (this.finalResult.stage1_score ?? this.finalResult.stage_1_score ?? null)
-      : (this.finalResult.stage2_score ?? this.finalResult.stage_2_score ?? null);
-  }
-
-  getFinalHpScore(): number | null {
-    return this.finalResult?.final_hp_score ?? null;
-  }
-
-  get summaryRows(): SummaryCloRow[] {
-    const stage1Evaluations = this.summaryEvaluations.filter((evaluation: any) => evaluation.stage === 'STAGE_1');
-    const stage2Evaluations = this.summaryEvaluations.filter((evaluation: any) => evaluation.stage === 'STAGE_2');
-    const stage1GvhdScores = this.buildScoreMap(stage1Evaluations, 'GVHD');
-    const stage1CompanyScores = this.buildScoreMap(stage1Evaluations, ['COMPANY_SUPERVISOR', 'COMPANY']);
-    const stage2GvhdScores = this.buildScoreMap(stage2Evaluations, 'GVHD');
-    const stage2CompanyScores = this.buildScoreMap(stage2Evaluations, ['COMPANY_SUPERVISOR', 'COMPANY']);
-
-    return this.criteria
-      .filter(criterion => criterion.stage1Weight > 0 || criterion.stage2Weight > 0)
-      .map(criterion => {
-        const stage1Average = this.getSummaryStageAverage(criterion, stage1GvhdScores, stage1CompanyScores);
-        const stage2Average = this.getSummaryStageAverage(criterion, stage2GvhdScores, stage2CompanyScores);
-        const cloScore = this.getSummaryCloScore(criterion, stage1Average, stage2Average);
-        const contribution = cloScore === null ? null : this.roundTo(cloScore * (criterion.alphaWeight / 100), 3);
-        return { criterion, stage1Average, stage2Average, cloScore, contribution };
-      });
+  getSummaryRows(): any[] {
+    return this.criteria.map(c => ({
+      criterion: c,
+      cloScore: c.selectedScore ?? null,
+      contribution: c.selectedScore !== null && c.selectedScore !== undefined
+        ? this.round2(c.selectedScore * c.alphaWeight / 100)
+        : null
+    }));
   }
 
   getSummaryHpScore(): number | null {
-    const finalScore = this.getFinalHpScore();
-    if (finalScore !== null) return finalScore;
-    const contributions = this.summaryRows
-      .map(row => row.contribution)
-      .filter((value): value is number => value !== null);
-    if (contributions.length === 0) return null;
-    return this.roundTo(contributions.reduce((sum, value) => sum + value, 0), 1);
-  }
-
-  formatSummaryScore(value: number | null | undefined): string {
-    return value === null || value === undefined ? 'N/A' : this.formatScore(value);
-  }
-
-  formatSummaryContribution(value: number | null | undefined): string {
-    if (value === null || value === undefined) return 'N/A';
-    return Number.isInteger(value) ? `${value}` : value.toString().replace(/0+$/, '').replace(/\.$/, '');
-  }
-
-  getSummaryStatusText(): string {
-    const score = this.getFinalHpScore();
-    if (score === null) return 'Chưa có kết quả';
-    if (this.finalResult?.is_paralyzed || score < 5) return 'Không đạt';
-    return 'Đạt';
-  }
-
-  handleError(msg: string): void {
-    this.toastService.error(msg);
-    this.isLoading = false;
-  }
-
-  trackCriterion(_index: number, criterion: RubricCriterion): string {
-    return criterion.id;
-  }
-
-  trackLevel(_index: number, level: RubricLevel): number {
-    return level.level;
-  }
-
-  get scorableCriteria(): RubricCriterion[] {
-    return this.visibleCriteria.filter(c => this.getCurrentEvaluatorBeta(c) > 0);
-  }
-
-  getCompanyScoreText(criterion: RubricCriterion): string {
-    if (criterion.companyBeta <= 0) return 'N/A';
-    const score = this.isCompanySupervisor ? this.toNullableScore(criterion.selectedScore) : criterion.companyScore;
-    return this.formatScore(score);
-  }
-
-  getGvhdScoreText(criterion: RubricCriterion): string {
-    if (criterion.gvhdBeta <= 0) return 'N/A';
-    const score = this.isCompanySupervisor ? criterion.gvhdScore : this.toNullableScore(criterion.selectedScore);
-    return this.formatScore(score);
-  }
-
-  getStageAverageScore(criterion: RubricCriterion): number | null {
-    const companyScore = this.isCompanySupervisor ? this.toNullableScore(criterion.selectedScore) : criterion.companyScore;
-    const gvhdScore = this.isCompanySupervisor ? criterion.gvhdScore : this.toNullableScore(criterion.selectedScore);
-    const companyRequired = criterion.companyBeta > 0;
-    const gvhdRequired = criterion.gvhdBeta > 0;
-
-    if (companyRequired && companyScore === null) return null;
-    if (gvhdRequired && gvhdScore === null) return null;
-
-    const totalWeight = (companyRequired ? criterion.companyBeta : 0) + (gvhdRequired ? criterion.gvhdBeta : 0);
-    if (totalWeight <= 0) return null;
-
-    const weightedScore =
-      (companyRequired ? (companyScore || 0) * criterion.companyBeta : 0) +
-      (gvhdRequired ? (gvhdScore || 0) * criterion.gvhdBeta : 0);
-
-    return Math.round((weightedScore / totalWeight) * 10) / 10;
-  }
-
-  getStageAverageScoreText(criterion: RubricCriterion): string {
-    return this.formatScore(this.getStageAverageScore(criterion));
-  }
-
-  getStageLevelLabel(criterion: RubricCriterion): string {
-    return this.getScoreLevelLabel(this.getStageAverageScore(criterion));
-  }
-
-  isCurrentEvaluatorColumn(evaluator: 'GVHD' | 'COMPANY_SUPERVISOR', criterion: RubricCriterion): boolean {
-    if (evaluator === 'COMPANY_SUPERVISOR') {
-      return this.isCompanySupervisor && criterion.companyBeta > 0;
-    }
-    return !this.isCompanySupervisor && criterion.gvhdBeta > 0;
-  }
-
-  canCurrentEvaluatorScore(criterion: RubricCriterion): boolean {
-    return this.getCurrentEvaluatorBeta(criterion) > 0;
-  }
-
-  private toNumber(value: any, fallback: number): number {
-    if (value === null || value === undefined || value === '') return fallback;
-    const numberValue = Number(value);
-    return Number.isNaN(numberValue) ? fallback : numberValue;
-  }
-
-  private toNullableScore(value: any): number | null {
-    if (value === null || value === undefined || value === '') return null;
-    const numberValue = Number(value);
-    return Number.isNaN(numberValue) ? null : this.clampScore(numberValue);
-  }
-
-  private formatScore(value: number | null | undefined): string {
-    if (value === null || value === undefined || Number.isNaN(Number(value))) return 'Chưa có';
-    const numberValue = Math.round(Number(value) * 10) / 10;
-    return Number.isInteger(numberValue) ? `${numberValue}` : numberValue.toFixed(1);
-  }
-
-  private getCurrentEvaluatorBeta(criterion: RubricCriterion): number {
-    return this.isCompanySupervisor ? criterion.companyBeta : criterion.gvhdBeta;
-  }
-
-  private resetCriteriaEvaluationState(): void {
+    let total = 0;
+    let hasAny = false;
     this.criteria.forEach(c => {
-      c.selectedScore = undefined;
-      c.comment = '';
-      c.gvhdScore = null;
-      c.companyScore = null;
-      c.gvhdComment = '';
-      c.companyComment = '';
-      c.gvhdEvaluatorIds = [];
+      if (c.selectedScore !== null && c.selectedScore !== undefined) {
+        total += c.selectedScore * c.alphaWeight / 100;
+        hasAny = true;
+      }
+    });
+    return hasAny ? this.round2(total) : null;
+  }
+
+  formatSummaryScore(v: number | null | undefined): string {
+    if (v === null || v === undefined) return '—';
+    return this.formatScore(this.round2(v));
+  }
+
+  formatSummaryContribution(v: number | null | undefined): string {
+    if (v === null || v === undefined) return '—';
+    return this.formatScore(this.round2(v));
+  }
+
+  getNoVisibleCriteriaMessage(): string {
+    return 'Chưa có cấu hình CLO/Rubric cho Bộ môn này trong đợt. Vui lòng liên hệ Khoa/Bộ môn.';
+  }
+
+  // ---- Helpers ----
+  private round2(v: number): number {
+    return Math.round(v * 100) / 100;
+  }
+
+  private formatScore(v: number): string {
+    return v % 1 === 0 ? String(v) : String(Math.round(v * 10) / 10);
+  }
+
+  private toNumber(v: any, fallback: number): number {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  private readNavigationContext(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['student']) this.pendingStudentCampaignId = Number(params['student']);
+      if (params['stage']) this.pendingStage = params['stage'] === 'M2' ? 'M2' : 'M1';
+      if (params['tab'] === 'SUMMARY') this.pendingTab = 'SUMMARY';
     });
   }
 
-  private applyAggregatedScores(evaluations: any[]): void {
-    const gvhdScores = this.buildScoreMap(evaluations, 'GVHD');
-    const companyScores = this.buildScoreMap(evaluations, ['COMPANY_SUPERVISOR', 'COMPANY']);
-
-    this.criteria.forEach(criterion => {
-      const gvhd = gvhdScores.get(criterion.id);
-      const company = companyScores.get(criterion.id);
-
-      criterion.gvhdScore = gvhd ? this.clampScore(gvhd.total / gvhd.count) : null;
-      criterion.companyScore = company ? this.clampScore(company.total / company.count) : null;
-      criterion.gvhdComment = gvhd?.comments[0] || '';
-      criterion.companyComment = company?.comments[0] || '';
-      criterion.gvhdEvaluatorIds = gvhd ? Array.from(gvhd.evaluatorIds) : [];
-    });
+  private openPendingGuidedStudentIfNeeded(): void {
+    if (!this.pendingStudentCampaignId) return;
+    const found = this.allStudents.find(s => Number(s.id) === this.pendingStudentCampaignId);
+    if (found) {
+      this.selectStudent(found);
+    }
   }
 
-  private buildScoreMap(evaluations: any[], evaluatorTypes: string | string[]): Map<string, ScoreAccumulator> {
-    const allowedTypes = Array.isArray(evaluatorTypes) ? evaluatorTypes : [evaluatorTypes];
-    const scoreMap = new Map<string, ScoreAccumulator>();
-    evaluations
-      .filter((evaluation: any) => allowedTypes.includes(evaluation.evaluator_type))
-      .forEach((evaluation: any) => {
-        (evaluation.scores || []).forEach((score: any) => {
-          const scoreValue = this.toNullableScore(score.score_level);
-          if (!score.clo_code || scoreValue === null) return;
-
-          const current = scoreMap.get(score.clo_code) || { total: 0, count: 0, comments: [], evaluatorIds: new Set<number>() };
-          current.total += scoreValue;
-          current.count += 1;
-          const evaluatorId = Number(evaluation.evaluator_id);
-          if (Number.isFinite(evaluatorId)) current.evaluatorIds.add(evaluatorId);
-
-          const comment = score.comment || score.short_comment;
-          if (comment) current.comments.push(comment);
-
-          scoreMap.set(score.clo_code, current);
-        });
-      });
-
-    return scoreMap;
-  }
-
-  private getSummaryStageAverage(
-    criterion: RubricCriterion,
-    gvhdScores: Map<string, ScoreAccumulator>,
-    companyScores: Map<string, ScoreAccumulator>
-  ): number | null {
-    const gvhd = gvhdScores.get(criterion.id);
-    const company = companyScores.get(criterion.id);
-    const gvhdScore = gvhd ? this.clampScore(gvhd.total / gvhd.count) : null;
-    const companyScore = company ? this.clampScore(company.total / company.count) : null;
-    const companyRequired = criterion.companyBeta > 0;
-    const gvhdRequired = criterion.gvhdBeta > 0;
-
-    if (companyRequired && companyScore === null) return null;
-    if (gvhdRequired && gvhdScore === null) return null;
-
-    const totalWeight = (companyRequired ? criterion.companyBeta : 0) + (gvhdRequired ? criterion.gvhdBeta : 0);
-    if (totalWeight <= 0) return null;
-
-    const weightedScore =
-      (companyRequired ? (companyScore || 0) * criterion.companyBeta : 0) +
-      (gvhdRequired ? (gvhdScore || 0) * criterion.gvhdBeta : 0);
-
-    return this.roundTo(weightedScore / totalWeight, 1);
-  }
-
-  private getSummaryCloScore(criterion: RubricCriterion, stage1Average: number | null, stage2Average: number | null): number | null {
-    const stage1Weight = criterion.stage1Weight / 100;
-    const stage2Weight = criterion.stage2Weight / 100;
-    const activeWeight = (stage1Average !== null ? stage1Weight : 0) + (stage2Average !== null ? stage2Weight : 0);
-    if (activeWeight <= 0) return null;
-    const weightedScore =
-      (stage1Average !== null ? stage1Average * stage1Weight : 0) +
-      (stage2Average !== null ? stage2Average * stage2Weight : 0);
-    return this.roundTo(weightedScore / activeWeight, 1);
-  }
-
-  private roundTo(value: number, digits: number): number {
-    const factor = Math.pow(10, digits);
-    return Math.round(value * factor) / factor;
-  }
-
-  private refreshStudentGradingStatus(student: StudentCampaignResponse): void {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) return;
-
-    this.evaluationService.findEvaluations(student.id).subscribe({
-      next: (res) => {
-        const evals = Array.isArray(res) ? res : (res.data || res.payload || []);
-        (student as any).gradingStatus = this.resolveGradingStatus(evals, currentUser);
-        this.filterStudents();
-      },
-      error: () => this.filterStudents()
-    });
-  }
-
-  private isCompanyEvaluation(evaluation: any): boolean {
-    return evaluation?.evaluator_type === 'COMPANY_SUPERVISOR' || evaluation?.evaluator_type === 'COMPANY';
-  }
-
-  private unwrapResponse(response: any): any {
-    return response?.payload || response?.data || response || null;
-  }
-
-  private clampScore(value: any): number {
-    const numberValue = Number(value);
-    if (Number.isNaN(numberValue)) return 0;
-    return Math.min(10, Math.max(0, Math.round(numberValue * 10) / 10));
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.paginate();
   }
 }

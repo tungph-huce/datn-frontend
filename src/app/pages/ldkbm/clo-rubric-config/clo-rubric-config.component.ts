@@ -17,8 +17,10 @@ export class CloRubricConfigComponent implements OnInit {
   selectedCampaignId: number | null = null;
   departmentId: number | null = null;
   departmentCampaignId: number | null = null;
-  stage1Weight: number = 30;
-  stage2Weight: number = 70;
+  programType = 'STANDARD';
+  completionRule = '';
+  m1Weight: number = 40;
+  m2Weight: number = 60;
 
   cloSets: any[] = [];
   selectedCloSetId: number | null = null;
@@ -78,15 +80,17 @@ export class CloRubricConfigComponent implements OnInit {
     this.deptCampaignService.findOrCreate(this.selectedCampaignId, this.departmentId).subscribe({
       next: (res: any) => {
         this.departmentCampaignId = res.id;
+        this.programType = res.program_type || 'STANDARD';
+        this.completionRule = res.completion_rule || '';
         this.currentCloSetId = res.clo_set_id || null;
 
-        if (res.stage1_weight !== undefined) this.stage1Weight = res.stage1_weight;
-        if (res.stage2_weight !== undefined) this.stage2Weight = res.stage2_weight;
+        if (res.m1_weight !== undefined) this.m1Weight = res.m1_weight;
+        if (res.m2_weight !== undefined) this.m2Weight = res.m2_weight;
         if (this.departmentCampaignId) {
           this.loadCloSets();
           this.loadCloConfigs();
         } else {
-          this.toastService.error('Không thể xác định luồng Đợt thực tập của Khoa.');
+          this.toastService.error('Không thể xác định luồng Đợt ĐATN của Khoa.');
           this.isLoading = false;
         }
       },
@@ -142,8 +146,8 @@ export class CloRubricConfigComponent implements OnInit {
         
         if (data.length > 0) {
           this.clos = data.map((clo: any) => {
-            clo.stage1_weight = clo.stage1_weight ?? this.stage1Weight;
-            clo.stage2_weight = clo.stage2_weight ?? this.stage2Weight;
+            clo.m1_weight = clo.m1_weight ?? this.m1Weight;
+            clo.m2_weight = clo.m2_weight ?? this.m2Weight;
             if (clo.rubrics) {
               clo.rubrics.sort((a: any, b: any) => a.score_level - b.score_level);
             }
@@ -161,9 +165,9 @@ export class CloRubricConfigComponent implements OnInit {
         }
         
         // Tự động phân bổ lại tổng điểm (nếu chưa lưu weight nào)
-        if (this.clos.length > 0 && this.stage1Weight === 0 && this.stage2Weight === 0) {
-          this.stage1Weight = 50;
-          this.stage2Weight = 50;
+        if (this.clos.length > 0 && this.m1Weight === 0 && this.m2Weight === 0) {
+          this.m1Weight = 50;
+          this.m2Weight = 50;
         }
 
         this.isLoading = false;
@@ -214,12 +218,12 @@ export class CloRubricConfigComponent implements OnInit {
   createEmptyClo(index?: number): CloItem {
     return {
       clo_code: index ? `CLO${index}` : '',
+      required_for_completion: index === 1 || index === 2,
       description: '',
       alpha_weight: 0,
-      stage1_weight: this.stage1Weight,
-      stage2_weight: this.stage2Weight,
-      gvhd_beta: 50,
-      company_beta: 50,
+      m1_weight: this.m1Weight,
+      m2_weight: this.m2Weight,
+      gvhd_beta: 100,
       rubrics: []
     };
   }
@@ -253,7 +257,7 @@ export class CloRubricConfigComponent implements OnInit {
   }
 
   get totalStageWeight(): number {
-    return (this.stage1Weight || 0) + (this.stage2Weight || 0);
+    return (this.m1Weight || 0) + (this.m2Weight || 0);
   }
 
   get isStageWeightValid(): boolean {
@@ -261,30 +265,21 @@ export class CloRubricConfigComponent implements OnInit {
   }
 
   onStage1WeightChange(): void {
-    this.stage2Weight = 100 - (this.stage1Weight || 0);
-  }
-
-  onBetaWeightChange(clo: CloItem): void {
-    clo.company_beta = 100 - (clo.gvhd_beta || 0);
+    this.m2Weight = 100 - (this.m1Weight || 0);
   }
 
   onCloStage1WeightChange(clo: CloItem): void {
-    clo.stage2_weight = 100 - (clo.stage1_weight || 0);
+    clo.m2_weight = 100 - (clo.m1_weight || 0);
   }
 
   setStageWeights(stage1: number): void {
-    this.stage1Weight = stage1;
-    this.stage2Weight = 100 - stage1;
+    this.m1Weight = stage1;
+    this.m2Weight = 100 - stage1;
   }
 
   setCloStageWeights(clo: CloItem, stage1: number): void {
-    clo.stage1_weight = stage1;
-    clo.stage2_weight = 100 - stage1;
-  }
-
-  setBetaWeights(clo: CloItem, gvhd: number): void {
-    clo.gvhd_beta = gvhd;
-    clo.company_beta = 100 - gvhd;
+    clo.m1_weight = stage1;
+    clo.m2_weight = 100 - stage1;
   }
 
   applyPreset(clo: CloItem, presetType: string): void {
@@ -335,15 +330,15 @@ export class CloRubricConfigComponent implements OnInit {
       }
       totalAlpha += clo.alpha_weight || 0;
 
-      const totalCloStageWeight = (clo.stage1_weight || 0) + (clo.stage2_weight || 0);
+      const totalCloStageWeight = (clo.m1_weight || 0) + (clo.m2_weight || 0);
       if (Math.abs(totalCloStageWeight - 100) > 0.01) {
-        this.showError(`Tổng trọng số Chặng 1 + Chặng 2 của ${clo.clo_code} phải bằng 100%.`);
+        this.showError(`Tổng trọng số M1 + M2 của ${clo.clo_code} phải bằng 100%.`);
         return;
       }
 
-      const totalBeta = (clo.gvhd_beta || 0) + (clo.company_beta || 0);
+      const totalBeta = clo.gvhd_beta || 0;
       if (Math.abs(totalBeta - 100) > 0.01) {
-        this.showError(`Tổng Beta (GVHD + DN) của ${clo.clo_code} phải bằng 100%.`);
+        this.showError(`Trọng số Beta GVHD của ${clo.clo_code} phải bằng 100%.`);
         return;
       }
 
@@ -366,8 +361,8 @@ export class CloRubricConfigComponent implements OnInit {
       }
     }
 
-    if (this.stage1Weight + this.stage2Weight !== 100) {
-      this.showError('Tổng trọng số Chặng 1 và Chặng 2 phải bằng 100%.');
+    if (this.m1Weight + this.m2Weight !== 100) {
+      this.showError('Tổng trọng số mốc M1 và M2 phải bằng 100%.');
       return;
     }
 
@@ -382,9 +377,11 @@ export class CloRubricConfigComponent implements OnInit {
     }
 
     const request: CloConfigRequest = {
+      program_type: this.programType,
+      completion_rule: this.completionRule || undefined,
       department_campaign_id: this.departmentCampaignId,
-      stage1_weight: this.stage1Weight,
-      stage2_weight: this.stage2Weight,
+      m1_weight: this.m1Weight,
+      m2_weight: this.m2Weight,
       clo_set_name: this.newCloSetName,
       clos: this.clos
     };

@@ -5,7 +5,7 @@ import { BaseResponse } from '../models/base.model';
 
 export interface SurveyRequest {
   student_campaign_id: number;
-  survey_type: 'STUDENT_FEEDBACK' | 'COMPANY_FEEDBACK';
+  survey_type: 'STUDENT_FEEDBACK';
   answers: string; // JSON string representation
 }
 

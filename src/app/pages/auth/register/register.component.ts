@@ -26,8 +26,7 @@ export class RegisterComponent implements OnInit {
   roles: { value: RegisterRequest['role']; label: string }[] = [
     { value: 'ADMIN', label: 'Quản trị viên' },
     { value: 'GVHD', label: 'Giảng viên Hướng dẫn' },
-    { value: 'LDKBM', label: 'Lãnh đạo Khoa / Bộ môn' },
-    { value: 'COMPANY_SUPERVISOR', label: 'Người hướng dẫn Doanh nghiệp' }
+    { value: 'LDKBM', label: 'Lãnh đạo Khoa / Bộ môn' }
   ];
 
   facultyId: number | null = null;

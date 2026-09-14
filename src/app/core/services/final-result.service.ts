@@ -5,6 +5,7 @@ import { BaseResponse } from '../models/base.model';
 import { HttpParams } from '@angular/common/http';
 
 export interface FinalResultResponse {
+  clo_outcomes?: Array<{ code: string; score: number | null; rawScore: number | null; achieved: boolean; required: boolean; description: string; m1: number | null; m2: number | null; alphaWeight: number; m1Weight: number; m2Weight: number }>;
   id?: number;
   student_campaign_id: number;
   student_code: string;
@@ -13,22 +14,18 @@ export interface FinalResultResponse {
   campaign_id?: number;
   department_id?: number;
   committee_id?: number;
-  company_name?: string;
+  thesis_title?: string;
   gvhd_name?: string;
-  stage_1_score?: number;
-  stage_2_score?: number;
-  stage1_score?: number;
-  stage2_score?: number;
+  m1_score?: number;
+  m2_score?: number;
   final_hp_score: number | null;
   grade_level: string;
   is_paralyzed: boolean;
   is_approved: boolean;
-  stage1_locked?: boolean;
-  stage2_locked?: boolean;
-  stage1_gvhd_locked?: boolean;
-  stage1_company_locked?: boolean;
-  stage2_gvhd_locked?: boolean;
-  stage2_company_locked?: boolean;
+  m1_locked?: boolean;
+  m2_locked?: boolean;
+  m1_gvhd_locked?: boolean;
+  m2_gvhd_locked?: boolean;
   status: string;
 }
 
@@ -39,14 +36,14 @@ export class FinalResultService {
 
   constructor(private apiService: ApiService) {}
 
-  approveFinalResult(studentCampaignId: number): Observable<any> {
-    return this.apiService.patch<any>(`/base/final-results/${studentCampaignId}/approve`, {});
+  approveFinalResult(studentCampaignId: number, integrity: boolean, evidence: boolean): Observable<any> {
+    return this.apiService.patch<any>(`/base/final-results/${studentCampaignId}/approve`, { integrity_confirmed: integrity, evidence_confirmed: evidence });
   }
 
   lockFinalResultStage(
     studentCampaignId: number,
-    stage: 'STAGE_1' | 'STAGE_2',
-    evaluatorType: 'GVHD' | 'COMPANY_SUPERVISOR'
+    stage: 'M1' | 'M2',
+    evaluatorType: 'GVHD'
   ): Observable<any> {
     return this.apiService.patch<any>(
       `/base/evaluations/final-result/${studentCampaignId}/lock?stage=${stage}&evaluator_type=${evaluatorType}`,

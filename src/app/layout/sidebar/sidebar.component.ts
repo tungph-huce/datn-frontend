@@ -9,7 +9,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class SidebarComponent implements OnInit {
   @Input() menuItems: MenuItem[] = [];
-  @Input() roleName: string = 'Quản lý Thực tập';
+  @Input() roleName: string = 'Quản lý ĐATN';
   isAdmin = false;
   isCollapsed = false;
 

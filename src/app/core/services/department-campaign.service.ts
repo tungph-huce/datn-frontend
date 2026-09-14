@@ -8,20 +8,22 @@ export interface RubricItem {
 }
 
 export interface CloItem {
+  required_for_completion?: boolean;
   clo_code: string;
   description: string;
   alpha_weight: number;
-  stage1_weight: number;
-  stage2_weight: number;
+  m1_weight: number;
+  m2_weight: number;
   gvhd_beta: number;
-  company_beta: number;
   rubrics: RubricItem[];
 }
 
 export interface CloConfigRequest {
+  program_type?: string;
+  completion_rule?: string;
   department_campaign_id: number;
-  stage1_weight: number;
-  stage2_weight: number;
+  m1_weight: number;
+  m2_weight: number;
   clo_set_name: string;
   clos: CloItem[];
 }
@@ -52,7 +54,7 @@ export class DepartmentCampaignService {
     return this.apiService.get<any>(`/base/department-campaigns/clo-sets?department_id=${departmentId}`);
   }
 
-  // Áp dụng bộ CLO có sẵn vào đợt thực tập
+  // Áp dụng bộ CLO có sẵn vào đợt ĐATN
   applyCloSet(departmentCampaignId: number, cloSetId: number): Observable<any> {
     return this.apiService.post<any>(`/base/department-campaigns/${departmentCampaignId}/apply-clo-set/${cloSetId}`, {});
   }

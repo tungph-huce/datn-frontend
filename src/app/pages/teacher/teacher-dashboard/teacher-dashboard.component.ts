@@ -14,15 +14,15 @@ export class TeacherDashboardComponent implements OnInit {
   // Thống kê tổng quan
   overviewStats = {
     totalStudents: 0,
-    companyApproved: 0,
-    planApproved: 0,
-    reportSubmitted: 0
+    datnApproved: 0,
+    inProgress: 0,
+    m2Evaluated: 0
   };
 
   // Yêu cầu chờ xử lý
   pendingRequests = {
-    tttn01: 0, // Kê khai đơn vị
-    tttn02: 0  // Kế hoạch thực tập
+    datn01: 0, // Chờ duyệt Nhiệm vụ ĐATN
+    datnPlan: 0  // Chờ duyệt kế hoạch thực hiện ĐATN
   };
 
   // Cảnh báo tiến độ sinh viên
@@ -44,37 +44,37 @@ export class TeacherDashboardComponent implements OnInit {
     this.studentCampaignService.getMyAssignedStudents().subscribe({
       next: (res) => {
         const data = Array.isArray(res) ? res : (res.data || res.payload || []);
-        
+
         // 1. Thống kê nhanh
         this.overviewStats.totalStudents = data.length;
-        this.overviewStats.companyApproved = data.filter((s: any) => 
-          !['IMPORTED', 'COMPANY_DECLARED'].includes(s.status)
+        this.overviewStats.datnApproved = data.filter((s: any) =>
+          !['IMPORTED', 'DATN_DECLARED'].includes(s.status)
         ).length;
-        this.overviewStats.planApproved = data.filter((s: any) => 
-          ['PLAN_APPROVED', 'IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(s.status)
+        this.overviewStats.inProgress = data.filter((s: any) =>
+          ['DATN_APPROVED', 'IN_PROGRESS', 'M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(s.status)
         ).length;
-        this.overviewStats.reportSubmitted = data.filter((s: any) => 
-          ['REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(s.status)
+        this.overviewStats.m2Evaluated = data.filter((s: any) =>
+          ['M2_EVALUATED', 'COMPLETED'].includes(s.status)
         ).length;
 
         // 2. Yêu cầu chờ xử lý
-        this.pendingRequests.tttn01 = data.filter((s: any) => s.status === 'COMPANY_DECLARED').length;
-        this.pendingRequests.tttn02 = data.filter((s: any) => s.status === 'PLAN_SUBMITTED').length;
+        this.pendingRequests.datn01 = data.filter((s: any) => s.status === 'DATN_DECLARED').length;
+        this.pendingRequests.datnPlan = data.filter((s: any) => s.status === 'DATN_APPROVED' || s.status === 'IN_PROGRESS').length;
 
         // 3. Cảnh báo tiến độ sinh viên
         this.studentAlerts = data
-          .filter((s: any) => ['IMPORTED', 'COMPANY_DECLARED', 'COMPANY_APPROVED', 'PLAN_SUBMITTED'].includes(s.status))
+          .filter((s: any) => ['IMPORTED', 'DATN_DECLARED', 'DATN_APPROVED', 'IN_PROGRESS'].includes(s.status))
           .map((s: any) => {
             let issue = '';
             let type = 'warning';
             if (s.status === 'IMPORTED') {
-              issue = 'Chưa kê khai ĐVTT';
-            } else if (s.status === 'COMPANY_DECLARED') {
-              issue = 'Chờ duyệt ĐVTT';
-            } else if (s.status === 'COMPANY_APPROVED') {
-              issue = 'Chưa nộp Kế hoạch thực tập';
-            } else if (s.status === 'PLAN_SUBMITTED') {
-              issue = 'Chờ duyệt Kế hoạch';
+              issue = 'Chưa kê khai Nhiệm vụ ĐATN';
+            } else if (s.status === 'DATN_DECLARED') {
+              issue = 'Chờ duyệt Nhiệm vụ ĐATN (ĐATN-01)';
+            } else if (s.status === 'DATN_APPROVED') {
+              issue = 'Chưa nộp kế hoạch thực hiện ĐATN';
+            } else if (s.status === 'IN_PROGRESS') {
+              issue = 'Chưa đánh giá mốc M1';
             }
             return {
               name: s.full_name,

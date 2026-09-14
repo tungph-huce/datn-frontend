@@ -17,9 +17,9 @@ export class InternshipReportComponent implements OnInit {
   weeklyLogs: any[] = [];
   finalReports: any[] = [];
   
-  // Các bước có thể: 'TTTN-01', 'TTTN-02', 'TTTN-03', 'TTTN-06'
-  currentStep: string = 'TTTN-01';
-  maxUnlockedStep: string = 'TTTN-01';
+  // Các bước có thể: 'ĐATN-01', 'ĐATN-02', 'ĐATN-03', 'ĐATN-08'
+  currentStep: string = 'ĐATN-01';
+  maxUnlockedStep: string = 'ĐATN-01';
   private requestedStep: string | null = null;
 
   constructor(
@@ -79,24 +79,24 @@ export class InternshipReportComponent implements OnInit {
   }
 
   determineUnlock() {
-    if (!this.isTttn01Approved()) {
-      this.maxUnlockedStep = 'TTTN-01';
-      this.currentStep = 'TTTN-01';
-    } else if (!this.hasTttn02Plan() || !this.isTttn02Approved()) {
-      this.maxUnlockedStep = 'TTTN-02';
-      this.currentStep = 'TTTN-02';
-    } else if (!this.isTttn03Approved()) {
-      this.maxUnlockedStep = 'TTTN-03';
-      this.currentStep = 'TTTN-03';
+    if (!this.isDatn01Approved()) {
+      this.maxUnlockedStep = 'ĐATN-01';
+      this.currentStep = 'ĐATN-01';
+    } else if (!this.hasDatn02Plan() || !this.isDatn02Approved()) {
+      this.maxUnlockedStep = 'ĐATN-02';
+      this.currentStep = 'ĐATN-02';
+    } else if (!this.isDatn03Approved()) {
+      this.maxUnlockedStep = 'ĐATN-03';
+      this.currentStep = 'ĐATN-03';
     } else {
-      this.maxUnlockedStep = 'TTTN-06';
-      this.currentStep = 'TTTN-06';
+      this.maxUnlockedStep = 'ĐATN-08';
+      this.currentStep = 'ĐATN-08';
     }
   }
 
   setStep(step: string) {
     // Chỉ cho phép chuyển tới bước nếu nó <= maxUnlockedStep
-    const steps = ['TTTN-01', 'TTTN-02', 'TTTN-03', 'TTTN-06'];
+    const steps = ['ĐATN-01', 'ĐATN-02', 'ĐATN-03', 'ĐATN-08'];
     const reqIdx = steps.indexOf(step);
     const maxIdx = steps.indexOf(this.maxUnlockedStep);
     
@@ -106,32 +106,31 @@ export class InternshipReportComponent implements OnInit {
   }
 
   isUnlocked(step: string): boolean {
-    const steps = ['TTTN-01', 'TTTN-02', 'TTTN-03', 'TTTN-06'];
+    const steps = ['ĐATN-01', 'ĐATN-02', 'ĐATN-03', 'ĐATN-08'];
     return steps.indexOf(step) <= steps.indexOf(this.maxUnlockedStep);
   }
 
-  getTttn01Status(): string {
+  getDatn01Status(): string {
     if (!this.campaign) return 'Chưa gửi';
-    if (this.isTttn01Approved()) return 'Đã duyệt';
+    if (this.isDatn01Approved()) return 'Đã duyệt';
     const s = this.campaign.status;
     if (s === 'IMPORTED' || s === 'ACTIVE') return 'Chưa kê khai';
-    if (s === 'COMPANY_DECLARED') return 'Chờ duyệt';
+    if (s === 'DATN_DECLARED') return 'Chờ duyệt';
     if (s === 'DRAFT') return 'Chưa kê khai';
-    if (s === 'PENDING_COMPANY') return 'Chờ duyệt';
-    if (s === 'COMPANY_REJECTED') return 'Bị từ chối';
-    return 'Đã duyệt'; // COMPANY_APPROVED and beyond
+    if (s === 'DATN_REJECTED') return 'Bị từ chối';
+    return 'Đã duyệt'; // DATN_APPROVED and beyond
   }
 
-  getTttn02Status(): string {
+  getDatn02Status(): string {
     if (!this.campaign) return '';
-    if (!this.hasTttn02Plan()) return 'Chưa lập';
-    if (this.isTttn02Approved()) return 'Đã duyệt';
+    if (!this.hasDatn02Plan()) return 'Chưa lập';
+    if (this.isDatn02Approved()) return 'Đã duyệt';
     return 'Chờ duyệt';
   }
 
-  getTttn03Status(): string {
+  getDatn03Status(): string {
     if (!this.campaign) return '';
-    if (this.isTttn03Approved()) return 'Đã duyệt';
+    if (this.isDatn03Approved()) return 'Đã duyệt';
     if (this.weeklyLogs.length > 0) return 'Chờ xác nhận';
     return 'Chưa nhập';
   }
@@ -142,21 +141,21 @@ export class InternshipReportComponent implements OnInit {
     }
   }
 
-  private isTttn01Approved(): boolean {
-    return this.campaign?.company_info?.company_status === 'APPROVED';
+  private isDatn01Approved(): boolean {
+    return this.campaign?.datn_info?.datn_status === 'APPROVED';
   }
 
-  private hasTttn02Plan(): boolean {
+  private hasDatn02Plan(): boolean {
     return Array.isArray(this.campaign?.internship_plans) && this.campaign.internship_plans.length > 0;
   }
 
-  private isTttn02Approved(): boolean {
-    return this.hasTttn02Plan() && this.campaign.internship_plans.every((plan: any) =>
-      plan.gvhd_status === 'APPROVED' && plan.company_status === 'APPROVED'
+  private isDatn02Approved(): boolean {
+    return this.hasDatn02Plan() && this.campaign.internship_plans.every((plan: any) =>
+      plan.gvhd_status === 'APPROVED'
     );
   }
 
-  private isTttn03Approved(): boolean {
+  private isDatn03Approved(): boolean {
     return this.weeklyLogs.length >= 8 && this.weeklyLogs.every((log: any) => log.supervisor_status === 'APPROVED');
   }
 

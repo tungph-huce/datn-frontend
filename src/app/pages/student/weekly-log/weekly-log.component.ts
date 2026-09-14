@@ -45,7 +45,7 @@ export class WeeklyLogComponent implements OnInit {
     avatar: 'assets/default-avatar.png'
   };
 
-  companyInfo = {
+  datnInfo = {
     name: 'Đang tải...',
     supervisor: 'Đang tải...'
   };
@@ -76,15 +76,15 @@ export class WeeklyLogComponent implements OnInit {
           this.studentInfo.name = this.campaign!.full_name;
           this.studentInfo.mssv = this.campaign!.student_code;
           
-          if (this.campaign!.company_info) {
-            this.companyInfo.name = this.campaign!.company_info.company_name;
-            this.companyInfo.supervisor = this.campaign!.company_info.supervisor_name;
+          if (this.campaign!.datn_info) {
+            this.datnInfo.name = this.campaign!.datn_info.thesis_title || 'Chưa có đề tài';
+            this.datnInfo.supervisor = this.campaign!.gvhd_name || 'Chưa phân công';
           }
 
-          // TTTN-03 chỉ mở khi TTTN-02 có dữ liệu thật và được cả GVHD/ĐVHD duyệt.
-          const plans = this.campaign!.internship_plans || [];
+          // Nhật ký chỉ mở khi kế hoạch thực hiện ĐATN đã được GVHD duyệt.
+          const plans = this.campaign!.datn_plans || [];
           this.canAccess = plans.length > 0 && plans.every((plan: any) =>
-            plan.gvhd_status === 'APPROVED' && plan.company_status === 'APPROVED'
+            plan.gvhd_status === 'APPROVED'
           );
 
           if (this.canAccess) {
@@ -126,7 +126,7 @@ export class WeeklyLogComponent implements OnInit {
               results: item.results || '',
               completionPercentage: item.completion_percentage || 0,
               supervisorComment: item.supervisor_comment || '',
-              supervisorName: this.companyInfo.supervisor,
+              supervisorName: this.datnInfo.supervisor,
               supervisorDate: item.updated_at,
               isCollapsed: status === 'confirmed'
             };

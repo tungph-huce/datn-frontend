@@ -191,8 +191,8 @@ export class SurveyDashboardComponent implements OnInit {
 
     this.studentQuestions = [
       { text: 'Chất lượng hướng dẫn từ GVHD', rating: parseFloat(avgGvhdVal.toFixed(1)), width: `${(avgGvhdVal / 5) * 100}%` },
-      { text: 'Chất lượng hỗ trợ từ Đơn vị thực tập', rating: parseFloat(avgDvttVal.toFixed(1)), width: `${(avgDvttVal / 5) * 100}%` },
-      { text: 'Sự phù hợp của công việc với chuyên môn', rating: parseFloat(avgPhuhopVal.toFixed(1)), width: `${(avgPhuhopVal / 5) * 100}%` },
+      { text: 'Chất lượng cơ sở vật chất, tài liệu tham khảo', rating: parseFloat(avgDvttVal.toFixed(1)), width: `${(avgDvttVal / 5) * 100}%` },
+      { text: 'Sự phù hợp của đề tài với chuyên môn', rating: parseFloat(avgPhuhopVal.toFixed(1)), width: `${(avgPhuhopVal / 5) * 100}%` },
       { text: 'Điều kiện làm việc và an toàn', rating: parseFloat(avgDkVal.toFixed(1)), width: `${(avgDkVal / 5) * 100}%` },
     ];
 
@@ -264,22 +264,22 @@ export class SurveyDashboardComponent implements OnInit {
 
   exportExcel(): void {
     if (!this.selectedCampaignId) return;
-    const campaignName = this.campaigns.find(c => c.id === +this.selectedCampaignId!)?.name || 'Đợt thực tập';
+    const campaignName = this.campaigns.find(c => c.id === +this.selectedCampaignId!)?.name || 'Đợt ĐATN';
 
     // 1. Sheet 1: Tổng quan
     const overviewData = [
-      { 'Hạng mục': 'BÁO CÁO TỔNG HỢP KHẢO SÁT PHẢN HỒI (TTTN-08)', 'Giá trị': '' },
-      { 'Hạng mục': 'Tên đợt thực tập', 'Giá trị': campaignName },
+      { 'Hạng mục': 'BÁO CÁO TỔNG HỢP KHẢO SÁT PHẢN HỒI (ĐATN-10)', 'Giá trị': '' },
+      { 'Hạng mục': 'Tên đợt ĐATN', 'Giá trị': campaignName },
       { 'Hạng mục': 'Ngày xuất báo cáo', 'Giá trị': new Date().toLocaleDateString('vi-VN') },
       { 'Hạng mục': '', 'Giá trị': '' },
       { 'Hạng mục': 'ĐÁNH GIÁ TỪ SINH VIÊN', 'Giá trị': '' },
       { 'Hạng mục': 'Tổng số lượt phản hồi (SV)', 'Giá trị': this.studentStats.totalResponses },
       { 'Hạng mục': 'Điểm đánh giá trung bình (SV)', 'Giá trị': this.studentStats.averageRating },
-      { 'Hạng mục': 'Tỷ lệ sẵn sàng giới thiệu ĐVHD (%)', 'Giá trị': this.studentStats.recommendCompany + '%' },
+      { 'Hạng mục': 'Tỷ lệ đạt chuẩn đầu ra theo tự đánh giá (%)', 'Giá trị': this.studentStats.recommendCompany + '%' },
       { 'Hạng mục': '', 'Giá trị': '' },
-      { 'Hạng mục': 'ĐÁNH GIÁ TỪ DOANH NGHIỆP', 'Giá trị': '' },
-      { 'Hạng mục': 'Tổng số lượt phản hồi (DN)', 'Giá trị': this.companyStats.totalResponses },
-      { 'Hạng mục': 'Điểm đánh giá trung bình (DN)', 'Giá trị': this.companyStats.averageRating },
+      { 'Hạng mục': 'ĐÁNH GIÁ TỪ GIẢNG VIÊN HƯỚNG DẪN', 'Giá trị': '' },
+      { 'Hạng mục': 'Tổng số lượt phản hồi (GVHD)', 'Giá trị': this.companyStats.totalResponses },
+      { 'Hạng mục': 'Điểm đánh giá trung bình (GVHD)', 'Giá trị': this.companyStats.averageRating },
       { 'Hạng mục': 'Tỷ lệ sinh viên đạt loại Tốt trở lên (%)', 'Giá trị': this.companyStats.hireAgain + '%' }
     ];
 
@@ -314,7 +314,7 @@ export class SurveyDashboardComponent implements OnInit {
         'Họ và tên SV': stdInfo.name,
         'Lớp': stdInfo.class,
         'Hài lòng GVHD (1-5)': sat.sat_gvhd || '-',
-        'Hài lòng ĐVTT (1-5)': sat.sat_dvtt || '-',
+        'Hài lòng CSVC/Tài liệu (1-5)': sat.sat_dvtt || '-',
         'Phù hợp chuyên môn (1-5)': sat.sat_phuhop || '-',
         'Điều kiện an toàn (1-5)': sat.sat_dk || '-',
         'Kỹ năng học được': open.skillsLearned || '-',
@@ -324,7 +324,7 @@ export class SurveyDashboardComponent implements OnInit {
       };
     });
 
-    // 3. Sheet 3: Chi tiết Doanh nghiệp
+    // 3. Sheet 3: Chi tiết Giảng viên HD
     const companySurveys = this.surveys.filter(s => s.survey_type === 'COMPANY_FEEDBACK');
     const companyRows = companySurveys.map((s, index) => {
       let answersObj: any = {};
@@ -365,10 +365,10 @@ export class SurveyDashboardComponent implements OnInit {
     XLSX.utils.book_append_sheet(wb, wsStudent, 'Ý kiến Sinh viên');
 
     const wsCompany = XLSX.utils.json_to_sheet(companyRows);
-    XLSX.utils.book_append_sheet(wb, wsCompany, 'Ý kiến Doanh nghiệp');
+    XLSX.utils.book_append_sheet(wb, wsCompany, 'Ý kiến Giảng viên HD');
 
     // Write file
-    XLSX.writeFile(wb, `BaoCao_KhaoSat_TTTN_${this.selectedCampaignId}.xlsx`);
+    XLSX.writeFile(wb, `BaoCao_KhaoSat_DATN_${this.selectedCampaignId}.xlsx`);
   }
 
   printReport(): void {

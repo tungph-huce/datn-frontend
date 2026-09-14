@@ -17,7 +17,6 @@ const ROLE_DASHBOARD_MAP: Record<string, string> = {
   'LDKBM': '/ldkbm/general-dashboard',
   'GVHD': '/teacher/dashboard',
   'STUDENT': '/student/dashboard',
-  'COMPANY_SUPERVISOR': '/company/dashboard',
 };
 
 @Injectable({

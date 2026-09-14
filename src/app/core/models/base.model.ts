@@ -53,6 +53,7 @@ export interface UserInfo {
  * Khớp với backend CampaignResponse.java
  */
 export interface CampaignResponse {
+  week_count?: number;
   id: number;
   code: string;
   name: string;
@@ -61,16 +62,10 @@ export interface CampaignResponse {
   description: string | null;
   start_date: string;   // "yyyy-MM-dd HH:mm:ss"
   end_date: string;
-  tttn01_start_date?: string;
-  tttn01_deadline?: string;
-  tttn02_start_date?: string;
-  tttn02_deadline?: string;
-  tttn03_start_date?: string;
-  tttn03_deadline?: string;
-  midterm_start_date?: string;
-  midterm_deadline?: string;
-  tttn06_start_date?: string;
-  tttn06_deadline?: string;
+  m1_start_date?: string;
+  m1_deadline?: string;
+  m2_start_date?: string;
+  m2_deadline?: string;
   status: string;        // "ACTIVE" | "INACTIVE"
   student_count: number;
   created_at: string;
@@ -118,19 +113,17 @@ export interface SystemSettingResponse {
   createdAt: string;
 }
 
-export interface CompanyInfoResponse {
-  company_name: string;
-  tax_code: string;
-  address: string;
-  supervisor_name: string;
-  supervisor_email: string;
-  supervisor_phone: string;
-  expected_domain: string;
-  internship_type: string;
-  company_status: string;
+export interface DatnInfoResponse {
+  thesis_title: string;
+  objectives?: string;
+  scope?: string;
+  deliverables?: string;
+  inputs?: string;
+  expected_results?: string;
+  datn_status?: string;
 }
 
-export interface InternshipPlanResponse {
+export interface DatnPlanResponse {
   id: number;
   week: number;
   task: string;
@@ -138,7 +131,6 @@ export interface InternshipPlanResponse {
   evidence_form: string;
   clo_mapped: string;
   gvhd_status: string;
-  company_status: string;
 }
 
 export interface StudentCampaignResponse {
@@ -154,8 +146,8 @@ export interface StudentCampaignResponse {
   gvhd_ids?: number[];
   gvhd_name?: string;
   committee_id?: number;
-  company_info?: CompanyInfoResponse;
-  internship_plans?: InternshipPlanResponse[];
+  datn_info?: DatnInfoResponse;
+  datn_plans?: DatnPlanResponse[];
   campaign_group_config_id?: number;
   group_config?: any;
   created_at?: string;

@@ -16,7 +16,7 @@ export class ApprovalRequestsComponent implements OnInit {
   filteredRequests: StudentCampaignResponse[] = [];
   
   selectedRequest: StudentCampaignResponse | null = null;
-  requestType: 'COMPANY' | 'PLAN' | null = null;
+  requestType: 'DATN' | 'PLAN' | null = null;
   showModal = false;
   campaigns: any[] = [];
   activeCampaignIds = new Set<number>();
@@ -72,10 +72,10 @@ export class ApprovalRequestsComponent implements OnInit {
     this.isLoading = true;
     this.studentCampaignService.getMyAssignedStudents().subscribe({
       next: (res) => {
-        // Lọc các sinh viên đang chờ duyệt
+        // Lọc các sinh viên đang chờ GVHD duyệt ĐATN-01
         const allStudents = Array.isArray(res) ? res : (res.data || res.payload || []);
         this.requests = allStudents.filter((s: any) => 
-          s.status === 'COMPANY_DECLARED' || s.status === 'PLAN_SUBMITTED'
+          s.status === 'DATN_DECLARED'
         );
         this.applyFilters();
         this.isLoading = false;
@@ -99,7 +99,7 @@ export class ApprovalRequestsComponent implements OnInit {
         (r.full_name && r.full_name.toLowerCase().includes(query)) ||
         (r.student_code && r.student_code.toLowerCase().includes(query)) ||
         (r.class_name && r.class_name.toLowerCase().includes(query)) ||
-        (r.company_info?.company_name && r.company_info.company_name.toLowerCase().includes(query))
+        (r.datn_info?.thesis_title && r.datn_info.thesis_title.toLowerCase().includes(query))
       );
     }
 
@@ -108,7 +108,7 @@ export class ApprovalRequestsComponent implements OnInit {
 
   openRequest(req: StudentCampaignResponse) {
     this.selectedRequest = req;
-    this.requestType = req.status === 'COMPANY_DECLARED' ? 'COMPANY' : 'PLAN';
+    this.requestType = 'DATN';
     this.showModal = true;
   }
 
@@ -122,13 +122,9 @@ export class ApprovalRequestsComponent implements OnInit {
     if (!this.selectedRequest || !this.requestType) return;
     
     this.isProcessing = true;
-    const requestObservable = this.requestType === 'COMPANY' 
-      ? this.studentCampaignService.approveCompanyInfo(this.selectedRequest.id)
-      : this.studentCampaignService.approveInternshipPlan(this.selectedRequest.id);
-
-    requestObservable.subscribe({
+    this.studentCampaignService.approveDatnInfo(this.selectedRequest.id).subscribe({
       next: () => {
-        this.toastService.success('Đã phê duyệt thành công!');
+        this.toastService.success('Đã duyệt Nhiệm vụ ĐATN (ĐATN-01) thành công!');
         this.isProcessing = false;
         
         // Loại bỏ khỏi danh sách chờ

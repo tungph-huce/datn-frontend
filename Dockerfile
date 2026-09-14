@@ -12,7 +12,7 @@ RUN npm run build -- --configuration production
 FROM nginx:alpine
 
 # Copy Angular build output
-COPY --from=builder /app/dist/intership-frontend /usr/share/nginx/html
+COPY --from=builder /app/dist/datn-frontend /usr/share/nginx/html
 
 # Copy custom Nginx config cho SPA routing
 COPY nginx.conf /etc/nginx/conf.d/default.conf

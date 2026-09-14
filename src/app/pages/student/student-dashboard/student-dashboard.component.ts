@@ -25,25 +25,25 @@ export class StudentDashboardComponent implements OnInit {
   // Thu gọn/Mở rộng Lộ trình chi tiết
   isRoadmapExpanded = false;
   
-  // Trạng thái các luồng (TTTN)
+  // Trạng thái các luồng (ĐATN)
   workflowStatus = {
-    tttn01: { status: 'NOT_STARTED', label: 'Tiếp nhận', icon: 'domain' },
-    tttn02: { status: 'NOT_STARTED', label: 'Kế hoạch', icon: 'edit_document' },
-    tttn03: { status: 'NOT_STARTED', label: 'Nhật ký', icon: 'menu_book' },
-    tttn06: { status: 'NOT_STARTED', label: 'Báo cáo', icon: 'description' }
+    datn01: { status: 'NOT_STARTED', label: 'Nhiệm vụ ĐATN', icon: 'assignment' },
+    datn02: { status: 'NOT_STARTED', label: 'Kế hoạch', icon: 'edit_document' },
+    datn03: { status: 'NOT_STARTED', label: 'Nhật ký', icon: 'menu_book' },
+    datn08: { status: 'NOT_STARTED', label: 'Báo cáo', icon: 'description' }
   };
 
   // 5 mốc tiến độ thực tế (timeline động)
   milestones: any[] = [];
 
-  // Tiến trình thực tập (8 tuần)
+  // Tiến trình ĐATN (theo tuần)
   currentWeek = 1;
-  totalWeeks = 8;
+  totalWeeks = 10;
   progressPercent = 0;
   startDate: Date | null = null;
   endDate: Date | null = null;
 
-  // Trạng thái khảo sát & tự đánh giá sinh viên (TTTN-08b)
+  // Trạng thái khảo sát & tự đánh giá sinh viên (ĐATN-10)
   isSurveySubmitted = false;
   logs: any[] = [];
 
@@ -53,17 +53,17 @@ export class StudentDashboardComponent implements OnInit {
   // Thông tin liên hệ
   contacts = {
     teacher: { name: 'Chưa phân công', phone: '-', email: '-' },
-    companyMentor: { name: 'Chưa có', phone: '-', email: '-' }
+    thesis: { name: 'Chưa khai báo', phone: '-', email: '-' }
   };
 
   // Điểm số học phần
   finalResult: FinalResultResponse | null = null;
   hasFinalResult = false;
 
-  // Chi tiết điểm chuẩn đầu ra TTTN-07
+  // Chi tiết điểm chuẩn đầu ra ĐATN
   cloDetails: any[] = [];
-  stage1Weight = 30;
-  stage2Weight = 70;
+  m1Weight = 40;
+  m2Weight = 60;
 
   constructor(
     private studentCampaignService: StudentCampaignService,
@@ -116,11 +116,11 @@ export class StudentDashboardComponent implements OnInit {
             };
           }
 
-          if (campaign.company_info) {
-            this.contacts.companyMentor = {
-              name: campaign.company_info.supervisor_name || 'Chưa có',
-              phone: campaign.company_info.supervisor_phone || '-',
-              email: campaign.company_info.supervisor_email || '-'
+          if (campaign.datn_info) {
+            this.contacts.thesis = {
+              name: (campaign.datn_info.thesis_title || 'Chưa có'),
+              phone: '-',
+              email: '-' 
             };
           }
 
@@ -154,6 +154,7 @@ export class StudentDashboardComponent implements OnInit {
                 this.endDate = new Date(normalizedEnd);
                 start = this.startDate;
                 end = this.endDate;
+                this.totalWeeks = Math.max(1, Math.round((end.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000)));
               } else {
                 // Fallback: 8 weeks starting from campaign enrollment date (createdAt)
                 const createdStr = campaign.created_at || new Date().toISOString();
@@ -234,52 +235,52 @@ export class StudentDashboardComponent implements OnInit {
   }
 
   updateWorkflowStatus(status: string, campaign?: any, logs: any[] = this.logs) {
-    // TTTN-01: Kê khai ĐVTT
-    const tttn01Approved = campaign
-      ? campaign.company_info?.company_status === 'APPROVED'
-      : ['COMPANY_APPROVED', 'PLAN_SUBMITTED', 'PLAN_APPROVED', 'IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status);
-    if (tttn01Approved) {
-      this.workflowStatus.tttn01 = { status: 'APPROVED', label: 'Đã duyệt', icon: 'check_circle' };
-    } else if (status === 'COMPANY_DECLARED') {
-      this.workflowStatus.tttn01 = { status: 'PENDING', label: 'Chờ duyệt', icon: 'hourglass_top' };
+    // ĐATN-01: Kê khai Nhiệm vụ ĐATN
+    const datn01Approved = campaign
+      ? campaign.datn_info?.datn_status === 'APPROVED'
+      : ['DATN_APPROVED', 'IN_PROGRESS', 'M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status);
+    if (datn01Approved) {
+      this.workflowStatus.datn01 = { status: 'APPROVED', label: 'Đã duyệt', icon: 'check_circle' };
+    } else if (status === 'DATN_DECLARED') {
+      this.workflowStatus.datn01 = { status: 'PENDING', label: 'Chờ duyệt', icon: 'hourglass_top' };
     } else {
-      this.workflowStatus.tttn01 = { status: 'NOT_STARTED', label: 'Chưa nộp', icon: 'domain' };
+      this.workflowStatus.datn01 = { status: 'NOT_STARTED', label: 'Chưa nộp', icon: 'assignment' };
     }
 
-    // TTTN-02: Kế hoạch TT
-    const plans = campaign?.internship_plans || [];
+    // Kế hoạch thực hiện ĐATN
+    const plans = campaign?.datn_plans || [];
     const hasPlan = plans.length > 0;
     const planApproved = hasPlan && plans.every((plan: any) =>
-      plan.gvhd_status === 'APPROVED' && plan.company_status === 'APPROVED'
+      plan.gvhd_status === 'APPROVED'
     );
     if (planApproved) {
-      this.workflowStatus.tttn02 = { status: 'APPROVED', label: 'Đã duyệt', icon: 'check_circle' };
+      this.workflowStatus.datn02 = { status: 'APPROVED', label: 'Đã duyệt', icon: 'check_circle' };
     } else if (hasPlan) {
-      this.workflowStatus.tttn02 = { status: 'PENDING', label: 'Chờ duyệt', icon: 'hourglass_top' };
-    } else if (tttn01Approved) {
-      this.workflowStatus.tttn02 = { status: 'NOT_STARTED', label: 'Cần nộp', icon: 'edit_document' };
+      this.workflowStatus.datn02 = { status: 'PENDING', label: 'Chờ duyệt', icon: 'hourglass_top' };
+    } else if (datn01Approved) {
+      this.workflowStatus.datn02 = { status: 'NOT_STARTED', label: 'Cần nộp', icon: 'edit_document' };
     } else {
-      this.workflowStatus.tttn02 = { status: 'LOCKED', label: 'Chưa mở', icon: 'lock' };
+      this.workflowStatus.datn02 = { status: 'LOCKED', label: 'Chưa mở', icon: 'lock' };
     }
 
-    // TTTN-03: Nhật ký TT
+    // ĐATN-02: Nhật ký thực hiện
     const logsApproved = logs.length >= this.totalWeeks && logs.every((log: any) => log.supervisor_status === 'APPROVED');
     if (logsApproved) {
-      this.workflowStatus.tttn03 = { status: 'APPROVED', label: 'Đã duyệt', icon: 'check_circle' };
+      this.workflowStatus.datn03 = { status: 'APPROVED', label: 'Đã duyệt', icon: 'check_circle' };
     } else if (planApproved) {
-      this.workflowStatus.tttn03 = { status: 'PENDING', label: logs.length > 0 ? 'Chờ xác nhận' : 'Đang ghi', icon: 'menu_book' };
+      this.workflowStatus.datn03 = { status: 'PENDING', label: logs.length > 0 ? 'Chờ xác nhận' : 'Đang ghi', icon: 'menu_book' };
     } else {
-      this.workflowStatus.tttn03 = { status: 'LOCKED', label: 'Chưa mở', icon: 'lock' };
+      this.workflowStatus.datn03 = { status: 'LOCKED', label: 'Chưa mở', icon: 'lock' };
     }
 
-    // TTTN-06: Báo cáo TK
-    const tttn06Done = ['REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'];
-    if (tttn06Done.includes(status)) {
-      this.workflowStatus.tttn06 = { status: 'APPROVED', label: 'Đã nộp', icon: 'check_circle' };
+    // Báo cáo & tổng hợp điểm
+    const finalDone = ['M2_EVALUATED', 'COMPLETED'];
+    if (finalDone.includes(status)) {
+      this.workflowStatus.datn08 = { status: 'APPROVED', label: 'Đã nộp', icon: 'check_circle' };
     } else if (logsApproved) {
-      this.workflowStatus.tttn06 = { status: 'NOT_STARTED', label: 'Cần nộp', icon: 'description' };
+      this.workflowStatus.datn08 = { status: 'NOT_STARTED', label: 'Cần nộp', icon: 'description' };
     } else {
-      this.workflowStatus.tttn06 = { status: 'LOCKED', label: 'Chưa mở', icon: 'lock' };
+      this.workflowStatus.datn08 = { status: 'LOCKED', label: 'Chưa mở', icon: 'lock' };
     }
   }
 
@@ -296,59 +297,59 @@ export class StudentDashboardComponent implements OnInit {
   generateUpcomingTasks(campaign: any, logs: any[]) {
     this.upcomingTasks = [];
     const status = campaign.status;
-    const tttn01Approved = campaign.company_info?.company_status === 'APPROVED';
-    const plans = campaign.internship_plans || [];
+    const datn01Approved = campaign.datn_info?.datn_status === 'APPROVED';
+    const plans = campaign.datn_plans || [];
     const hasPlan = plans.length > 0;
     const planApproved = hasPlan && plans.every((plan: any) =>
-      plan.gvhd_status === 'APPROVED' && plan.company_status === 'APPROVED'
+      plan.gvhd_status === 'APPROVED'
     );
     const logsApproved = logs.length >= this.totalWeeks && logs.every((log: any) => log.supervisor_status === 'APPROVED');
 
-    // 1. TTTN-01: Company declaration
-    if (!tttn01Approved && status !== 'COMPANY_DECLARED') {
+    // 1. ĐATN-01: Nhiệm vụ ĐATN
+    if (!datn01Approved && status !== 'DATN_DECLARED') {
       this.upcomingTasks.push({
-        title: 'Kê khai thông tin đơn vị thực tập (TTTN-01)',
-        deadline: 'Tuần 1',
+        title: 'Kê khai Nhiệm vụ ĐATN (ĐATN-01)',
+        deadline: 'Đầu kỳ',
         type: 'warning',
-        route: '/student/internship-report'
+        route: '/student/datn-declaration'
       });
-    } else if (status === 'COMPANY_DECLARED') {
+    } else if (status === 'DATN_DECLARED') {
       this.upcomingTasks.push({
-        title: 'Đợi Nhà trường phê duyệt đơn vị thực tập (TTTN-01)',
+        title: 'Đợi GVHD phê duyệt Nhiệm vụ ĐATN (ĐATN-01)',
         deadline: 'Chờ duyệt',
         type: 'info'
       });
     }
 
-    // 2. TTTN-02: Internship plan
+    // 2. Kế hoạch thực hiện ĐATN
     if (!planApproved) {
-      if (tttn01Approved && !hasPlan) {
+      if (datn01Approved && !hasPlan) {
         this.upcomingTasks.push({
-          title: 'Nộp Đề cương kế hoạch thực tập (TTTN-02)',
+          title: 'Nộp kế hoạch thực hiện ĐATN',
           deadline: 'Tuần 2',
           type: 'warning',
-          route: '/student/internship-report'
+          route: '/student/datn-report'
         });
       } else if (hasPlan) {
         this.upcomingTasks.push({
-          title: 'Đợi Giảng viên phê duyệt kế hoạch thực tập (TTTN-02)',
+          title: 'Đợi GVHD phê duyệt kế hoạch thực hiện ĐATN',
           deadline: 'Chờ duyệt',
           type: 'info'
         });
       }
     }
 
-    // 3. TTTN-03: Weekly logs
+    // 3. ĐATN-02: Nhật ký
     if (planApproved && !logsApproved) {
       const currentWeekLog = logs.find((l: any) => (l.weekNumber ?? l.week_number) === this.currentWeek);
       const isLogDone = currentWeekLog && currentWeekLog.supervisor_status === 'APPROVED';
-      
+
       if (!isLogDone && this.currentWeek <= this.totalWeeks) {
         this.upcomingTasks.push({
-          title: `Nộp nhật ký thực tập Tuần ${this.currentWeek} (TTTN-03)`,
+          title: `Nộp nhật ký thực hiện ĐATN Tuần ${this.currentWeek} (ĐATN-02)`,
           deadline: 'Cuối tuần',
           type: 'warning',
-          route: '/student/internship-report'
+          route: '/student/datn-report'
         });
       } else {
         this.upcomingTasks.push({
@@ -359,38 +360,38 @@ export class StudentDashboardComponent implements OnInit {
       }
     }
 
-    // 4. Khảo sát & Tự đánh giá sinh viên (TTTN-08b)
+    // 4. Khảo sát sau học phần (ĐATN-10)
     if (!this.isSurveySubmitted) {
       this.upcomingTasks.push({
-        title: 'Khảo sát & Tự nhận xét kết quả thực tập tốt nghiệp (TTTN-08b)',
+        title: 'Khảo sát sau học phần ĐATN (ĐATN-10)',
         deadline: 'Hạn cuối đợt',
         type: 'warning',
         route: '/student/survey'
       });
     } else {
       this.upcomingTasks.push({
-        title: 'Đã hoàn thành Khảo sát & Tự nhận xét kết quả (TTTN-08b)',
+        title: 'Đã hoàn thành Khảo sát sau học phần (ĐATN-10)',
         deadline: 'Hoàn thành',
         type: 'info'
       });
     }
 
-    // 5. TTTN-06: Final report
-    const tttn06Done = ['REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'];
-    if (!tttn06Done.includes(status)) {
+    // 5. Báo cáo tổng kết
+    const finalDone = ['M2_EVALUATED', 'COMPLETED'];
+    if (!finalDone.includes(status)) {
       if (logsApproved) {
         this.upcomingTasks.push({
-          title: 'Nộp Báo cáo thực tập tốt nghiệp (TTTN-06)',
-          deadline: 'Tuần 8',
+          title: 'Nộp báo cáo tổng kết ĐATN',
+          deadline: 'Cuối kỳ',
           type: 'warning',
-          route: '/student/internship-report'
+          route: '/student/datn-report'
         });
       }
     } else {
-      if (status === 'REPORT_SUBMITTED') {
+      if (status === 'M2_EVALUATED') {
         this.upcomingTasks.push({
-          title: 'Đợi Giảng viên chấm điểm báo cáo (TTTN-06)',
-          deadline: 'Chờ chấm',
+          title: 'Đợi Khoa tổng hợp điểm & duyệt kết quả ĐATN (ĐATN-08)',
+          deadline: 'Chờ duyệt',
           type: 'info'
         });
       }
@@ -398,7 +399,7 @@ export class StudentDashboardComponent implements OnInit {
 
     if (this.upcomingTasks.length === 0) {
       this.upcomingTasks.push({
-        title: 'Chúc mừng! Bạn đã hoàn thành các công việc thực tập.',
+        title: 'Chúc mừng! Bạn đã hoàn thành các công việc ĐATN.',
         deadline: 'Hoàn thành',
         type: 'info'
       });
@@ -425,67 +426,55 @@ export class StudentDashboardComponent implements OnInit {
     const gConfig = studentCampaign.group_config || null;
     const activeSource = gConfig ? gConfig : camp;
 
-    // Định nghĩa 5 chặng timeline
+    // Định nghĩa các mốc ĐATN
     const mConfigs = [
       {
-        key: 'tttn01',
-        title: 'Kê khai Đơn vị thực tập',
-        code: 'TTTN-01',
-        description: 'Đăng ký thông tin công ty tiếp nhận thực tập và xin xác nhận của GVHD.',
-        startDate: parseDate(activeSource.tttn01_start_date),
-        deadline: parseDate(activeSource.tttn01_deadline),
-        isCompleted: ['COMPANY_APPROVED', 'PLAN_SUBMITTED', 'PLAN_APPROVED', 'IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: status === 'COMPANY_DECLARED',
-        icon: 'domain',
-        stepCode: 'TTTN-01'
+        key: 'datn01',
+        title: 'Kê khai Nhiệm vụ ĐATN',
+        code: 'ĐATN-01',
+        description: 'Kê khai đề tài, mục tiêu, phạm vi và sản phẩm ĐATN; xin GVHD xác nhận.',
+        startDate: parseDate(activeSource.m1_start_date),
+        deadline: parseDate(activeSource.m1_deadline),
+        isCompleted: ['DATN_APPROVED', 'IN_PROGRESS', 'M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status),
+        isPending: status === 'DATN_DECLARED',
+        icon: 'assignment',
+        stepCode: 'ĐATN-01'
       },
       {
-        key: 'tttn02',
-        title: 'Nộp Đề cương kế hoạch',
-        code: 'TTTN-02',
-        description: 'Lập đề cương chi tiết các tuần thực tập và gửi giảng viên hướng dẫn duyệt.',
-        startDate: parseDate(activeSource.tttn02_start_date),
-        deadline: parseDate(activeSource.tttn02_deadline),
-        isCompleted: ['PLAN_APPROVED', 'IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: status === 'PLAN_SUBMITTED',
-        icon: 'edit_document',
-        stepCode: 'TTTN-02'
-      },
-      {
-        key: 'tttn03',
-        title: 'Báo cáo Nhật ký tuần',
-        code: 'TTTN-03',
-        description: 'Cập nhật tiến độ công việc hàng tuần để giảng viên và người hướng dẫn theo dõi.',
-        startDate: parseDate(activeSource.tttn03_start_date),
-        deadline: parseDate(activeSource.tttn03_deadline),
-        isCompleted: ['STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: status === 'IN_PROGRESS' || status === 'PLAN_APPROVED',
-        icon: 'menu_book',
-        stepCode: 'TTTN-03'
-      },
-      {
-        key: 'midterm',
-        title: 'Nhận xét & Đánh giá giữa kỳ',
-        code: 'Giữa kỳ',
-        description: 'Được giảng viên và doanh nghiệp đánh giá kết quả thực tập giai đoạn đầu.',
-        startDate: parseDate(activeSource.midterm_start_date),
-        deadline: parseDate(activeSource.midterm_deadline),
-        isCompleted: ['STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: false,
+        key: 'm1',
+        title: 'Đánh giá mốc M1 (đầu kỳ)',
+        code: 'M1',
+        description: 'GVHD đánh giá tiến độ đầu kỳ theo CLO/Rubric (ĐATN-03).',
+        startDate: parseDate(activeSource.m1_start_date),
+        deadline: parseDate(activeSource.m1_deadline),
+        isCompleted: ['M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status),
+        isPending: status === 'IN_PROGRESS' || status === 'DATN_APPROVED',
         icon: 'rate_review',
-        stepCode: 'TTTN-03'
+        stepCode: 'M1'
       },
       {
-        key: 'tttn06',
-        title: 'Nộp Báo cáo cuối kỳ',
-        code: 'TTTN-06',
-        description: 'Nộp file báo cáo thực tập chính thức và bản tự nhận xét kết quả (TTTN-08b).',
-        startDate: parseDate(activeSource.tttn06_start_date),
-        deadline: parseDate(activeSource.tttn06_deadline),
-        isCompleted: ['REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: status === 'REPORT_SUBMITTED',
+        key: 'm2',
+        title: 'Đánh giá mốc M2 (giữa kỳ)',
+        code: 'M2',
+        description: 'GVHD đánh giá tiến độ giữa kỳ theo CLO/Rubric (ĐATN-04).',
+        startDate: parseDate(activeSource.m2_start_date),
+        deadline: parseDate(activeSource.m2_deadline),
+        isCompleted: ['M2_EVALUATED', 'COMPLETED'].includes(status),
+        isPending: status === 'M1_EVALUATED',
+        icon: 'rate_review',
+        stepCode: 'M2'
+      },
+      {
+        key: 'final',
+        title: 'Báo cáo & Tổng hợp điểm',
+        code: 'ĐATN-08',
+        description: 'Nộp báo cáo tổng kết; Khoa tổng hợp điểm CLO và duyệt kết quả.',
+        startDate: parseDate(activeSource.m2_deadline),
+        deadline: parseDate(activeSource.end_date),
+        isCompleted: ['COMPLETED'].includes(status),
+        isPending: status === 'M2_EVALUATED',
         icon: 'description',
-        stepCode: 'TTTN-06'
+        stepCode: 'BAO_CAO'
       }
     ];
 
@@ -537,7 +526,7 @@ export class StudentDashboardComponent implements OnInit {
     if (milestone.state === 'LOCKED') {
       return;
     }
-    this.router.navigate(['/student/internship-report'], { queryParams: { step: milestone.stepCode } });
+    this.router.navigate(['/student/datn-report'], { queryParams: { step: milestone.stepCode } });
   }
 
   getConvertedScore(score: any): number {
@@ -548,109 +537,14 @@ export class StudentDashboardComponent implements OnInit {
   }
 
   loadDetailedScores(studentCampaignId: number, campaignId: number, departmentId: number) {
-    this.departmentCampaignService.findOrCreate(campaignId, departmentId).subscribe({
-      next: (dcRes) => {
-        const dc = dcRes.data || dcRes.payload || dcRes;
-        this.stage1Weight = dc.stage1_weight !== null ? dc.stage1_weight : 30;
-        this.stage2Weight = dc.stage2_weight !== null ? dc.stage2_weight : 70;
-        const configClos = dc.clo_configs || [];
-
-        this.evaluationService.findEvaluations(studentCampaignId).subscribe({
-          next: (evalsRes) => {
-            const evals = Array.isArray(evalsRes) ? evalsRes : (evalsRes.data || evalsRes.payload || []);
-            
-            this.cloDetails = configClos.map((clo: any) => {
-              const cloCode = clo.clo_code;
-              
-              // Stage 1
-              const s1Evals = evals.filter((e: any) => e.stage === 'STAGE_1');
-              const s1GvhdScoreItems = s1Evals
-                .filter((e: any) => e.evaluator_type === 'GVHD')
-                .flatMap((e: any) => (e.scores || []).filter((s: any) => s.clo_code === cloCode));
-              const s1GvhdScores = s1GvhdScoreItems.map((s: any) => this.getConvertedScore(s.score_level));
-              const s1GvhdScore = s1GvhdScores.length > 0 ? (s1GvhdScores.reduce((a: number, b: number) => a + b, 0) / s1GvhdScores.length) : null;
-
-              const s1CompanyScoreItems = s1Evals
-                .filter((e: any) => e.evaluator_type === 'COMPANY_SUPERVISOR' || e.evaluator_type === 'COMPANY')
-                .flatMap((e: any) => (e.scores || []).filter((s: any) => s.clo_code === cloCode));
-              const s1CompanyScores = s1CompanyScoreItems.map((s: any) => this.getConvertedScore(s.score_level));
-              const s1CompanyScore = s1CompanyScores.length > 0 ? (s1CompanyScores.reduce((a: number, b: number) => a + b, 0) / s1CompanyScores.length) : null;
-
-              const betaGvhd = clo.gvhd_beta !== null ? clo.gvhd_beta : 50;
-              const betaCompany = clo.company_beta !== null ? clo.company_beta : 50;
-
-              let s1GvhdPart = s1GvhdScore !== null ? s1GvhdScore : 0;
-              let s1CompanyPart = s1CompanyScore !== null ? s1CompanyScore : 0;
-              let s1Tb: number | null = null;
-              if (s1GvhdScore !== null || s1CompanyScore !== null) {
-                s1Tb = (s1GvhdPart * betaGvhd + s1CompanyPart * betaCompany) / 100.0;
-              }
-
-              // Stage 2
-              const s2Evals = evals.filter((e: any) => e.stage === 'STAGE_2');
-              const s2GvhdScoreItems = s2Evals
-                .filter((e: any) => e.evaluator_type === 'GVHD')
-                .flatMap((e: any) => (e.scores || []).filter((s: any) => s.clo_code === cloCode));
-              const s2GvhdScores = s2GvhdScoreItems.map((s: any) => this.getConvertedScore(s.score_level));
-              const s2GvhdScore = s2GvhdScores.length > 0 ? (s2GvhdScores.reduce((a: number, b: number) => a + b, 0) / s2GvhdScores.length) : null;
-
-              const s2CompanyScoreItems = s2Evals
-                .filter((e: any) => e.evaluator_type === 'COMPANY_SUPERVISOR' || e.evaluator_type === 'COMPANY')
-                .flatMap((e: any) => (e.scores || []).filter((s: any) => s.clo_code === cloCode));
-              const s2CompanyScores = s2CompanyScoreItems.map((s: any) => this.getConvertedScore(s.score_level));
-              const s2CompanyScore = s2CompanyScores.length > 0 ? (s2CompanyScores.reduce((a: number, b: number) => a + b, 0) / s2CompanyScores.length) : null;
-
-              let s2GvhdPart = s2GvhdScore !== null ? s2GvhdScore : 0;
-              let s2CompanyPart = s2CompanyScore !== null ? s2CompanyScore : 0;
-              let s2Tb: number | null = null;
-              if (s2GvhdScore !== null || s2CompanyScore !== null) {
-                s2Tb = (s2GvhdPart * betaGvhd + s2CompanyPart * betaCompany) / 100.0;
-              }
-
-              // CLOi
-              let cloFinal: number | null = null;
-              const cloStage1Weight = clo.stage1_weight !== null && clo.stage1_weight !== undefined ? clo.stage1_weight : this.stage1Weight;
-              const cloStage2Weight = clo.stage2_weight !== null && clo.stage2_weight !== undefined ? clo.stage2_weight : this.stage2Weight;
-
-              if (s1Tb !== null || s2Tb !== null) {
-                const s1Part = s1Tb !== null ? s1Tb : 0;
-                const s2Part = s2Tb !== null ? s2Tb : 0;
-                cloFinal = (s1Part * cloStage1Weight + s2Part * cloStage2Weight) / 100.0;
-              }
-
-              const alpha = clo.alpha_weight !== null ? clo.alpha_weight : 15;
-              const cloConverted = cloFinal !== null ? (cloFinal * alpha / 100.0) : null;
-
-              return {
-                clo_code: cloCode,
-                description: clo.description,
-                s1_company: s1CompanyScore,
-                s1_gvhd: s1GvhdScore,
-                s1_tb: s1Tb,
-                s1_company_comment: this.getScoreComments(s1CompanyScoreItems),
-                s1_gvhd_comment: this.getScoreComments(s1GvhdScoreItems),
-                s2_company: s2CompanyScore,
-                s2_gvhd: s2GvhdScore,
-                s2_tb: s2Tb,
-                s2_company_comment: this.getScoreComments(s2CompanyScoreItems),
-                s2_gvhd_comment: this.getScoreComments(s2GvhdScoreItems),
-                clo_final: cloFinal,
-                alpha_weight: alpha,
-                stage1_weight: cloStage1Weight,
-                stage2_weight: cloStage2Weight,
-                clo_converted: cloConverted
-              };
-            });
-          },
-          error: () => {
-            this.cloDetails = [];
-          }
-        });
-      },
-      error: () => {
-        this.cloDetails = [];
-      }
-    });
+    this.cloDetails = (this.finalResult?.clo_outcomes || []).map((o: any) => ({
+      clo_code: o.code, description: o.description,
+      s1_gvhd: o.m1, s1_tb: o.m1, s2_gvhd: o.m2, s2_tb: o.m2,
+      clo_final: o.score, alpha_weight: o.alphaWeight,
+      m1_weight: o.m1Weight, m2_weight: o.m2Weight,
+      clo_converted: o.rawScore == null ? null : o.rawScore * o.alphaWeight / 100,
+      achieved: o.achieved, required: o.required
+    }));
   }
 
   getScoreComments(scoreItems: any[]): string | null {

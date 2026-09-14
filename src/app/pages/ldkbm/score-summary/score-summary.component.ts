@@ -22,6 +22,18 @@ export class LdkbmScoreSummaryComponent implements OnInit {
   departmentId: number = 0;
   departmentCampaignId: number = 0;
   
+  approvalTarget: FinalResultResponse | null = null;
+  integrityConfirmed = false;
+  evidenceConfirmed = false;
+  isApproving = false;
+  approveResult(): void {
+    if (!this.approvalTarget || !this.integrityConfirmed || !this.evidenceConfirmed) return;
+    this.isApproving = true;
+    this.finalResultService.approveFinalResult(this.approvalTarget.student_campaign_id, this.integrityConfirmed, this.evidenceConfirmed).subscribe({
+      next: () => { if (this.approvalTarget) this.approvalTarget.is_approved = true; this.approvalTarget = null; this.isApproving = false; this.showSuccess('Đã công nhận hoàn thành ĐATN.'); },
+      error: (err) => { this.error = err.message || 'Chưa đủ điều kiện công nhận.'; this.isApproving = false; }
+    });
+  }
   loading: boolean = false;
   error: string | null = null;
   success: string | null = null;
@@ -68,7 +80,7 @@ export class LdkbmScoreSummaryComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.error = 'Không thể tải danh sách đợt thực tập.';
+        this.error = 'Không thể tải danh sách đợt ĐATN.';
         this.loading = false;
       }
     });
@@ -93,12 +105,12 @@ export class LdkbmScoreSummaryComponent implements OnInit {
         if (this.departmentCampaignId) {
           this.loadFinalResults();
         } else {
-          this.error = 'Không tìm thấy đợt thực tập của bộ môn.';
+          this.error = 'Không tìm thấy đợt ĐATN của bộ môn.';
           this.loading = false;
         }
       },
       error: (err) => {
-        this.error = err.message || 'Lỗi tải cấu hình đợt thực tập.';
+        this.error = err.message || 'Lỗi tải cấu hình đợt ĐATN.';
         this.loading = false;
       }
     });
@@ -109,11 +121,7 @@ export class LdkbmScoreSummaryComponent implements OnInit {
     this.error = null;
     this.finalResultService.getFinalResultsByCampaign(this.departmentCampaignId).subscribe({
       next: (res) => {
-        this.results = (res || []).map((item: any) => ({
-          ...item,
-          stage_1_score: item.stage_1_score ?? item.stage1_score,
-          stage_2_score: item.stage_2_score ?? item.stage2_score
-        }));
+        this.results = (res || []).map((item: any) => ({ ...item }));
         this.onFilterChange();
         this.loading = false;
       },
@@ -173,8 +181,8 @@ export class LdkbmScoreSummaryComponent implements OnInit {
       'Họ và tên': r.full_name,
       'Mã SV': r.student_code,
       'Lớp': r.class_name,
-      'Điểm Chặng 1': r.stage_1_score !== null && r.stage_1_score !== undefined ? r.stage_1_score : '-',
-      'Điểm Chặng 2': r.stage_2_score !== null && r.stage_2_score !== undefined ? r.stage_2_score : '-',
+      'Điểm M1': r.m1_score !== null && r.m1_score !== undefined ? r.m1_score : '-',
+      'Điểm M2': r.m2_score !== null && r.m2_score !== undefined ? r.m2_score : '-',
       'Điểm Tổng Kết': r.final_hp_score !== null && r.final_hp_score !== undefined ? r.final_hp_score : '-',
       'Xếp Loại': r.grade_level || 'Chưa xếp loại',
       'Trạng Thái': r.final_hp_score !== null ? 'Đã có kết quả' : 'Chưa có điểm'
@@ -183,7 +191,7 @@ export class LdkbmScoreSummaryComponent implements OnInit {
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataToExport);
     const wb: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'BangDiemTongKet');
-    XLSX.writeFile(wb, `BangDiemTongKet_TTTN_${this.selectedCampaignId}.xlsx`);
+    XLSX.writeFile(wb, `BangDiemTongKet_DATN_${this.selectedCampaignId}.xlsx`);
   }
 
   // Statistical getters

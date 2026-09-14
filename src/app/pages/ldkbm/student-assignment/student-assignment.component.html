@@ -1,28 +1,28 @@
 <!-- Header Section -->
 <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-  <div>
-    <h2 class="font-headline-xl text-[24px] font-bold text-slate-800">Danh sách Sinh viên</h2>
-  </div>
-  <div class="flex items-center gap-3">
-    <!-- Nút Upload Excel -->
-    <button class="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-label-md text-[13px] rounded hover:bg-slate-200 transition-colors border border-slate-200 shadow-sm" (click)="triggerFileInput()">
+    <div>
+        <h2 class="font-headline-xl text-[24px] font-bold text-slate-800">Danh sách Sinh viên</h2>
+    </div>
+    <div class="flex items-center gap-3">
+        <!-- Nút Upload Excel -->
+        <button class="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-label-md text-[13px] rounded hover:bg-slate-200 transition-colors border border-slate-200 shadow-sm" (click)="triggerFileInput()">
       <span class="material-symbols-outlined text-[18px] text-emerald-600">upload_file</span>
       Nhập Excel
     </button>
-    <input type="file" #fileInput (change)="onFileChange($event)" accept=".xlsx, .xls" class="hidden">
+        <input type="file" #fileInput (change)="onFileChange($event)" accept=".xlsx, .xls" class="hidden">
 
-    <!-- Nút Download Template -->
-    <button class="flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-[#00429D] hover:bg-blue-50 transition-colors rounded text-[13px] font-medium" (click)="downloadTemplate()" title="Tải file mẫu Excel">
+        <!-- Nút Download Template -->
+        <button class="flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-[#00429D] hover:bg-blue-50 transition-colors rounded text-[13px] font-medium" (click)="downloadTemplate()" title="Tải file mẫu Excel">
       <span class="material-symbols-outlined text-[18px]">download</span>
       Mẫu
     </button>
 
-    <!-- Nút Thêm Thủ công -->
-    <button class="flex items-center gap-2 px-4 py-2 bg-[#00429D] text-white font-label-md text-[13px] rounded hover:bg-blue-800 transition-colors shadow-sm" (click)="openManualModal()">
+        <!-- Nút Thêm Thủ công -->
+        <button class="flex items-center gap-2 px-4 py-2 bg-[#00429D] text-white font-label-md text-[13px] rounded hover:bg-blue-800 transition-colors shadow-sm" (click)="openManualModal()">
       <span class="material-symbols-outlined text-[18px]">person_add</span>
       Thêm SV
     </button>
-  </div>
+    </div>
 </section>
 
 <!-- Alerts -->
@@ -32,344 +32,307 @@
 
 <!-- Data Canvas -->
 <section class="flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm">
-  <!-- 1. Toolbar trạng thái bình thường (Khi 0 SV được chọn) -->
-  <div *ngIf="selectedStudentIds.size === 0" class="px-4 py-3 border-b border-slate-200 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 bg-slate-50 rounded-t-lg transition-colors">
-    <!-- Nhóm bên trái: Tổng số SV & Phân công tự động -->
-    <div class="flex items-center gap-2.5 shrink-0">
-      <!-- Nút Tổng số SV / Thống kê -->
-      <button type="button"
-              (click)="openAssignmentStats()"
-              class="flex items-center gap-1.5 text-[13px] text-slate-700 bg-white border border-slate-300 font-medium whitespace-nowrap rounded px-2.5 py-1.5 hover:bg-blue-50 hover:text-[#00429D] hover:border-blue-300 transition-colors shrink-0 shadow-2xs cursor-pointer"
-              title="Xem thống kê sinh viên theo GVHD">
+    <!-- 1. Toolbar trạng thái bình thường (Khi 0 SV được chọn) -->
+    <div *ngIf="selectedStudentIds.size === 0" class="px-4 py-3 border-b border-slate-200 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 bg-slate-50 rounded-t-lg transition-colors">
+        <!-- Nhóm bên trái: Tổng số SV & Phân công tự động -->
+        <div class="flex items-center gap-2.5 shrink-0">
+            <!-- Nút Tổng số SV / Thống kê -->
+            <button type="button" (click)="openAssignmentStats()" class="flex items-center gap-1.5 text-[13px] text-slate-700 bg-white border border-slate-300 font-medium whitespace-nowrap rounded px-2.5 py-1.5 hover:bg-blue-50 hover:text-[#00429D] hover:border-blue-300 transition-colors shrink-0 shadow-2xs cursor-pointer"
+                title="Xem thống kê sinh viên theo GVHD">
         <span class="material-symbols-outlined text-[18px] text-[#00429D]">query_stats</span>
         Tổng: <strong class="text-slate-900">{{ totalItems }}</strong> SV
       </button>
 
-      <!-- Nút Phân công GVHD (Mặc định mở modal tự động) -->
-      <button class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-[13px] rounded transition-colors shadow-2xs whitespace-nowrap border bg-[#00429D] border-[#00429D] text-white hover:bg-blue-800 hover:border-blue-800 cursor-pointer"
-              (click)="openAssignModal('AUTO')"
-              title="Phân công giảng viên hướng dẫn (Thủ công hoặc Tự động)">
+            <!-- Nút Phân công GVHD (Mặc định mở modal tự động) -->
+            <button class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-[13px] rounded transition-colors shadow-2xs whitespace-nowrap border bg-[#00429D] border-[#00429D] text-white hover:bg-blue-800 hover:border-blue-800 cursor-pointer" (click)="openAssignModal('AUTO')"
+                title="Phân công giảng viên hướng dẫn (Thủ công hoặc Tự động)">
         <span class="material-symbols-outlined text-[16px]">assignment_ind</span>
         Phân công GVHD
       </button>
-    </div>
-    
-    <!-- Nhóm bộ lọc & tìm kiếm bên phải (co dãn linh hoạt) -->
-    <div class="flex items-center gap-2 flex-1 min-w-0 justify-end">
-      <!-- Dropdown Đợt thực tập -->
-      <div class="flex items-center gap-1.5 bg-white px-2.5 py-1.5 border border-slate-300 rounded text-[13px] shadow-sm w-36 sm:w-44 lg:w-48 shrink-0">
-        <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0">event</span>
-        <select [(ngModel)]="selectedCampaignId" (change)="onCampaignChange()" class="bg-transparent text-[13px] font-medium text-slate-700 focus:outline-none w-full cursor-pointer truncate">
+        </div>
+
+        <!-- Nhóm bộ lọc & tìm kiếm bên phải (co dãn linh hoạt) -->
+        <div class="flex items-center gap-2 flex-1 min-w-0 justify-end">
+            <!-- Dropdown Đợt ĐATN -->
+            <div class="flex items-center gap-1.5 bg-white px-2.5 py-1.5 border border-slate-300 rounded text-[13px] shadow-sm w-36 sm:w-44 lg:w-48 shrink-0">
+                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0">event</span>
+                <select [(ngModel)]="selectedCampaignId" (change)="onCampaignChange()" class="bg-transparent text-[13px] font-medium text-slate-700 focus:outline-none w-full cursor-pointer truncate">
           <option *ngFor="let camp of campaigns" [value]="camp.id">{{ camp.name }}</option>
         </select>
-      </div>
+            </div>
 
-      <div *ngIf="isFacultyManager()" class="flex items-center gap-1.5 bg-white px-2.5 py-1.5 border border-slate-300 rounded text-[13px] shadow-sm w-36 sm:w-44 lg:w-48 shrink-0">
-        <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0">account_tree</span>
-        <select [(ngModel)]="selectedStudentDepartmentId" (change)="loadTeachers()" class="bg-transparent text-[13px] font-medium text-slate-700 focus:outline-none w-full cursor-pointer truncate">
+            <div *ngIf="isFacultyManager()" class="flex items-center gap-1.5 bg-white px-2.5 py-1.5 border border-slate-300 rounded text-[13px] shadow-sm w-36 sm:w-44 lg:w-48 shrink-0">
+                <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0">account_tree</span>
+                <select [(ngModel)]="selectedStudentDepartmentId" (change)="loadTeachers()" class="bg-transparent text-[13px] font-medium text-slate-700 focus:outline-none w-full cursor-pointer truncate">
           <option [ngValue]="null">Chọn ngành nhập SV</option>
           <option *ngFor="let dept of childDepartments" [ngValue]="dept.id">{{ dept.name }}</option>
         </select>
-      </div>
+            </div>
 
-      <!-- Ô tìm kiếm (co dãn linh hoạt với flex-1) -->
-      <div class="relative flex-1 min-w-[120px] max-w-[260px]">
-        <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
-        <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Tìm Mã SV, Tên, Lớp..." 
-               class="w-full pl-8 pr-2.5 py-1.5 text-[13px] bg-white border border-slate-300 rounded focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] shadow-sm">
-      </div>
-      
-      <!-- Nút Tìm kiếm -->
-      <button (click)="onSearch()" class="px-3.5 py-1.5 bg-[#00429D] text-white text-[13px] font-medium rounded hover:bg-blue-800 transition-colors shadow-sm whitespace-nowrap shrink-0 flex items-center justify-center cursor-pointer">
+            <!-- Ô tìm kiếm (co dãn linh hoạt với flex-1) -->
+            <div class="relative flex-1 min-w-[120px] max-w-[260px]">
+                <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
+                <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Tìm Mã SV, Tên, Lớp..." class="w-full pl-8 pr-2.5 py-1.5 text-[13px] bg-white border border-slate-300 rounded focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] shadow-sm">
+            </div>
+
+            <!-- Nút Tìm kiếm -->
+            <button (click)="onSearch()" class="px-3.5 py-1.5 bg-[#00429D] text-white text-[13px] font-medium rounded hover:bg-blue-800 transition-colors shadow-sm whitespace-nowrap shrink-0 flex items-center justify-center cursor-pointer">
         Tìm kiếm
       </button>
+        </div>
     </div>
-  </div>
 
-  <!-- 2. Thanh thao tác hàng loạt khi có chọn sinh viên (Selection Action Bar) -->
-  <div *ngIf="selectedStudentIds.size > 0" class="px-4 py-2.5 border-b border-blue-200 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 bg-blue-50/90 rounded-t-lg transition-all">
-    <!-- Bên trái: Bỏ chọn & Đã chọn X sinh viên -->
-    <div class="flex items-center gap-2.5 shrink-0">
-      <button (click)="clearSelection()"
-              class="flex items-center gap-1 px-2.5 py-1.5 bg-white border border-blue-200 text-slate-700 hover:text-red-600 hover:border-red-300 rounded text-[12px] font-medium transition-colors shadow-2xs cursor-pointer"
-              title="Bỏ chọn tất cả">
+    <!-- 2. Thanh thao tác hàng loạt khi có chọn sinh viên (Selection Action Bar) -->
+    <div *ngIf="selectedStudentIds.size > 0" class="px-4 py-2.5 border-b border-blue-200 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 bg-blue-50/90 rounded-t-lg transition-all">
+        <!-- Bên trái: Bỏ chọn & Đã chọn X sinh viên -->
+        <div class="flex items-center gap-2.5 shrink-0">
+            <button (click)="clearSelection()" class="flex items-center gap-1 px-2.5 py-1.5 bg-white border border-blue-200 text-slate-700 hover:text-red-600 hover:border-red-300 rounded text-[12px] font-medium transition-colors shadow-2xs cursor-pointer" title="Bỏ chọn tất cả">
         <span class="material-symbols-outlined text-[16px]">close</span>
         Bỏ chọn
       </button>
-      <div class="flex items-center gap-1.5 text-[13px] text-slate-700 pl-1">
-        <span>Đã chọn</span>
-        <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[12px] font-bold bg-[#00429D] text-white">
+            <div class="flex items-center gap-1.5 text-[13px] text-slate-700 pl-1">
+                <span>Đã chọn</span>
+                <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[12px] font-bold bg-[#00429D] text-white">
           {{ selectedStudentIds.size }}
         </span>
-        <span class="font-medium text-slate-700">sinh viên</span>
-      </div>
-    </div>
+                <span class="font-medium text-slate-700">sinh viên</span>
+            </div>
+        </div>
 
-    <!-- Bên phải: Các hành động áp dụng cho các SV đang chọn -->
-    <div class="flex items-center gap-2 shrink-0">
-      <!-- Nút Hủy phân công -->
-      <button class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-[13px] rounded transition-colors shadow-2xs whitespace-nowrap border bg-white border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 cursor-pointer"
-              (click)="openBulkUnassignConfirm()"
-              title="Hủy phân công GVHD cho các sinh viên đã chọn">
+        <!-- Bên phải: Các hành động áp dụng cho các SV đang chọn -->
+        <div class="flex items-center gap-2 shrink-0">
+            <!-- Nút Hủy phân công -->
+            <button class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-[13px] rounded transition-colors shadow-2xs whitespace-nowrap border bg-white border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 cursor-pointer" (click)="openBulkUnassignConfirm()"
+                title="Hủy phân công GVHD cho các sinh viên đã chọn">
         <span class="material-symbols-outlined text-[16px]">person_remove</span>
         Hủy phân công
       </button>
 
-      <!-- Nút Phân công GVHD -->
-      <button class="flex items-center gap-1.5 px-3.5 py-1.5 font-medium text-[13px] rounded transition-colors shadow-sm whitespace-nowrap border bg-[#00429D] border-[#00429D] text-white hover:bg-blue-800 hover:border-blue-800 cursor-pointer"
-              (click)="openAssignModal('MANUAL')"
-              title="Phân công giảng viên hướng dẫn cho các sinh viên đã chọn">
+            <!-- Nút Phân công GVHD -->
+            <button class="flex items-center gap-1.5 px-3.5 py-1.5 font-medium text-[13px] rounded transition-colors shadow-sm whitespace-nowrap border bg-[#00429D] border-[#00429D] text-white hover:bg-blue-800 hover:border-blue-800 cursor-pointer" (click)="openAssignModal('MANUAL')"
+                title="Phân công giảng viên hướng dẫn cho các sinh viên đã chọn">
         <span class="material-symbols-outlined text-[16px]">assignment_ind</span>
         Phân công GVHD ({{ selectedStudentIds.size }})
       </button>
+        </div>
     </div>
-  </div>
-  <div *ngIf="isLoading && students.length === 0" class="flex flex-col items-center justify-center py-20">
-    <span class="material-symbols-outlined animate-spin text-[40px] text-[#00429D] mb-3">progress_activity</span>
-    <p class="text-slate-500 font-medium text-sm">Đang tải danh sách...</p>
-  </div>
+    <div *ngIf="isLoading && students.length === 0" class="flex flex-col items-center justify-center py-20">
+        <span class="material-symbols-outlined animate-spin text-[40px] text-[#00429D] mb-3">progress_activity</span>
+        <p class="text-slate-500 font-medium text-sm">Đang tải danh sách...</p>
+    </div>
 
-  <div *ngIf="!isLoading && students.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
-    <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">group_off</span>
-    <p class="text-slate-500 font-medium text-lg">Chưa có sinh viên nào trong đợt này</p>
-    <p class="text-slate-400 text-sm mt-1">Hãy thêm sinh viên bằng tay hoặc Import Excel (Cột: Mã SV, Họ tên, Lớp).</p>
-  </div>
+    <div *ngIf="!isLoading && students.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
+        <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">group_off</span>
+        <p class="text-slate-500 font-medium text-lg">Chưa có sinh viên nào trong đợt này</p>
+        <p class="text-slate-400 text-sm mt-1">Hãy thêm sinh viên bằng tay hoặc Import Excel (Cột: Mã SV, Họ tên, Lớp).</p>
+    </div>
 
-  <div *ngIf="students.length > 0" class="overflow-x-auto">
-    <table class="w-full text-left border-collapse">
-      <thead class="bg-[#f3f3fb] border-b border-slate-200">
-        <tr>
-          <th class="py-3 px-4 w-12 text-center">
-            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll($event)" class="rounded border-slate-300 text-[#00429D] focus:ring-[#00429D] w-4 h-4">
-          </th>
-          <th class="py-3 px-4 text-center font-label-md text-[13px] font-medium text-slate-500 uppercase w-16">STT</th>
-          <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Mã SV</th>
-          <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Họ và tên</th>
-          <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Tên</th>
-          <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Lớp</th>
-          <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">GV Hướng dẫn</th>
-          <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">ĐV Thực tập</th>
-          <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Trạng thái</th>
-          <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase text-center">Hành động</th>
-        </tr>
-      </thead>
-      <tbody class="font-body-md text-[14px] text-slate-800">
-        <tr *ngFor="let student of students; let i = index" class="border-b border-slate-100 hover:bg-slate-50 transition-colors bg-white">
-          <td class="py-3 px-4 text-center">
-            <input type="checkbox" [checked]="selectedStudentIds.has(student.id)" (change)="toggleStudent(student.id, $event)" class="rounded border-slate-300 text-[#00429D] focus:ring-[#00429D] w-4 h-4">
-          </td>
-          <td class="py-3 px-4 text-center text-slate-500">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
-          <td class="py-3 px-4 font-medium text-slate-700">{{ student.student_code }}</td>
-          <td class="py-3 px-4 font-bold text-[#002d70]">{{ student.full_name }}</td>
-          <td class="py-3 px-4 font-semibold text-slate-700">{{ getStudentFirstName(student) || '—' }}</td>
-          <td class="py-3 px-4 text-slate-500 text-[13px]">{{ student.class_name || '—' }}</td>
-          <td class="py-3 px-4">
-            <div *ngIf="student.gvhd_name" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 group">
-              <span class="material-symbols-outlined text-[16px]">person</span>
-              <span>{{ student.gvhd_name }}</span>
-              <button type="button"
-                      (click)="openUnassignConfirmForOne(student)"
-                      class="text-emerald-500 hover:text-red-600 hover:bg-red-100 rounded-full p-0.5 transition-colors cursor-pointer flex items-center justify-center"
-                      title="Hủy phân công GVHD này">
+    <div *ngIf="students.length > 0" class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-[#f3f3fb] border-b border-slate-200">
+                <tr>
+                    <th class="py-3 px-4 w-12 text-center">
+                        <input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll($event)" class="rounded border-slate-300 text-[#00429D] focus:ring-[#00429D] w-4 h-4">
+                    </th>
+                    <th class="py-3 px-4 text-center font-label-md text-[13px] font-medium text-slate-500 uppercase w-16">STT</th>
+                    <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Mã SV</th>
+                    <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Họ và tên</th>
+                    <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Tên</th>
+                    <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Lớp</th>
+                    <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">GV Hướng dẫn</th>
+                    <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Đề tài ĐATN</th>
+                    <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase">Trạng thái</th>
+                    <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody class="font-body-md text-[14px] text-slate-800">
+                <tr *ngFor="let student of students; let i = index" class="border-b border-slate-100 hover:bg-slate-50 transition-colors bg-white">
+                    <td class="py-3 px-4 text-center">
+                        <input type="checkbox" [checked]="selectedStudentIds.has(student.id)" (change)="toggleStudent(student.id, $event)" class="rounded border-slate-300 text-[#00429D] focus:ring-[#00429D] w-4 h-4">
+                    </td>
+                    <td class="py-3 px-4 text-center text-slate-500">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+                    <td class="py-3 px-4 font-medium text-slate-700">{{ student.student_code }}</td>
+                    <td class="py-3 px-4 font-bold text-[#002d70]">{{ student.full_name }}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-700">{{ getStudentFirstName(student) || '—' }}</td>
+                    <td class="py-3 px-4 text-slate-500 text-[13px]">{{ student.class_name || '—' }}</td>
+                    <td class="py-3 px-4">
+                        <div *ngIf="student.gvhd_name" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 group">
+                            <span class="material-symbols-outlined text-[16px]">person</span>
+                            <span>{{ student.gvhd_name }}</span>
+                            <button type="button" (click)="openUnassignConfirmForOne(student)" class="text-emerald-500 hover:text-red-600 hover:bg-red-100 rounded-full p-0.5 transition-colors cursor-pointer flex items-center justify-center" title="Hủy phân công GVHD này">
                 <span class="material-symbols-outlined text-[14px]">close</span>
               </button>
-            </div>
-            <span *ngIf="!student.gvhd_name" class="text-[13px] text-slate-400 italic">Chưa phân công</span>
-          </td>
-          <td class="py-3 px-4">
-            <div *ngIf="student.company_info?.company_name" class="flex flex-col text-[12px]">
-              <span class="font-medium text-slate-700" title="Đơn vị thực tập">{{ student.company_info?.company_name }}</span>
-              <span *ngIf="student.company_info?.supervisor_email" class="text-slate-500" title="Tài khoản (Email)">TK: {{ student.company_info?.supervisor_email }}</span>
-            </div>
-            <span *ngIf="!student.company_info?.company_name" class="text-[13px] text-slate-400 italic">Chưa khai báo</span>
-          </td>
-          <td class="py-3 px-4">
-            <span class="px-2 py-1 rounded-full text-[11px] font-bold border"
-                  [ngClass]="{
+                        </div>
+                        <span *ngIf="!student.gvhd_name" class="text-[13px] text-slate-400 italic">Chưa phân công</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div *ngIf="student.datn_info?.thesis_title" class="flex flex-col text-[12px]">
+                            <span class="font-medium text-slate-700" title="Đề tài ĐATN">{{ student.datn_info?.thesis_title }}</span>
+                        </div>
+                        <span *ngIf="!student.datn_info?.thesis_title" class="text-[13px] text-slate-400 italic">Chưa khai báo</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 rounded-full text-[11px] font-bold border" [ngClass]="{
                     'bg-slate-100 text-slate-600 border-slate-200': student.status === 'IMPORTED',
                     'bg-blue-50 text-blue-600 border-blue-200': student.status === 'PLAN_APPROVED',
                     'bg-emerald-50 text-emerald-600 border-emerald-200': student.status === 'COMPLETED'
                   }">
               {{ student.status }}
             </span>
-          </td>
-          <td class="py-3 px-4 text-center">
-            <div class="flex items-center justify-center gap-1">
-              <button (click)="openAssignModalForOne(student)" class="text-slate-400 hover:text-[#00429D] p-1 rounded hover:bg-blue-50 transition-colors" [title]="student.gvhd_name ? 'Đổi GVHD' : 'Phân công GVHD'">
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button (click)="openAssignModalForOne(student)" class="text-slate-400 hover:text-[#00429D] p-1 rounded hover:bg-blue-50 transition-colors" [title]="student.gvhd_name ? 'Đổi GVHD' : 'Phân công GVHD'">
                 <span class="material-symbols-outlined text-[18px]">assignment_ind</span>
               </button>
-              <button *ngIf="student.gvhd_name" (click)="openUnassignConfirmForOne(student)" class="text-slate-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors" title="Hủy phân công GVHD">
+                            <button *ngIf="student.gvhd_name" (click)="openUnassignConfirmForOne(student)" class="text-slate-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors" title="Hủy phân công GVHD">
                 <span class="material-symbols-outlined text-[18px]">person_remove</span>
               </button>
-              <button (click)="openDeleteConfirm(student)"
-                      title="Xóa khỏi đợt thực tập"
-                      class="text-slate-400 p-1 rounded transition-colors hover:text-red-600 hover:bg-red-50">
+                            <button (click)="openDeleteConfirm(student)" title="Xóa khỏi đợt ĐATN" class="text-slate-400 p-1 rounded transition-colors hover:text-red-600 hover:bg-red-50">
                 <span class="material-symbols-outlined text-[18px]">delete</span>
               </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  
-  <app-pagination *ngIf="students.length > 0" [currentPage]="currentPage" [totalItems]="totalItems" [pageSize]="pageSize" itemLabel="sinh viên" (pageChange)="onPageChange($event)"></app-pagination>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <app-pagination *ngIf="students.length > 0" [currentPage]="currentPage" [totalItems]="totalItems" [pageSize]="pageSize" itemLabel="sinh viên" (pageChange)="onPageChange($event)"></app-pagination>
 </section>
 
 <!-- Modal Thêm Thủ công -->
 <app-modal [isOpen]="isManualModalOpen" title="Thêm Sinh viên" saveText="Thêm" (close)="closeManualModal()" (save)="saveManualStudent()">
-  <div class="space-y-4">
+    <div class="space-y-4">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1.5">
-        <label class="font-label-md text-[13px] text-slate-600">Mã sinh viên (MSSV) <span class="text-red-500">*</span></label>
-        <input [(ngModel)]="formStudentCode" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="VD: 1501665" type="text"/>
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label class="font-label-md text-[13px] text-slate-600">Họ và tên <span class="text-red-500">*</span></label>
-        <input [(ngModel)]="formFullName" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="VD: Nguyễn Văn A" type="text"/>
-      </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="font-label-md text-[13px] text-slate-600">Mã sinh viên (MSSV) <span class="text-red-500">*</span></label>
+                <input [(ngModel)]="formStudentCode" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="VD: 1501665" type="text" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="font-label-md text-[13px] text-slate-600">Họ và tên <span class="text-red-500">*</span></label>
+                <input [(ngModel)]="formFullName" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="VD: Nguyễn Văn A" type="text" />
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="font-label-md text-[13px] text-slate-600">Lớp <span class="text-slate-400 font-normal">(tùy chọn)</span></label>
+                <input [(ngModel)]="formClassName" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="VD: 65PM4" type="text" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="font-label-md text-[13px] text-slate-600">Email <span class="text-slate-400 font-normal">(tùy chọn)</span></label>
+                <input [(ngModel)]="formEmail" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="VD: nguyenvana@gmail.com" type="email" />
+            </div>
+        </div>
+
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-1.5">
-        <label class="font-label-md text-[13px] text-slate-600">Lớp <span class="text-slate-400 font-normal">(tùy chọn)</span></label>
-        <input [(ngModel)]="formClassName" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="VD: 65PM4" type="text"/>
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label class="font-label-md text-[13px] text-slate-600">Email <span class="text-slate-400 font-normal">(tùy chọn)</span></label>
-        <input [(ngModel)]="formEmail" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="VD: nguyenvana@gmail.com" type="email"/>
-      </div>
-    </div>
-
-  </div>
 </app-modal>
 
 <!-- Modal xác nhận xóa sinh viên -->
-<app-modal [isOpen]="isDeleteConfirmOpen"
-           title="Xác nhận xóa sinh viên khỏi đợt thực tập"
-           saveText="Xóa sinh viên"
-           (close)="closeDeleteConfirm()"
-           (save)="confirmDeleteStudent()">
-  <div class="space-y-4">
-    <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-      Thao tác này sẽ xóa sinh viên khỏi đợt thực tập hiện tại và không thể hoàn tác.
-    </div>
+<app-modal [isOpen]="isDeleteConfirmOpen" title="Xác nhận xóa sinh viên khỏi đợt ĐATN" saveText="Xóa sinh viên" (close)="closeDeleteConfirm()" (save)="confirmDeleteStudent()">
+    <div class="space-y-4">
+        <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Thao tác này sẽ xóa sinh viên khỏi đợt ĐATN hiện tại và không thể hoàn tác.
+        </div>
 
-    <div class="text-sm text-slate-700 space-y-2">
-      <p>
-        Sinh viên:
-        <strong class="text-slate-900">{{ studentPendingDelete?.full_name }}</strong>
-        <span class="font-mono text-slate-500">({{ studentPendingDelete?.student_code }})</span>
-      </p>
-      <p>
-        Đợt thực tập:
-        <strong class="text-slate-900">{{ getSelectedCampaign()?.name || getSelectedCampaign()?.code }}</strong>
-      </p>
+        <div class="text-sm text-slate-700 space-y-2">
+            <p>
+                Sinh viên:
+                <strong class="text-slate-900">{{ studentPendingDelete?.full_name }}</strong>
+                <span class="font-mono text-slate-500">({{ studentPendingDelete?.student_code }})</span>
+            </p>
+            <p>
+                Đợt ĐATN:
+                <strong class="text-slate-900">{{ getSelectedCampaign()?.name || getSelectedCampaign()?.code }}</strong>
+            </p>
+        </div>
     </div>
-  </div>
 </app-modal>
 
 <!-- Modal thống kê phân công GVHD -->
-<app-modal [isOpen]="isStatsModalOpen"
-           title="Thống kê phân công GVHD"
-           [showFooter]="false"
-           (close)="closeAssignmentStats()">
-  <div class="space-y-4">
-    <div *ngIf="isStatsLoading" class="flex items-center justify-center py-10 text-slate-500">
-      <span class="material-symbols-outlined animate-spin text-[28px] text-[#00429D] mr-2">progress_activity</span>
-      Đang tải thống kê...
-    </div>
+<app-modal [isOpen]="isStatsModalOpen" title="Thống kê phân công GVHD" [showFooter]="false" (close)="closeAssignmentStats()">
+    <div class="space-y-4">
+        <div *ngIf="isStatsLoading" class="flex items-center justify-center py-10 text-slate-500">
+            <span class="material-symbols-outlined animate-spin text-[28px] text-[#00429D] mr-2">progress_activity</span> Đang tải thống kê...
+        </div>
 
-    <div *ngIf="!isStatsLoading && assignmentStats.length === 0" class="py-10 text-center text-[13px] text-slate-500">
-      Chưa có GVHD nào trong khoa/bộ môn hiện tại.
-    </div>
+        <div *ngIf="!isStatsLoading && assignmentStats.length === 0" class="py-10 text-center text-[13px] text-slate-500">
+            Chưa có GVHD nào trong khoa/bộ môn hiện tại.
+        </div>
 
-    <div *ngIf="!isStatsLoading && assignmentStats.length > 0" class="border border-slate-200 rounded-lg overflow-hidden">
-      <table class="w-full text-left">
-        <thead class="bg-[#f3f3fb] text-[12px] uppercase text-slate-500">
-          <tr>
-            <th class="px-3 py-2 text-center w-14">STT</th>
-            <th class="px-3 py-2">GVHD</th>
-            <th class="px-3 py-2">Email</th>
-            <th class="px-3 py-2 text-center">Số SV được phân</th>
-          </tr>
-        </thead>
-        <tbody class="text-[13px] text-slate-700">
-          <tr *ngFor="let item of assignmentStats; let i = index" class="border-t border-slate-100">
-            <td class="px-3 py-2 text-center text-slate-500">{{ i + 1 }}</td>
-            <td class="px-3 py-2">
-              <div class="flex items-center gap-2">
-                <span class="font-medium text-slate-800">{{ item.teacher_name }}</span>
-                <span *ngIf="item.external_department" class="text-[11px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">Ngoài Bộ môn</span>
-              </div>
-              <div class="text-[12px] text-slate-500">{{ item.department_name || 'Chưa gắn Bộ môn' }}</div>
-            </td>
-            <td class="px-3 py-2 text-slate-500">{{ item.teacher_email }}</td>
-            <td class="px-3 py-2 text-center font-semibold text-[#00429D]">{{ item.assigned_count }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+        <div *ngIf="!isStatsLoading && assignmentStats.length > 0" class="border border-slate-200 rounded-lg overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-[#f3f3fb] text-[12px] uppercase text-slate-500">
+                    <tr>
+                        <th class="px-3 py-2 text-center w-14">STT</th>
+                        <th class="px-3 py-2">GVHD</th>
+                        <th class="px-3 py-2">Email</th>
+                        <th class="px-3 py-2 text-center">Số SV được phân</th>
+                    </tr>
+                </thead>
+                <tbody class="text-[13px] text-slate-700">
+                    <tr *ngFor="let item of assignmentStats; let i = index" class="border-t border-slate-100">
+                        <td class="px-3 py-2 text-center text-slate-500">{{ i + 1 }}</td>
+                        <td class="px-3 py-2">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-slate-800">{{ item.teacher_name }}</span>
+                                <span *ngIf="item.external_department" class="text-[11px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">Ngoài Bộ môn</span>
+                            </div>
+                            <div class="text-[12px] text-slate-500">{{ item.department_name || 'Chưa gắn Bộ môn' }}</div>
+                        </td>
+                        <td class="px-3 py-2 text-slate-500">{{ item.teacher_email }}</td>
+                        <td class="px-3 py-2 text-center font-semibold text-[#00429D]">{{ item.assigned_count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-    <div class="flex justify-end pt-2 border-t border-slate-200">
-      <button class="px-4 py-2 border border-slate-300 text-slate-700 font-label-md text-[13px] rounded hover:bg-slate-100 transition-colors cursor-pointer"
-              (click)="closeAssignmentStats()">
+        <div class="flex justify-end pt-2 border-t border-slate-200">
+            <button class="px-4 py-2 border border-slate-300 text-slate-700 font-label-md text-[13px] rounded hover:bg-slate-100 transition-colors cursor-pointer" (click)="closeAssignmentStats()">
         Đóng
       </button>
+        </div>
     </div>
-  </div>
 </app-modal>
 
 <!-- Modal Phân công GVHD (Hợp nhất: Phân công thủ công & Phân công tự động) -->
-<app-modal [isOpen]="isAssignModalOpen"
-           title="Phân công Giảng viên Hướng dẫn"
-           [showFooter]="false"
-           (close)="closeAssignModal()">
-  <div class="space-y-4">
+<app-modal [isOpen]="isAssignModalOpen" title="Phân công Giảng viên Hướng dẫn" [showFooter]="false" (close)="closeAssignModal()">
+    <div class="space-y-4">
 
-    <div class="border border-slate-200 rounded bg-slate-50/70 p-3 space-y-3">
-      <div class="flex items-center justify-between gap-3">
-        <div>
-          <p class="text-[13px] font-semibold text-slate-800">GVHD tham gia hướng dẫn</p>
-          <p class="text-[12px] text-slate-500">GVHD thuộc Bộ môn được tự động dùng. GVHD ngoài Bộ môn cần được thêm vào đợt này.</p>
-        </div>
-        <span class="text-[12px] px-2 py-1 rounded bg-white border border-slate-200 text-slate-600 shrink-0">{{ teachers.length }} GVHD</span>
-      </div>
+        <div class="border border-slate-200 rounded bg-slate-50/70 p-3 space-y-3">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <p class="text-[13px] font-semibold text-slate-800">GVHD tham gia hướng dẫn</p>
+                    <p class="text-[12px] text-slate-500">GVHD thuộc Bộ môn được tự động dùng. GVHD ngoài Bộ môn cần được thêm vào đợt này.</p>
+                </div>
+                <span class="text-[12px] px-2 py-1 rounded bg-white border border-slate-200 text-slate-600 shrink-0">{{ teachers.length }} GVHD</span>
+            </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-[1fr_220px_auto] gap-2 items-end">
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-          <input type="text"
-                 [(ngModel)]="inviteTeacherSearchQuery"
-                 placeholder="Tìm GVHD ngoài Bộ môn theo tên, email hoặc Bộ môn..."
-                 class="w-full pl-9 pr-3 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
-        </div>
-        <select [(ngModel)]="selectedInviteTeacherId"
-                class="w-full px-3 py-2 text-[13px] border border-slate-300 rounded bg-white focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_220px_auto] gap-2 items-end">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                    <input type="text" [(ngModel)]="inviteTeacherSearchQuery" placeholder="Tìm GVHD ngoài Bộ môn theo tên, email hoặc Bộ môn..." class="w-full pl-9 pr-3 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
+                </div>
+                <select [(ngModel)]="selectedInviteTeacherId" class="w-full px-3 py-2 text-[13px] border border-slate-300 rounded bg-white focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
           <option [ngValue]="null">Chọn GVHD</option>
           <option *ngFor="let t of inviteTeacherCandidates" [ngValue]="t.id">
             {{ t.full_name }} - {{ t.department_name || 'Chưa gắn Bộ môn' }}
           </option>
         </select>
-        <button type="button"
-                (click)="inviteSelectedTeacher()"
-                [disabled]="isInviteLoading || !selectedInviteTeacherId"
-                class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-[#00429D] text-white text-[13px] font-semibold rounded hover:bg-[#00357d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <button type="button" (click)="inviteSelectedTeacher()" [disabled]="isInviteLoading || !selectedInviteTeacherId" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-[#00429D] text-white text-[13px] font-semibold rounded hover:bg-[#00357d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           <span class="material-symbols-outlined text-[17px]">person_add</span>
           Thêm
         </button>
-      </div>
-    </div>
+            </div>
+        </div>
 
-    <!-- Thanh chuyển Tab (Phân công thủ công / Phân công tự động) -->
-    <div class="flex border-b border-slate-200 -mx-6 px-6 bg-slate-50/70 pt-1 -mt-2">
-      <button type="button"
-              (click)="setAssignMode('MANUAL')"
-              [ngClass]="assignMode === 'MANUAL'
+        <!-- Thanh chuyển Tab (Phân công thủ công / Phân công tự động) -->
+        <div class="flex border-b border-slate-200 -mx-6 px-6 bg-slate-50/70 pt-1 -mt-2">
+            <button type="button" (click)="setAssignMode('MANUAL')" [ngClass]="assignMode === 'MANUAL'
                 ? 'border-[#00429D] text-[#00429D] font-bold bg-white shadow-xs'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
-              class="flex items-center gap-2 py-2.5 px-4 border-b-2 font-label-md text-[13px] transition-all rounded-t-md cursor-pointer">
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="flex items-center gap-2 py-2.5 px-4 border-b-2 font-label-md text-[13px] transition-all rounded-t-md cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">person_pin</span>
         <span>Phân công thủ công</span>
         <span *ngIf="selectedStudentIds.size > 0" class="text-[11px] px-1.5 py-0.5 rounded-full font-semibold"
@@ -378,58 +341,50 @@
         </span>
       </button>
 
-      <button type="button"
-              (click)="setAssignMode('AUTO')"
-              [ngClass]="assignMode === 'AUTO'
+            <button type="button" (click)="setAssignMode('AUTO')" [ngClass]="assignMode === 'AUTO'
                 ? 'border-[#00429D] text-[#00429D] font-bold bg-white shadow-xs'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
-              class="flex items-center gap-2 py-2.5 px-4 border-b-2 font-label-md text-[13px] transition-all rounded-t-md cursor-pointer">
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'" class="flex items-center gap-2 py-2.5 px-4 border-b-2 font-label-md text-[13px] transition-all rounded-t-md cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
         <span>Phân công tự động</span>
         <span class="text-[11px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">Thuật toán</span>
       </button>
-    </div>
+        </div>
 
-    <!-- ==================== TAB 1: PHÂN CÔNG THỦ CÔNG (MANUAL) ==================== -->
-    <div *ngIf="assignMode === 'MANUAL'" class="space-y-4 pt-1">
-      <!-- Cảnh báo nếu sinh viên đã có GVHD -->
-      <div *ngIf="hasAssignedStudentsInModal" class="flex items-center justify-between p-2.5 bg-amber-50 border border-amber-200 rounded text-[13px] text-amber-800">
-        <span>Sinh viên đã được gán GVHD. Muốn hủy phân công?</span>
-        <button type="button" (click)="unassignFromModal()" class="flex items-center gap-1 text-red-600 font-semibold hover:underline text-[12px] bg-white px-2.5 py-1 border border-red-200 rounded shadow-2xs hover:bg-red-50 transition-colors cursor-pointer">
+        <!-- ==================== TAB 1: PHÂN CÔNG THỦ CÔNG (MANUAL) ==================== -->
+        <div *ngIf="assignMode === 'MANUAL'" class="space-y-4 pt-1">
+            <!-- Cảnh báo nếu sinh viên đã có GVHD -->
+            <div *ngIf="hasAssignedStudentsInModal" class="flex items-center justify-between p-2.5 bg-amber-50 border border-amber-200 rounded text-[13px] text-amber-800">
+                <span>Sinh viên đã được gán GVHD. Muốn hủy phân công?</span>
+                <button type="button" (click)="unassignFromModal()" class="flex items-center gap-1 text-red-600 font-semibold hover:underline text-[12px] bg-white px-2.5 py-1 border border-red-200 rounded shadow-2xs hover:bg-red-50 transition-colors cursor-pointer">
           <span class="material-symbols-outlined text-[15px]">person_remove</span>
           Hủy phân công GVHD
         </button>
-      </div>
+            </div>
 
-      <div class="space-y-2">
-        <p class="text-[13px] text-slate-600">Đang chọn gán GVHD cho <strong class="text-[#00429D]">{{ selectedStudentIds.size }}</strong> sinh viên:</p>
-        <div class="border border-slate-200 rounded bg-slate-50 px-3 py-2 max-h-[92px] overflow-y-auto">
-          <div *ngFor="let student of selectedStudentsForAssignment" class="flex items-center justify-between gap-3 py-1 border-b border-slate-200 last:border-0">
-            <div class="flex items-center gap-2 truncate">
-              <span class="text-[13px] font-medium text-slate-700 truncate">{{ student.full_name }}</span>
-              <span *ngIf="student.gvhd_name" class="text-[11px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 shrink-0">
+            <div class="space-y-2">
+                <p class="text-[13px] text-slate-600">Đang chọn gán GVHD cho <strong class="text-[#00429D]">{{ selectedStudentIds.size }}</strong> sinh viên:</p>
+                <div class="border border-slate-200 rounded bg-slate-50 px-3 py-2 max-h-[92px] overflow-y-auto">
+                    <div *ngFor="let student of selectedStudentsForAssignment" class="flex items-center justify-between gap-3 py-1 border-b border-slate-200 last:border-0">
+                        <div class="flex items-center gap-2 truncate">
+                            <span class="text-[13px] font-medium text-slate-700 truncate">{{ student.full_name }}</span>
+                            <span *ngIf="student.gvhd_name" class="text-[11px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 shrink-0">
                 GV: {{ student.gvhd_name }}
               </span>
+                        </div>
+                        <span class="text-[12px] text-slate-500 font-mono shrink-0">{{ student.student_code }}</span>
+                    </div>
+                </div>
             </div>
-            <span class="text-[12px] text-slate-500 font-mono shrink-0">{{ student.student_code }}</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="flex flex-col gap-1.5">
-        <label class="font-label-md text-[13px] text-slate-600 block">Chọn 1 GV Hướng dẫn <span class="text-red-500">*</span></label>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-          <input
-            type="text"
-            [(ngModel)]="teacherSearchQuery"
-            placeholder="Tìm kiếm giảng viên theo tên hoặc email..."
-            class="w-full pl-9 pr-3 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]"
-          >
-        </div>
-        
-        <div class="border border-slate-300 rounded max-h-[220px] overflow-y-auto">
-          <label *ngFor="let t of filteredTeachers" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors">
+
+            <div class="flex flex-col gap-1.5">
+                <label class="font-label-md text-[13px] text-slate-600 block">Chọn 1 GV Hướng dẫn <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                    <input type="text" [(ngModel)]="teacherSearchQuery" placeholder="Tìm kiếm giảng viên theo tên hoặc email..." class="w-full pl-9 pr-3 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
+                </div>
+
+                <div class="border border-slate-300 rounded max-h-[220px] overflow-y-auto">
+                    <label *ngFor="let t of filteredTeachers" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors">
             <input 
               type="radio"
               name="manualTeacherSelection"
@@ -452,69 +407,59 @@
               <span class="material-symbols-outlined text-[18px]">close</span>
             </button>
           </label>
-          
-          <div *ngIf="teachers.length === 0" class="p-4 text-center text-slate-500 text-[13px]">
-            Chưa có giáo viên nào trong danh sách.
-          </div>
-          <div *ngIf="teachers.length > 0 && filteredTeachers.length === 0" class="p-4 text-center text-slate-500 text-[13px]">
-            Không tìm thấy giảng viên phù hợp.
-          </div>
-        </div>
-      </div>
 
-      <!-- Action Footer cho Tab Phân công thủ công -->
-      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
-        <button class="px-4 py-2 border border-slate-300 text-slate-700 font-label-md text-[13px] rounded hover:bg-slate-100 transition-colors cursor-pointer"
-                (click)="closeAssignModal()">
+                    <div *ngIf="teachers.length === 0" class="p-4 text-center text-slate-500 text-[13px]">
+                        Chưa có giáo viên nào trong danh sách.
+                    </div>
+                    <div *ngIf="teachers.length > 0 && filteredTeachers.length === 0" class="p-4 text-center text-slate-500 text-[13px]">
+                        Không tìm thấy giảng viên phù hợp.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Footer cho Tab Phân công thủ công -->
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                <button class="px-4 py-2 border border-slate-300 text-slate-700 font-label-md text-[13px] rounded hover:bg-slate-100 transition-colors cursor-pointer" (click)="closeAssignModal()">
           Hủy bỏ
         </button>
-        <button class="px-5 py-2 bg-[#00429D] text-white font-label-md text-[13px] rounded hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                [disabled]="selectedTeacherIds.size === 0"
-                (click)="saveAssignment()">
+                <button class="px-5 py-2 bg-[#00429D] text-white font-label-md text-[13px] rounded hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" [disabled]="selectedTeacherIds.size === 0" (click)="saveAssignment()">
           Lưu phân công
         </button>
-      </div>
-    </div>
+            </div>
+        </div>
 
-    <!-- ==================== TAB 2: PHÂN CÔNG TỰ ĐỘNG (AUTO) ==================== -->
-    <div *ngIf="assignMode === 'AUTO'" class="space-y-4 pt-1">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <label class="border rounded-lg p-3 cursor-pointer transition-colors"
-               [ngClass]="autoAssignScope === 'UNASSIGNED' ? 'border-[#00429D] bg-blue-50' : 'border-slate-200 hover:border-slate-300'">
+        <!-- ==================== TAB 2: PHÂN CÔNG TỰ ĐỘNG (AUTO) ==================== -->
+        <div *ngIf="assignMode === 'AUTO'" class="space-y-4 pt-1">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label class="border rounded-lg p-3 cursor-pointer transition-colors" [ngClass]="autoAssignScope === 'UNASSIGNED' ? 'border-[#00429D] bg-blue-50' : 'border-slate-200 hover:border-slate-300'">
           <input type="radio" class="sr-only" name="autoAssignScope" value="UNASSIGNED" [(ngModel)]="autoAssignScope" (ngModelChange)="onAutoAssignScopeChange()">
           <span class="block text-[13px] font-semibold text-slate-800">Tất cả SV chưa có GVHD</span>
           <span class="block text-[12px] text-slate-500 mt-0.5">Không ghi đè phân công cũ.</span>
         </label>
-        <label class="border rounded-lg p-3 cursor-pointer transition-colors"
-               [ngClass]="autoAssignScope === 'SELECTED' ? 'border-[#00429D] bg-blue-50' : 'border-slate-200 hover:border-slate-300'">
+                <label class="border rounded-lg p-3 cursor-pointer transition-colors" [ngClass]="autoAssignScope === 'SELECTED' ? 'border-[#00429D] bg-blue-50' : 'border-slate-200 hover:border-slate-300'">
           <input type="radio" class="sr-only" name="autoAssignScope" value="SELECTED" [(ngModel)]="autoAssignScope" (ngModelChange)="onAutoAssignScopeChange()">
           <span class="block text-[13px] font-semibold text-slate-800">Sinh viên đang chọn</span>
           <span class="block text-[12px] text-slate-500 mt-0.5">{{ selectedStudentIds.size }} sinh viên trên bảng.</span>
         </label>
-      </div>
+            </div>
 
-      <label *ngIf="autoAssignScope !== 'UNASSIGNED'" class="flex items-start gap-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
+            <label *ngIf="autoAssignScope !== 'UNASSIGNED'" class="flex items-start gap-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
         <input type="checkbox" [(ngModel)]="autoOverwriteExisting" class="mt-0.5 rounded border-amber-300 text-[#00429D] focus:ring-[#00429D]">
         <span>Ghi đè GVHD đã phân công trước đó trong phạm vi đã chọn.</span>
       </label>
 
-      <div class="space-y-2">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-          <label class="font-label-md text-[13px] text-slate-600">Chọn GVHD tham gia phân công <span class="text-red-500">*</span></label>
-          <span class="text-[12px] text-slate-500">Đã chọn {{ autoSelectedTeacherIds.size }} GVHD</span>
-        </div>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-          <input
-            type="text"
-            [(ngModel)]="autoTeacherSearchQuery"
-            placeholder="Tìm giảng viên theo tên hoặc email..."
-            class="w-full pl-9 pr-3 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]"
-          >
-        </div>
+            <div class="space-y-2">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                    <label class="font-label-md text-[13px] text-slate-600">Chọn GVHD tham gia phân công <span class="text-red-500">*</span></label>
+                    <span class="text-[12px] text-slate-500">Đã chọn {{ autoSelectedTeacherIds.size }} GVHD</span>
+                </div>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                    <input type="text" [(ngModel)]="autoTeacherSearchQuery" placeholder="Tìm giảng viên theo tên hoặc email..." class="w-full pl-9 pr-3 py-2 text-[13px] border border-slate-300 rounded focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
+                </div>
 
-        <div class="border border-slate-300 rounded max-h-[190px] overflow-y-auto">
-          <label *ngFor="let t of autoFilteredTeachers" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors">
+                <div class="border border-slate-300 rounded max-h-[190px] overflow-y-auto">
+                    <label *ngFor="let t of autoFilteredTeachers" class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors">
             <input
               type="checkbox"
               [checked]="autoSelectedTeacherIds.has(t.id)"
@@ -537,154 +482,145 @@
             </button>
           </label>
 
-          <div *ngIf="teachers.length === 0" class="p-4 text-center text-slate-500 text-[13px]">
-            Chưa có giảng viên nào trong khoa/bộ môn hiện tại.
-          </div>
-          <div *ngIf="teachers.length > 0 && autoFilteredTeachers.length === 0" class="p-4 text-center text-slate-500 text-[13px]">
-            Không tìm thấy giảng viên phù hợp.
-          </div>
-        </div>
-      </div>
+                    <div *ngIf="teachers.length === 0" class="p-4 text-center text-slate-500 text-[13px]">
+                        Chưa có giảng viên nào trong khoa/bộ môn hiện tại.
+                    </div>
+                    <div *ngIf="teachers.length > 0 && autoFilteredTeachers.length === 0" class="p-4 text-center text-slate-500 text-[13px]">
+                        Không tìm thấy giảng viên phù hợp.
+                    </div>
+                </div>
+            </div>
 
-      <div *ngIf="autoPreview" class="rounded-lg border border-slate-200 overflow-hidden">
-        <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-200 bg-slate-50">
-          <div class="p-3">
-            <p class="text-[12px] text-slate-500">Sinh viên</p>
-            <p class="text-[18px] font-bold text-slate-800">{{ autoPreview.total_students }}</p>
-          </div>
-          <div class="p-3">
-            <p class="text-[12px] text-slate-500">GVHD</p>
-            <p class="text-[18px] font-bold text-slate-800">{{ autoPreview.total_teachers }}</p>
-          </div>
-          <div class="p-3">
-            <p class="text-[12px] text-slate-500">Mỗi GVHD</p>
-            <p class="text-[18px] font-bold text-slate-800">{{ autoPreview.base_students_per_teacher }}</p>
-          </div>
-          <div class="p-3">
-            <p class="text-[12px] text-slate-500">Phần dư</p>
-            <p class="text-[18px] font-bold" [ngClass]="autoPreview.surplus_students > 0 ? 'text-amber-700' : 'text-emerald-700'">{{ autoPreview.surplus_students }}</p>
-          </div>
-        </div>
+            <div *ngIf="autoPreview" class="rounded-lg border border-slate-200 overflow-hidden">
+                <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-200 bg-slate-50">
+                    <div class="p-3">
+                        <p class="text-[12px] text-slate-500">Sinh viên</p>
+                        <p class="text-[18px] font-bold text-slate-800">{{ autoPreview.total_students }}</p>
+                    </div>
+                    <div class="p-3">
+                        <p class="text-[12px] text-slate-500">GVHD</p>
+                        <p class="text-[18px] font-bold text-slate-800">{{ autoPreview.total_teachers }}</p>
+                    </div>
+                    <div class="p-3">
+                        <p class="text-[12px] text-slate-500">Mỗi GVHD</p>
+                        <p class="text-[18px] font-bold text-slate-800">{{ autoPreview.base_students_per_teacher }}</p>
+                    </div>
+                    <div class="p-3">
+                        <p class="text-[12px] text-slate-500">Phần dư</p>
+                        <p class="text-[18px] font-bold" [ngClass]="autoPreview.surplus_students > 0 ? 'text-amber-700' : 'text-emerald-700'">{{ autoPreview.surplus_students }}</p>
+                    </div>
+                </div>
 
-        <div *ngIf="autoPreview.requires_surplus_selection" class="p-4 space-y-3 border-t border-slate-200 bg-amber-50">
-          <p class="text-[13px] text-amber-800">
-            Cần chọn đúng <strong>{{ autoSurplusRequired }}</strong> giảng viên nhận thêm 1 sinh viên.
-          </p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <label *ngFor="let t of selectedAutoTeachers" class="flex items-center justify-between gap-3 px-3 py-2 bg-white border rounded cursor-pointer hover:border-amber-300"
-                   [ngClass]="autoSurplusTeacherIds.has(t.id) ? 'border-amber-500' : 'border-amber-100'">
+                <div *ngIf="autoPreview.requires_surplus_selection" class="p-4 space-y-3 border-t border-slate-200 bg-amber-50">
+                    <p class="text-[13px] text-amber-800">
+                        Cần chọn đúng <strong>{{ autoSurplusRequired }}</strong> giảng viên nhận thêm 1 sinh viên.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <label *ngFor="let t of selectedAutoTeachers" class="flex items-center justify-between gap-3 px-3 py-2 bg-white border rounded cursor-pointer hover:border-amber-300" [ngClass]="autoSurplusTeacherIds.has(t.id) ? 'border-amber-500' : 'border-amber-100'">
               <span class="text-[13px] font-medium text-slate-700 truncate">{{ t.full_name }}</span>
               <input type="checkbox"
                      [checked]="autoSurplusTeacherIds.has(t.id)"
                      (change)="toggleAutoSurplusTeacher(t.id)"
                      class="w-4 h-4 text-[#00429D] rounded border-slate-300 focus:ring-[#00429D] cursor-pointer">
             </label>
-          </div>
-          <p class="text-[12px] text-amber-700">Đã chọn {{ autoSurplusTeacherIds.size }}/{{ autoSurplusRequired }} GVHD nhận phần dư.</p>
-        </div>
+                    </div>
+                    <p class="text-[12px] text-amber-700">Đã chọn {{ autoSurplusTeacherIds.size }}/{{ autoSurplusRequired }} GVHD nhận phần dư.</p>
+                </div>
 
-        <div *ngIf="autoPreview.teacher_summaries?.length && !autoPreview.requires_surplus_selection" class="border-t border-slate-200 overflow-x-auto">
-          <table class="w-full text-left">
-            <thead class="bg-slate-50 text-[12px] uppercase text-slate-500">
-              <tr>
-                <th class="px-3 py-2">GVHD</th>
-                <th class="px-3 py-2 text-center">Đang có</th>
-                <th class="px-3 py-2 text-center">Phân thêm</th>
-                <th class="px-3 py-2 text-center">Sau phân công</th>
-              </tr>
-            </thead>
-            <tbody class="text-[13px] text-slate-700">
-              <tr *ngFor="let t of autoPreview.teacher_summaries" class="border-t border-slate-100">
-                <td class="px-3 py-2 font-medium">
-                  {{ t.teacher_name }}
-                  <span *ngIf="t.receives_surplus" class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[11px]">+ dư</span>
-                </td>
-                <td class="px-3 py-2 text-center">{{ t.current_count }}</td>
-                <td class="px-3 py-2 text-center">{{ t.assigned_count }}</td>
-                <td class="px-3 py-2 text-center font-semibold text-[#00429D]">{{ t.final_count }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                <div *ngIf="autoPreview.teacher_summaries?.length && !autoPreview.requires_surplus_selection" class="border-t border-slate-200 overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[12px] uppercase text-slate-500">
+                            <tr>
+                                <th class="px-3 py-2">GVHD</th>
+                                <th class="px-3 py-2 text-center">Đang có</th>
+                                <th class="px-3 py-2 text-center">Phân thêm</th>
+                                <th class="px-3 py-2 text-center">Sau phân công</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-[13px] text-slate-700">
+                            <tr *ngFor="let t of autoPreview.teacher_summaries" class="border-t border-slate-100">
+                                <td class="px-3 py-2 font-medium">
+                                    {{ t.teacher_name }}
+                                    <span *ngIf="t.receives_surplus" class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[11px]">+ dư</span>
+                                </td>
+                                <td class="px-3 py-2 text-center">{{ t.current_count }}</td>
+                                <td class="px-3 py-2 text-center">{{ t.assigned_count }}</td>
+                                <td class="px-3 py-2 text-center font-semibold text-[#00429D]">{{ t.final_count }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-        <div *ngIf="autoPreview.assignments?.length" class="border-t border-slate-200 overflow-x-auto max-h-[220px]">
-          <table class="w-full text-left">
-            <thead class="sticky top-0 bg-[#f3f3fb] text-[12px] uppercase text-slate-500">
-              <tr>
-                <th class="px-3 py-2 text-center w-14">STT</th>
-                <th class="px-3 py-2">Mã SV</th>
-                <th class="px-3 py-2">Sinh viên</th>
-                <th class="px-3 py-2">Lớp</th>
-                <th class="px-3 py-2">GVHD</th>
-              </tr>
-            </thead>
-            <tbody class="text-[13px] text-slate-700">
-              <tr *ngFor="let item of autoPreview.assignments; let i = index" class="border-t border-slate-100">
-                <td class="px-3 py-2 text-center text-slate-500">{{ i + 1 }}</td>
-                <td class="px-3 py-2 font-mono">{{ item.student_code }}</td>
-                <td class="px-3 py-2 font-medium text-slate-800">{{ item.student_name }}</td>
-                <td class="px-3 py-2">{{ item.class_name || '—' }}</td>
-                <td class="px-3 py-2">
-                  {{ item.teacher_name }}
-                  <span *ngIf="item.surplus_assignment" class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[11px]">phần dư</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+                <div *ngIf="autoPreview.assignments?.length" class="border-t border-slate-200 overflow-x-auto max-h-[220px]">
+                    <table class="w-full text-left">
+                        <thead class="sticky top-0 bg-[#f3f3fb] text-[12px] uppercase text-slate-500">
+                            <tr>
+                                <th class="px-3 py-2 text-center w-14">STT</th>
+                                <th class="px-3 py-2">Mã SV</th>
+                                <th class="px-3 py-2">Sinh viên</th>
+                                <th class="px-3 py-2">Lớp</th>
+                                <th class="px-3 py-2">GVHD</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-[13px] text-slate-700">
+                            <tr *ngFor="let item of autoPreview.assignments; let i = index" class="border-t border-slate-100">
+                                <td class="px-3 py-2 text-center text-slate-500">{{ i + 1 }}</td>
+                                <td class="px-3 py-2 font-mono">{{ item.student_code }}</td>
+                                <td class="px-3 py-2 font-medium text-slate-800">{{ item.student_name }}</td>
+                                <td class="px-3 py-2">{{ item.class_name || '—' }}</td>
+                                <td class="px-3 py-2">
+                                    {{ item.teacher_name }}
+                                    <span *ngIf="item.surplus_assignment" class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[11px]">phần dư</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-      <!-- Action Footer cho Tab Tự động -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-3 border-t border-slate-200">
-        <button class="px-4 py-2 border border-slate-300 text-slate-700 font-label-md text-[13px] rounded hover:bg-slate-100 transition-colors cursor-pointer"
-                (click)="closeAssignModal()">
+            <!-- Action Footer cho Tab Tự động -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-3 border-t border-slate-200">
+                <button class="px-4 py-2 border border-slate-300 text-slate-700 font-label-md text-[13px] rounded hover:bg-slate-100 transition-colors cursor-pointer" (click)="closeAssignModal()">
           Hủy bỏ
         </button>
-        <button class="px-4 py-2 border border-[#00429D] text-[#00429D] font-label-md text-[13px] rounded hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                [disabled]="!canPreviewAutoAssignment || isAutoPreviewLoading || isAutoApplying"
-                (click)="calculateAutoAssignment()">
+                <button class="px-4 py-2 border border-[#00429D] text-[#00429D] font-label-md text-[13px] rounded hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" [disabled]="!canPreviewAutoAssignment || isAutoPreviewLoading || isAutoApplying"
+                    (click)="calculateAutoAssignment()">
           {{ isAutoPreviewLoading ? 'Đang tính...' : (autoPreview?.requires_surplus_selection ? 'Xem phân bổ' : 'Tính phân bổ') }}
         </button>
-        <button class="px-5 py-2 bg-[#00429D] text-white font-label-md text-[13px] rounded hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                [disabled]="!canApplyAutoAssignment"
-                (click)="applyAutoAssignment()">
+                <button class="px-5 py-2 bg-[#00429D] text-white font-label-md text-[13px] rounded hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" [disabled]="!canApplyAutoAssignment" (click)="applyAutoAssignment()">
           {{ isAutoApplying ? 'Đang áp dụng...' : 'Áp dụng phân công' }}
         </button>
-      </div>
-    </div>
+            </div>
+        </div>
 
-  </div>
+    </div>
 </app-modal>
 
 <!-- Modal xác nhận Hủy phân công GVHD -->
-<app-modal [isOpen]="isUnassignConfirmOpen"
-           title="Xác nhận Hủy phân công GVHD"
-           saveText="Xác nhận Hủy"
-           saveButtonClass="px-6 py-2 bg-red-600 text-white font-label-md text-[13px] rounded hover:bg-red-700 transition-colors shadow-sm"
-           (close)="closeUnassignConfirm()"
-           (save)="confirmUnassignGvhd()">
-  <div class="space-y-4">
-    <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-      Thao tác này sẽ hủy phân công GVHD cho <strong>{{ studentsToUnassign.length }}</strong> sinh viên đã chọn.
-    </div>
+<app-modal [isOpen]="isUnassignConfirmOpen" title="Xác nhận Hủy phân công GVHD" saveText="Xác nhận Hủy" saveButtonClass="px-6 py-2 bg-red-600 text-white font-label-md text-[13px] rounded hover:bg-red-700 transition-colors shadow-sm" (close)="closeUnassignConfirm()"
+    (save)="confirmUnassignGvhd()">
+    <div class="space-y-4">
+        <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Thao tác này sẽ hủy phân công GVHD cho <strong>{{ studentsToUnassign.length }}</strong> sinh viên đã chọn.
+        </div>
 
-    <div class="space-y-2">
-      <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Danh sách sinh viên bị hủy phân công:</p>
-      <div class="border border-slate-200 rounded bg-slate-50 px-3 py-2 max-h-[140px] overflow-y-auto space-y-1.5">
-        <div *ngFor="let s of studentsToUnassign" class="flex items-center justify-between text-[13px] py-1 border-b border-slate-200 last:border-0">
-          <div>
-            <span class="font-medium text-slate-800">{{ s.full_name }}</span>
-            <span class="text-slate-500 font-mono text-[12px] ml-1">({{ s.student_code }})</span>
-          </div>
-          <span *ngIf="s.gvhd_name" class="text-emerald-700 bg-emerald-50 border border-emerald-200 text-xs px-2 py-0.5 rounded font-medium">
+        <div class="space-y-2">
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Danh sách sinh viên bị hủy phân công:</p>
+            <div class="border border-slate-200 rounded bg-slate-50 px-3 py-2 max-h-[140px] overflow-y-auto space-y-1.5">
+                <div *ngFor="let s of studentsToUnassign" class="flex items-center justify-between text-[13px] py-1 border-b border-slate-200 last:border-0">
+                    <div>
+                        <span class="font-medium text-slate-800">{{ s.full_name }}</span>
+                        <span class="text-slate-500 font-mono text-[12px] ml-1">({{ s.student_code }})</span>
+                    </div>
+                    <span *ngIf="s.gvhd_name" class="text-emerald-700 bg-emerald-50 border border-emerald-200 text-xs px-2 py-0.5 rounded font-medium">
             GV: {{ s.gvhd_name }}
           </span>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <div class="text-xs text-slate-500 italic">
-      * Sau khi hủy, trạng thái của sinh viên sẽ chuyển về <strong>Chưa phân công</strong> và có thể phân công lại bất kỳ lúc nào.
+        <div class="text-xs text-slate-500 italic">
+            * Sau khi hủy, trạng thái của sinh viên sẽ chuyển về <strong>Chưa phân công</strong> và có thể phân công lại bất kỳ lúc nào.
+        </div>
     </div>
-  </div>
 </app-modal>

@@ -1,14 +1,14 @@
 <div class="max-w-5xl mx-auto space-y-10">
     <!-- Page Header -->
     <div class="flex flex-col gap-2">
-        <h2 class="text-2xl font-bold text-slate-900">Nộp Báo cáo Tổng kết - TTTN-06</h2>
-        <p class="text-base text-slate-600">Hoàn thành và tải lên báo cáo thực tập cuối kỳ của bạn theo đúng định dạng yêu cầu.</p>
+        <h2 class="text-2xl font-bold text-slate-900">Nộp Báo cáo Tổng kết - Báo cáo tổng kết</h2>
+        <p class="text-base text-slate-600">Hoàn thành và tải lên báo cáo đồ án tốt nghiệp cuối kỳ của bạn theo đúng định dạng yêu cầu.</p>
     </div>
 
     <!-- Alerts -->
-    
 
-    
+
+
 
     <!-- Loading State -->
     <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-20">
@@ -19,26 +19,25 @@
     <!-- Empty State / Not Assigned -->
     <div *ngIf="!isLoading && !studentCampaign" class="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-200 rounded-lg shadow-sm">
         <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">event_busy</span>
-        <p class="text-slate-500 font-medium text-lg">Bạn chưa tham gia đợt thực tập nào</p>
+        <p class="text-slate-500 font-medium text-lg">Bạn chưa tham gia đợt ĐATN nào</p>
     </div>
 
-    <!-- Status Gate: Chặn truy cập nếu chưa hoàn thành đúng thứ tự TTTN-02/03 -->
+    <!-- Status Gate: Chặn truy cập nếu chưa hoàn thành đúng thứ tự ĐATN-02/03 -->
     <div *ngIf="!isLoading && studentCampaign && !canAccess" class="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-200 rounded-lg shadow-sm">
-      <span class="material-symbols-outlined text-[64px] text-amber-400 mb-4">lock</span>
-      <p class="text-slate-700 font-bold text-lg">Chưa thể truy cập TTTN-06</p>
-      <p class="text-slate-500 text-sm mt-2 text-center max-w-md">Bạn cần hoàn thành Kế hoạch thực tập (TTTN-02) và đủ Nhật ký thực tập đã được xác nhận (TTTN-03) trước khi nộp báo cáo tổng kết.</p>
-      <a routerLink="/student/internship-report" [queryParams]="{ step: 'TTTN-03' }" class="mt-6 px-6 py-2.5 bg-[#00429D] text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors shadow-sm flex items-center gap-2">
-        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-        Đi đến TTTN-03
-      </a>
+        <span class="material-symbols-outlined text-[64px] text-amber-400 mb-4">lock</span>
+        <p class="text-slate-700 font-bold text-lg">Chưa thể truy cập Báo cáo tổng kết</p>
+        <p class="text-slate-500 text-sm mt-2 text-center max-w-md">Bạn cần hoàn thành Kế hoạch ĐATN và đủ Nhật ký ĐATN đã được xác nhận (ĐATN-02) trước khi nộp báo cáo tổng kết.</p>
+        <a routerLink="/student/datn-report" [queryParams]="{ step: 'ĐATN-02' }" class="mt-6 px-6 py-2.5 bg-[#00429D] text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors shadow-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">arrow_forward</span> Đi đến ĐATN-02
+        </a>
     </div>
 
     <!-- Bento Grid Layout -->
     <div *ngIf="!isLoading && studentCampaign && canAccess" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         <!-- Left Column: Upload Area (Takes up 2 columns on lg) -->
         <div class="lg:col-span-2 space-y-6">
-            
+
             <!-- Drag & Drop Zone -->
             <label class="bg-white rounded-xl border border-slate-200 p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors border-dashed border-2 cursor-pointer min-h-[300px] relative">
                 <input type="file" class="hidden" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.zip,.rar" [disabled]="isSaving || uploadingFile != null" />
@@ -86,16 +85,16 @@
                                 {{ getFileIcon(file.file_name) }}
                             </span>
                             <div class="truncate">
-                                <a [href]="getFileUrl(file.file_url)" target="_blank" class="text-sm font-medium text-slate-900 hover:text-[#00429D] truncate transition-colors">{{ file.file_name }}</a>
+                                <button (click)="downloadReport(file)" class="text-sm font-medium text-slate-900 hover:text-[#00429D] truncate transition-colors">{{ file.file_name }}</button>
                                 <p class="text-xs text-slate-500 mt-0.5">
                                     <span *ngIf="file.id > 0" class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-bold mr-2">Đã nộp</span>
-                                    <span *ngIf="file.id === 0" class="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[10px] font-bold mr-2">Bản nháp</span>
-                                    {{ formatSize(file.file_size) }} • {{ file.created_at | date:'HH:mm, dd/MM/yyyy' }}
+                                    <span *ngIf="file.id === 0" class="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[10px] font-bold mr-2">Bản nháp</span> {{ formatSize(file.file_size) }} • {{ file.created_at
+                                    | date:'HH:mm, dd/MM/yyyy' }}
                                 </p>
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <a [href]="getFileUrl(file.file_url)" target="_blank" class="text-slate-400 hover:text-[#00429D] transition-colors p-1" title="Tải xuống">
+                            <a (click)="downloadReport(file)" role="button" tabindex="0" (keydown.enter)="downloadReport(file)" class="cursor-pointer text-slate-400 hover:text-[#00429D] transition-colors p-1" title="Tải xuống">
                                 <span class="material-symbols-outlined text-[20px]">download</span>
                             </a>
                             <button (click)="deleteFile(i, file)" class="text-slate-400 hover:text-red-600 transition-colors p-1" title="Xóa">
@@ -110,12 +109,12 @@
 
         <!-- Right Column: Instructions & Actions -->
         <div class="flex flex-col gap-6">
-            
+
             <!-- Instructions Card -->
             <div class="bg-white rounded-xl border border-slate-200 p-6 space-y-4 shadow-sm">
                 <div class="flex items-center gap-2 text-[#00429D] mb-2">
                     <span class="material-symbols-outlined">info</span>
-                    <h3 class="text-base font-semibold">Hướng dẫn Mẫu TTTN-06</h3>
+                    <h3 class="text-base font-semibold">Hướng dẫn Mẫu Báo cáo tổng kết</h3>
                 </div>
                 <ul class="space-y-3 text-sm text-slate-600 list-disc list-inside">
                     <li>Báo cáo phải tuân thủ nghiêm ngặt định dạng quy định của nhà trường.</li>
@@ -135,16 +134,15 @@
                     <h3 class="text-base font-semibold text-slate-900 mb-2">Xác nhận nộp bài</h3>
                     <p class="text-sm text-slate-500">Vui lòng kiểm tra kỹ các tệp đã tải lên trước khi hoàn tất.</p>
                 </div>
-                
+
                 <label class="flex items-start gap-3 cursor-pointer">
                     <input class="mt-1 rounded border-slate-300 text-[#00429D] focus:ring-[#00429D]" type="checkbox" [(ngModel)]="isAgreed"/>
                     <span class="text-sm text-slate-600">Tôi cam đoan báo cáo này là sản phẩm do tôi tự thực hiện, không sao chép trái phép.</span>
                 </label>
 
                 <div class="pt-4 border-t border-slate-200 flex flex-col gap-3">
-                    <button class="w-full bg-[#00429D] text-white py-3 rounded-lg text-base font-semibold transition-colors hover:bg-blue-800 flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" 
-                            [disabled]="!isAgreed || isSaving || !hasPendingFiles()"
-                            (click)="submitReport()">
+                    <button class="w-full bg-[#00429D] text-white py-3 rounded-lg text-base font-semibold transition-colors hover:bg-blue-800 flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="!isAgreed || isSaving || !hasPendingFiles()"
+                        (click)="submitReport()">
                         <span *ngIf="isSaving" class="material-symbols-outlined animate-spin">progress_activity</span>
                         <span *ngIf="!isSaving" class="material-symbols-outlined">send</span>
                         {{ hasSubmittedReport() ? 'Nộp bổ sung báo cáo' : 'Nộp báo cáo và Hoàn thành' }}

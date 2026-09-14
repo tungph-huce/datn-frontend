@@ -15,14 +15,14 @@ Dùng để hiển thị lời chào đầu trang kèm mô tả và các hành �
 | `actionText` | `string` | `''` | Nhãn hiển thị trên nút hành động (nếu có) |
 | `actionLink` | `string \| any[]` | `''` | Đường dẫn route để điều hướng khi nhấn nút |
 | `actionIcon` | `string` | `''` | Tên icon Google Material để hiển thị bên cạnh nhãn nút |
-| `infoTagText` | `string` | `''` | Nhãn hiển thị trên thẻ thông tin phụ (Ví dụ: `"Tuần thực tập: 1/8"`) |
+| `infoTagText` | `string` | `''` | Nhãn hiển thị trên thẻ thông tin phụ (Ví dụ: `"Tuần ĐATN: 1/10"`) |
 | `infoTagIcon` | `string` | `''` | Tên icon Google Material hiển thị bên trong thẻ thông tin |
 
 ### Ví dụ sử dụng:
 ```html
 <app-welcome-header
   title="Xin chào, {{ teacherName }}! 👋"
-  subtitle="Tổng quan công tác hướng dẫn thực tập đợt hiện tại"
+  subtitle="Tổng quan công tác hướng dẫn ĐATN đợt hiện tại"
   actionText="Xem danh sách Sinh viên"
   actionLink="/teacher/students"
   actionIcon="groups">
@@ -51,7 +51,7 @@ Dùng để hiển thị các thẻ chỉ số thống kê (thẻ số liệu). 
 **Thẻ đơn giản căn giữa:**
 ```html
 <app-metric-card
-  title="Tổng Đợt TT"
+  title="Tổng Đợt ĐATN"
   [value]="totalCampaigns"
   valueClass="text-[#00429D]">
 </app-metric-card>

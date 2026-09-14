@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 export interface FileResponse {
   file_url: string;
@@ -13,7 +15,11 @@ export interface FileResponse {
   providedIn: 'root'
 })
 export class FileService {
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private http: HttpClient) {}
+
+  downloadFile(path: string): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}${path}`, { responseType: 'blob' });
+  }
 
   uploadFile(file: File): Observable<FileResponse> {
     const formData = new FormData();

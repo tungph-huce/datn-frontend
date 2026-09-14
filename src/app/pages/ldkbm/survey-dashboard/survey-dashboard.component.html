@@ -2,18 +2,18 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
-            <h2 class="text-2xl font-bold text-slate-900">Tổng hợp Khảo sát Phản hồi (TTTN-08)</h2>
-            <p class="text-slate-600 mt-1">Báo cáo mức độ hài lòng từ Đơn vị Hướng dẫn và Sinh viên.</p>
+            <h2 class="text-2xl font-bold text-slate-900">Tổng hợp Khảo sát Phản hồi (ĐATN-10)</h2>
+            <p class="text-slate-600 mt-1">Báo cáo mức độ hài lòng và tự đánh giá của Sinh viên.</p>
         </div>
         <div class="flex items-center gap-3">
-            <!-- Dropdown Đợt thực tập -->
+            <!-- Dropdown Đợt ĐATN -->
             <div class="flex items-center gap-2 bg-white px-3 py-1.5 border border-slate-300 rounded-lg shadow-sm">
                 <span class="material-symbols-outlined text-slate-400 text-[18px]">event</span>
                 <select [(ngModel)]="selectedCampaignId" (change)="onCampaignChange()" class="bg-transparent text-[13px] font-medium text-slate-700 focus:outline-none pr-4 cursor-pointer">
                     <option *ngFor="let camp of campaigns" [value]="camp.id">{{ camp.name }}</option>
                 </select>
             </div>
-            
+
             <button (click)="exportExcel()" [disabled]="isLoading" class="flex items-center gap-2 border border-emerald-300 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-lg hover:bg-emerald-100 transition-colors font-medium shadow-sm cursor-pointer">
                 <span class="material-symbols-outlined text-[20px] text-emerald-600">download</span>
                 Xuất Excel
@@ -27,17 +27,17 @@
 
     <!-- Loading State -->
     <div *ngIf="isLoading" class="flex items-center justify-center py-20 bg-white border border-slate-200 rounded-xl shadow-sm">
-      <div class="flex flex-col items-center gap-3">
-        <span class="material-symbols-outlined animate-spin text-[40px] text-[#00429D]">progress_activity</span>
-        <p class="text-slate-500 text-sm font-medium">Đang tải dữ liệu tổng hợp...</p>
-      </div>
+        <div class="flex flex-col items-center gap-3">
+            <span class="material-symbols-outlined animate-spin text-[40px] text-[#00429D]">progress_activity</span>
+            <p class="text-slate-500 text-sm font-medium">Đang tải dữ liệu tổng hợp...</p>
+        </div>
     </div>
 
     <!-- Empty State -->
     <div *ngIf="!isLoading && (!campaigns || campaigns.length === 0 || !departmentCampaignId)" class="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-200 rounded-lg shadow-sm text-center">
-      <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">event_busy</span>
-      <p class="text-slate-500 font-medium text-lg">Chưa có đợt thực tập nào</p>
-      <p class="text-slate-400 text-sm mt-1 font-normal">Vui lòng chờ Ban quản lý tạo đợt thực tập mới.</p>
+        <span class="material-symbols-outlined text-[64px] text-slate-300 mb-4">event_busy</span>
+        <p class="text-slate-500 font-medium text-lg">Chưa có đợt ĐATN nào</p>
+        <p class="text-slate-400 text-sm mt-1 font-normal">Vui lòng chờ Ban quản lý tạo đợt ĐATN mới.</p>
     </div>
 
     <!-- Dashboard Content -->
@@ -57,7 +57,7 @@
                     <div class="w-20 h-20 rounded-full border-4 border-blue-300 flex items-center justify-center mb-2 mx-auto">
                         <span class="text-xl font-bold">{{ studentStats.recommendCompany }}%</span>
                     </div>
-                    <p class="text-xs text-blue-100">Sẵn sàng giới thiệu<br>ĐVHD cho khóa sau</p>
+                    <p class="text-xs text-blue-100">Đạt chuẩn đầu ra<br>theo tự đánh giá</p>
                 </div>
                 <!-- Background Decoration -->
                 <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] text-white opacity-10">school</span>
@@ -66,7 +66,7 @@
             <!-- Company Overview -->
             <div class="bg-gradient-to-br from-orange-500 to-orange-700 p-6 rounded-2xl shadow-md text-white flex justify-between items-center relative overflow-hidden">
                 <div class="relative z-10">
-                    <p class="text-orange-100 font-medium mb-1">Đánh giá từ Đơn vị Hướng dẫn</p>
+                    <p class="text-orange-100 font-medium mb-1">Đánh giá từ Giảng viên Hướng dẫn</p>
                     <div class="flex items-end gap-3">
                         <h3 class="text-4xl font-black">{{ companyStats.averageRating }}<span class="text-xl font-normal text-orange-200">/5</span></h3>
                     </div>
@@ -85,15 +85,15 @@
 
         <!-- Detailed Charts (Mock using CSS Progress Bars) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
+
             <!-- Student Detailed Stats -->
             <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
                 <h3 class="font-semibold text-slate-900 border-b border-slate-100 pb-3">Chi tiết đánh giá của Sinh viên</h3>
-                
+
                 <div *ngIf="studentQuestions.length === 0" class="text-center py-8 text-slate-400 text-sm">
-                  Chưa có dữ liệu phản hồi khảo sát từ sinh viên.
+                    Chưa có dữ liệu phản hồi khảo sát từ sinh viên.
                 </div>
-                
+
                 <div *ngFor="let item of studentQuestions" class="space-y-2">
                     <div class="flex justify-between items-end">
                         <p class="text-sm font-medium text-slate-700">{{ item.text }}</p>
@@ -107,12 +107,12 @@
 
             <!-- Company Detailed Stats -->
             <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
-                <h3 class="font-semibold text-slate-900 border-b border-slate-100 pb-3">Chi tiết đánh giá của Đơn vị HD</h3>
-                
+                <h3 class="font-semibold text-slate-900 border-b border-slate-100 pb-3">Chi tiết đánh giá của Giảng viên HD</h3>
+
                 <div *ngIf="companyQuestions.length === 0" class="text-center py-8 text-slate-400 text-sm">
-                  Chưa có dữ liệu phản hồi khảo sát từ doanh nghiệp.
+                    Chưa có dữ liệu phản hồi khảo sát từ giảng viên.
                 </div>
-                
+
                 <div *ngFor="let item of companyQuestions" class="space-y-2">
                     <div class="flex justify-between items-end">
                         <p class="text-sm font-medium text-slate-700">{{ item.text }}</p>

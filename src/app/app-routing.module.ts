@@ -9,13 +9,13 @@ import { SystemSettingsComponent } from './pages/admin/system-settings/system-se
 import { NotificationManagementComponent } from './pages/admin/notification-management/notification-management.component';
 import { CloRubricConfigComponent } from './pages/ldkbm/clo-rubric-config/clo-rubric-config.component';
 import { StudentAssignmentComponent } from './pages/ldkbm/student-assignment/student-assignment.component';
-import { CompanyDeclarationComponent } from './pages/student/company-declaration/company-declaration.component';
+import { DatnDeclarationComponent } from './pages/student/datn-declaration/datn-declaration.component';
 
 import { FinalReportComponent } from './pages/student/final-report/final-report.component';
-import { InternshipPlanComponent } from './pages/student/internship-plan/internship-plan.component';
+import { DatnPlanComponent } from './pages/student/datn-plan/datn-plan.component';
 import { WeeklyLogComponent } from './pages/student/weekly-log/weekly-log.component';
 import { StudentDashboardComponent } from './pages/student/student-dashboard/student-dashboard.component';
-import { InternshipReportComponent } from './pages/student/internship-report/internship-report.component';
+import { DatnReportComponent } from './pages/student/datn-report/datn-report.component';
 
 import { AdminLayoutComponent } from './layout/admin-layout/admin-layout.component';
 import { LdkbmLayoutComponent } from './layout/ldkbm-layout/ldkbm-layout.component';
@@ -26,12 +26,8 @@ import { ScoreSummaryComponent } from './pages/teacher/score-summary/score-summa
 import { TeacherDashboardComponent } from './pages/teacher/teacher-dashboard/teacher-dashboard.component';
 import { ManageStudentsComponent } from './pages/teacher/manage-students/manage-students.component';
 import { SurveyStudentComponent } from './pages/student/survey-student/survey-student.component';
-import { SurveyCompanyComponent } from './pages/company/survey-company/survey-company.component';
 import { SurveyDashboardComponent } from './pages/ldkbm/survey-dashboard/survey-dashboard.component';
 import { GeneralDashboardComponent } from './pages/ldkbm/general-dashboard/general-dashboard.component';
-import { CompanyLayoutComponent } from './layout/company-layout/company-layout.component';
-import { ManageInternsComponent } from './pages/company/manage-interns/manage-interns.component';
-import { CompanyDashboardComponent } from './pages/company/company-dashboard/company-dashboard.component';
 import { ApprovalRequestsComponent } from './pages/teacher/approval-requests/approval-requests.component';
 import { AuthLayoutComponent } from './layout/auth-layout/auth-layout.component';
 import { LoginComponent } from './pages/auth/login/login.component';
@@ -76,7 +72,8 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       { path: 'dashboard', component: StudentDashboardComponent },
-      { path: 'internship-report', component: InternshipReportComponent },
+      { path: 'datn-declaration', component: DatnDeclarationComponent },
+      { path: 'datn-report', component: DatnReportComponent },
       { path: 'survey', component: SurveyStudentComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
@@ -91,18 +88,6 @@ const routes: Routes = [
       { path: 'approval-requests', component: ApprovalRequestsComponent },
       { path: 'rubric-evaluation', component: RubricEvaluationComponent },
       { path: 'score-summary', component: ScoreSummaryComponent },
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
-    ]
-  },
-  {
-    path: 'company',
-    component: CompanyLayoutComponent,
-    canActivate: [AuthGuard],
-    children: [
-      { path: 'dashboard', component: CompanyDashboardComponent },
-      { path: 'manage-interns', component: ManageInternsComponent },
-      { path: 'rubric-evaluation', component: RubricEvaluationComponent },
-      { path: 'survey', component: SurveyCompanyComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

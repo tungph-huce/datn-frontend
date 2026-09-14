@@ -1,0 +1,21 @@
+- Generating browser application bundles (phase: setup)...
+√ Browser application bundle generation complete.
+√ Browser application bundle generation complete.
+- Copying assets...
+√ Copying assets complete.
+- Generating index html...
+√ Index html generation complete.
+
+Initial Chunk Files                            | Names         |  Raw Size
+vendor.js                                      | vendor        |   3.17 MB |
+main.js                                        | main          |   1.68 MB |
+polyfills.js                                   | polyfills     | 106.32 kB |
+styles.css                                     | styles        |  88.39 kB |
+runtime.js                                     | runtime       |  13.53 kB |
+
+| Initial Total |   5.05 MB
+
+Lazy Chunk Files                               | Names         |  Raw Size
+node_modules_xlsx-js-style_dist_xlsx_min_js.js | xlsx-js-style |   1.10 MB |
+
+Build at: 2026-09-07T16:16:52.203Z - Hash: 346eaa0e2872069c - Time: 24669ms

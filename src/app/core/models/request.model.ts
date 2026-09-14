@@ -13,7 +13,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   full_name: string;
-  role: 'ADMIN' | 'LDKBM' | 'GVHD' | 'STUDENT' | 'COMPANY_SUPERVISOR';
+  role: 'ADMIN' | 'LDKBM' | 'GVHD' | 'STUDENT';
   department_id?: number | null;
 }
 
@@ -22,7 +22,6 @@ export interface StudentItem {
   full_name: string;
   class_name: string;
   email?: string;
-  company_name?: string;
 }
 
 export interface ImportStudentRequest {
@@ -101,18 +100,16 @@ export interface EligibleTeacherResponse {
   invited: boolean;
 }
 
-export interface CompanyInfoRequest {
-  company_name: string;
-  tax_code: string;
-  address: string;
-  supervisor_name: string;
-  supervisor_phone: string;
-  supervisor_email: string;
-  expected_domain: string;
-  internship_type: string;
+export interface DatnInfoRequest {
+  thesis_title: string;
+  objectives?: string;
+  scope?: string;
+  deliverables?: string;
+  inputs?: string;
+  expected_results?: string;
 }
 
-export interface InternshipPlanTask {
+export interface DatnPlanTask {
   week: number;
   task: string;
   expected_result: string;
@@ -120,9 +117,9 @@ export interface InternshipPlanTask {
   clo_mapped: string;
 }
 
-export interface InternshipPlanRequest {
+export interface DatnPlanRequest {
   student_campaign_id: number;
-  plans: InternshipPlanTask[];
+  plans: DatnPlanTask[];
 }
 
 export interface WeeklyLogRequest {

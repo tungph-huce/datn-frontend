@@ -16,7 +16,7 @@ export class CampaignManagementComponent implements OnInit {
   // Unlock Grade Modal State
   isUnlockModalOpen = false;
   selectedCampaignForUnlock: CampaignResponse | null = null;
-  unlockStage: 'STAGE_1' | 'STAGE_2' | 'ALL' = 'STAGE_1';
+  unlockStage: 'M1' | 'M2' | 'ALL' = 'M1';
   unlockReason = '';
   isUnlocking = false;
 
@@ -36,20 +36,15 @@ export class CampaignManagementComponent implements OnInit {
   formAcademicYear = '';
   formSemester: number | null = null;
   formDescription = '';
+  formWeekCount = 10;
   formStartDate = '';
   formEndDate = '';
 
   // Detailed timeline form state
-  formTttn01StartDate = '';
-  formTttn01Deadline = '';
-  formTttn02StartDate = '';
-  formTttn02Deadline = '';
-  formTttn03StartDate = '';
-  formTttn03Deadline = '';
-  formMidtermStartDate = '';
-  formMidtermDeadline = '';
-  formTttn06StartDate = '';
-  formTttn06Deadline = '';
+  formM1StartDate = '';
+  formM1Deadline = '';
+  formM2StartDate = '';
+  formM2Deadline = '';
   formAutoGenerateTimeline = true;
   isTimelinePreviewLoading = false;
   private timelineEditedManually = false;
@@ -109,13 +104,13 @@ export class CampaignManagementComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        this.toastService.error(err?.message || 'Không thể tải danh sách đợt thực tập');
+        this.toastService.error(err?.message || 'Không thể tải danh sách đợt ĐATN');
         this.isLoading = false;
       }
     });
   }
 
-  // ── Modal ─────────────────────────────────────
+  // ── Modal ─────────────────────────────────────ĐATN
 
   openCreateModal(): void {
     this.isEditMode = false;
@@ -137,17 +132,12 @@ export class CampaignManagementComponent implements OnInit {
     // Backend trả "yyyy-MM-dd HH:mm:ss", input[date] cần "yyyy-MM-dd"
     this.formStartDate = campaign.start_date ? campaign.start_date.substring(0, 10) : '';
     this.formEndDate = campaign.end_date ? campaign.end_date.substring(0, 10) : '';
+    this.formWeekCount = campaign.week_count || 10;
     
-    this.formTttn01StartDate = campaign.tttn01_start_date ? campaign.tttn01_start_date.substring(0, 10) : '';
-    this.formTttn01Deadline = campaign.tttn01_deadline ? campaign.tttn01_deadline.substring(0, 10) : '';
-    this.formTttn02StartDate = campaign.tttn02_start_date ? campaign.tttn02_start_date.substring(0, 10) : '';
-    this.formTttn02Deadline = campaign.tttn02_deadline ? campaign.tttn02_deadline.substring(0, 10) : '';
-    this.formTttn03StartDate = campaign.tttn03_start_date ? campaign.tttn03_start_date.substring(0, 10) : '';
-    this.formTttn03Deadline = campaign.tttn03_deadline ? campaign.tttn03_deadline.substring(0, 10) : '';
-    this.formMidtermStartDate = campaign.midterm_start_date ? campaign.midterm_start_date.substring(0, 10) : '';
-    this.formMidtermDeadline = campaign.midterm_deadline ? campaign.midterm_deadline.substring(0, 10) : '';
-    this.formTttn06StartDate = campaign.tttn06_start_date ? campaign.tttn06_start_date.substring(0, 10) : '';
-    this.formTttn06Deadline = campaign.tttn06_deadline ? campaign.tttn06_deadline.substring(0, 10) : '';
+    this.formM1StartDate = campaign.m1_start_date ? campaign.m1_start_date.substring(0, 10) : '';
+    this.formM1Deadline = campaign.m1_deadline ? campaign.m1_deadline.substring(0, 10) : '';
+    this.formM2StartDate = campaign.m2_start_date ? campaign.m2_start_date.substring(0, 10) : '';
+    this.formM2Deadline = campaign.m2_deadline ? campaign.m2_deadline.substring(0, 10) : '';
     
     this.isModalOpen = true;
   }
@@ -164,17 +154,12 @@ export class CampaignManagementComponent implements OnInit {
     this.formDescription = '';
     this.formStartDate = '';
     this.formEndDate = '';
+    this.formWeekCount = 10;
     
-    this.formTttn01StartDate = '';
-    this.formTttn01Deadline = '';
-    this.formTttn02StartDate = '';
-    this.formTttn02Deadline = '';
-    this.formTttn03StartDate = '';
-    this.formTttn03Deadline = '';
-    this.formMidtermStartDate = '';
-    this.formMidtermDeadline = '';
-    this.formTttn06StartDate = '';
-    this.formTttn06Deadline = '';
+    this.formM1StartDate = '';
+    this.formM1Deadline = '';
+    this.formM2StartDate = '';
+    this.formM2Deadline = '';
     this.formAutoGenerateTimeline = true;
     this.timelineEditedManually = false;
     this.isTimelinePreviewLoading = false;
@@ -216,7 +201,7 @@ export class CampaignManagementComponent implements OnInit {
     }
     if (!this.isAtLeastOneMonthRange(this.formStartDate, this.formEndDate)) {
       if (showError) {
-        this.toastService.error('Thời gian đợt thực tập phải tối thiểu 1 tháng');
+        this.toastService.error('Thời gian đợt ĐATN phải tối thiểu 1 tháng');
       }
       return;
     }
@@ -225,13 +210,13 @@ export class CampaignManagementComponent implements OnInit {
     this.campaignService.previewTimeline({
       start_date: this.formStartDate + 'T00:00:00',
       end_date: this.formEndDate + 'T23:59:59',
-      week_count: 8
+      week_count: this.formWeekCount
     }).subscribe({
       next: (timeline) => {
         this.applyTimelinePreview(timeline);
         this.isTimelinePreviewLoading = false;
         if (showError) {
-          this.toastService.success('Đã tự động chia timeline theo 8 tuần');
+          this.toastService.success('Đã tự động chia timeline các mốc M1, M2 theo tuần');
         }
       },
       error: (err) => {
@@ -245,16 +230,10 @@ export class CampaignManagementComponent implements OnInit {
 
   private applyTimelinePreview(timeline: CampaignTimelinePreviewResponse): void {
     this.isApplyingTimelinePreview = true;
-    this.formTttn01StartDate = this.toDateInput(timeline.tttn01_start_date);
-    this.formTttn01Deadline = this.toDateInput(timeline.tttn01_deadline);
-    this.formTttn02StartDate = this.toDateInput(timeline.tttn02_start_date);
-    this.formTttn02Deadline = this.toDateInput(timeline.tttn02_deadline);
-    this.formTttn03StartDate = this.toDateInput(timeline.tttn03_start_date);
-    this.formTttn03Deadline = this.toDateInput(timeline.tttn03_deadline);
-    this.formMidtermStartDate = this.toDateInput(timeline.midterm_start_date);
-    this.formMidtermDeadline = this.toDateInput(timeline.midterm_deadline);
-    this.formTttn06StartDate = this.toDateInput(timeline.tttn06_start_date);
-    this.formTttn06Deadline = this.toDateInput(timeline.tttn06_deadline);
+    this.formM1StartDate = this.toDateInput(timeline.m1_start_date);
+    this.formM1Deadline = this.toDateInput(timeline.m1_deadline);
+    this.formM2StartDate = this.toDateInput(timeline.m2_start_date);
+    this.formM2Deadline = this.toDateInput(timeline.m2_deadline);
     this.isApplyingTimelinePreview = false;
   }
 
@@ -273,7 +252,7 @@ export class CampaignManagementComponent implements OnInit {
   saveCampaign(): void {
     // Validate
     if (!this.formName.trim()) {
-      this.toastService.error('Vui lòng nhập tên đợt thực tập');
+      this.toastService.error('Vui lòng nhập tên đợt ĐATN');
       return;
     }
     if (!this.formStartDate) {
@@ -289,7 +268,7 @@ export class CampaignManagementComponent implements OnInit {
       return;
     }
     if (!this.isAtLeastOneMonthRange(this.formStartDate, this.formEndDate)) {
-      this.toastService.error('Thời gian đợt thực tập phải tối thiểu 1 tháng');
+      this.toastService.error('Thời gian đợt ĐATN phải tối thiểu 1 tháng');
       return;
     }
     const request: CampaignRequest = {
@@ -300,16 +279,11 @@ export class CampaignManagementComponent implements OnInit {
       description: this.formDescription.trim() || undefined,
       start_date: this.formStartDate + 'T00:00:00',
       end_date: this.formEndDate + 'T23:59:59',
-      tttn01_start_date: this.formTttn01StartDate ? this.formTttn01StartDate + 'T00:00:00' : undefined,
-      tttn01_deadline: this.formTttn01Deadline ? this.formTttn01Deadline + 'T23:59:59' : undefined,
-      tttn02_start_date: this.formTttn02StartDate ? this.formTttn02StartDate + 'T00:00:00' : undefined,
-      tttn02_deadline: this.formTttn02Deadline ? this.formTttn02Deadline + 'T23:59:59' : undefined,
-      tttn03_start_date: this.formTttn03StartDate ? this.formTttn03StartDate + 'T00:00:00' : undefined,
-      tttn03_deadline: this.formTttn03Deadline ? this.formTttn03Deadline + 'T23:59:59' : undefined,
-      midterm_start_date: this.formMidtermStartDate ? this.formMidtermStartDate + 'T00:00:00' : undefined,
-      midterm_deadline: this.formMidtermDeadline ? this.formMidtermDeadline + 'T23:59:59' : undefined,
-      tttn06_start_date: this.formTttn06StartDate ? this.formTttn06StartDate + 'T00:00:00' : undefined,
-      tttn06_deadline: this.formTttn06Deadline ? this.formTttn06Deadline + 'T23:59:59' : undefined
+      week_count: this.formWeekCount,
+      m1_start_date: this.formM1StartDate ? this.formM1StartDate + 'T00:00:00' : undefined,
+      m1_deadline: this.formM1Deadline ? this.formM1Deadline + 'T23:59:59' : undefined,
+      m2_start_date: this.formM2StartDate ? this.formM2StartDate + 'T00:00:00' : undefined,
+      m2_deadline: this.formM2Deadline ? this.formM2Deadline + 'T23:59:59' : undefined
     };
 
     this.isLoading = true;
@@ -354,21 +328,21 @@ export class CampaignManagementComponent implements OnInit {
 
   deleteCampaign(campaign: CampaignResponse): void {
     if ((campaign.student_count || 0) > 0) {
-      this.toastService.error('Chỉ được xóa đợt thực tập khi chưa có sinh viên nào trong đợt.');
+      this.toastService.error('Chỉ được xóa đợt ĐATN khi chưa có sinh viên nào trong đợt.');
       return;
     }
-    const confirmed = window.confirm(`Xóa đợt thực tập "${campaign.name}"? Thao tác này không thể hoàn tác.`);
+    const confirmed = window.confirm(`Xóa đợt ĐATN "${campaign.name}"? Thao tác này không thể hoàn tác.`);
     if (!confirmed) {
       return;
     }
 
     this.campaignService.delete(campaign.id).subscribe({
       next: () => {
-        this.toastService.success('Đã xóa đợt thực tập');
+        this.toastService.success('Đã xóa đợt ĐATN');
         this.loadCampaigns();
       },
       error: (err) => {
-        this.toastService.error(err?.message || 'Xóa đợt thực tập thất bại');
+        this.toastService.error(err?.message || 'Xóa đợt ĐATN thất bại');
       }
     });
   }
@@ -401,7 +375,7 @@ export class CampaignManagementComponent implements OnInit {
 
   openUnlockModal(campaign: CampaignResponse): void {
     this.selectedCampaignForUnlock = campaign;
-    this.unlockStage = 'STAGE_1';
+    this.unlockStage = 'M1';
     this.unlockReason = '';
     this.isUnlockModalOpen = true;
   }

@@ -1,7 +1,7 @@
 import { ToastService } from '../../../core/services/toast.service';
 import { Component, OnInit } from '@angular/core';
 import { StudentCampaignService } from '../../../core/services/student-campaign.service';
-import { InternshipPlanRequest } from '../../../core/models/request.model';
+import { DatnPlanRequest } from '../../../core/models/request.model';
 import { StudentCampaignResponse } from '../../../core/models/base.model';
 
 interface WeekPlan {
@@ -12,11 +12,11 @@ interface WeekPlan {
 }
 
 @Component({
-  selector: 'app-internship-plan',
-  templateUrl: './internship-plan.component.html',
-  styleUrls: ['./internship-plan.component.scss']
+  selector: 'app-datn-plan',
+  templateUrl: './datn-plan.component.html',
+  styleUrls: ['./datn-plan.component.scss']
 })
-export class InternshipPlanComponent implements OnInit {
+export class DatnPlanComponent implements OnInit {
   isLoading = true;
   isSaving = false;
       campaign: StudentCampaignResponse | null = null;
@@ -25,7 +25,7 @@ export class InternshipPlanComponent implements OnInit {
 
   status = {
     label: 'Chưa có kế hoạch',
-    message: 'Bạn chưa nộp kế hoạch thực tập'
+    message: 'Bạn chưa nộp kế hoạch ĐATN'
   };
 
   weeks: WeekPlan[] = [
@@ -66,55 +66,38 @@ export class InternshipPlanComponent implements OnInit {
   updateStatus() {
     if (!this.campaign) return;
 
-    const plans = this.campaign.internship_plans || [];
+    const plans = this.campaign.datn_plans || [];
     const hasPlans = plans.length > 0;
     const allApproved = hasPlans && plans.every((plan: any) =>
-      plan.gvhd_status === 'APPROVED' && plan.company_status === 'APPROVED'
-    );
-    const hasAnyApproved = plans.some((plan: any) =>
-      plan.gvhd_status === 'APPROVED' || plan.company_status === 'APPROVED'
+      plan.gvhd_status === 'APPROVED'
     );
 
     if (allApproved) {
       this.status.label = 'Đã duyệt';
-      this.status.message = 'Kế hoạch đã được GVHD và ĐVHD phê duyệt';
+      this.status.message = 'Kế hoạch thực hiện ĐATN đã được GVHD phê duyệt';
       this.isLocked = true;
       this.canAccess = true;
     } else if (hasPlans) {
       this.status.label = 'Chờ duyệt';
-      let detailMsg = 'Đã được duyệt 1 phía, chờ phía còn lại';
-      if (hasAnyApproved) {
-        const firstPlan: any = plans[0];
-        const gvhdApproved = firstPlan.gvhd_status === 'APPROVED';
-        const companyApproved = firstPlan.company_status === 'APPROVED';
-        
-        if (gvhdApproved && !companyApproved) {
-          detailMsg = 'Đã được GVHD duyệt, Đang chờ ĐVHD duyệt';
-        } else if (!gvhdApproved && companyApproved) {
-          detailMsg = 'Đã được ĐVHD duyệt, Đang chờ GVHD duyệt';
-        }
-      } else {
-        detailMsg = 'Đang chờ GVHD và ĐVHD duyệt';
-      }
-      this.status.message = detailMsg;
+      this.status.message = 'Đang chờ GVHD duyệt kế hoạch thực hiện ĐATN';
       this.isLocked = true;
       this.canAccess = true;
-    } else if (this.campaign.company_info?.company_status === 'APPROVED') {
+    } else if (this.campaign.datn_info?.datn_status === 'APPROVED') {
       this.status.label = 'Chưa nộp';
-      this.status.message = 'Vui lòng nộp kế hoạch thực tập';
+      this.status.message = 'Vui lòng nộp kế hoạch thực hiện ĐATN';
       this.isLocked = false;
       this.canAccess = true;
     } else {
       this.status.label = 'Chưa bắt đầu';
-      this.status.message = 'Cần hoàn thành và được duyệt TTTN-01 trước';
+      this.status.message = 'Cần hoàn thành và được duyệt Nhiệm vụ ĐATN (ĐATN-01) trước';
       this.isLocked = true;
       this.canAccess = false;
     }
   }
 
   populatePlans() {
-    if (this.campaign?.internship_plans && this.campaign.internship_plans.length > 0) {
-      this.campaign.internship_plans.forEach((plan: any) => {
+    if (this.campaign?.datn_plans && this.campaign.datn_plans.length > 0) {
+      this.campaign.datn_plans.forEach((plan: any) => {
         const weekObj = this.weeks.find(w => w.weekNumber === plan.week);
         if (weekObj) {
           weekObj.tasks = plan.task || '';
@@ -135,7 +118,7 @@ export class InternshipPlanComponent implements OnInit {
       return;
     }
 
-    const payload: InternshipPlanRequest = {
+    const payload: DatnPlanRequest = {
       student_campaign_id: this.campaign.id,
       plans: this.weeks.map(w => ({
         week: w.weekNumber,
@@ -147,12 +130,12 @@ export class InternshipPlanComponent implements OnInit {
     };
 
     this.isSaving = true;
-    this.studentCampaignService.submitInternshipPlan(payload).subscribe({
+    this.studentCampaignService.submitDatnPlan(payload).subscribe({
       next: () => {
         this.toastService.success('Nộp kế hoạch thành công!');
         this.isSaving = false;
         this.isLocked = true;
-        this.campaign!.status = 'PLAN_SUBMITTED';
+        this.campaign!.status = 'DATN_APPROVED';
         this.updateStatus();
       },
       error: (err: any) => {

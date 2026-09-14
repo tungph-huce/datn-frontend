@@ -42,18 +42,18 @@ export class ManageStudentsComponent implements OnInit {
     { key: 'full_name', label: 'Họ và tên' },
     { key: 'first_name', label: 'Tên', width: '110px' },
     { key: 'class_name', label: 'Lớp', width: '100px' },
-    { key: 'company', label: 'Đơn vị TT' },
+    { key: 'thesis', label: 'Đề tài ĐATN' },
     { key: 'status', label: 'Trạng thái', width: '180px' },
     { key: 'actions', label: 'Hành động', align: 'center', width: '150px' }
   ];
 
   statusOptions = [
-    { value: 'DK_DVTT', label: 'Đang đăng ký/Duyệt ĐVTT' },
-    { value: 'DK_KEHOACH', label: 'Đang nộp/Duyệt kế hoạch' },
-    { value: 'THUCTAP', label: 'Đang thực tập' },
-    { value: 'GIUAKY', label: 'Đã ĐG giữa kỳ' },
-    { value: 'BAOCAO', label: 'Đã nộp báo cáo cuối kỳ' },
-    { value: 'HOANTHANH', label: 'Hoàn thành / Đã ĐG cuối kỳ' },
+    { value: 'CHUAKHAIBAO', label: 'Chưa khai báo / Đợi duyệt ĐATN-01' },
+    { value: 'DANGKY', label: 'Đang nộp/Duyệt kế hoạch' },
+    { value: 'THUCHIEN', label: 'Đang thực hiện ĐATN' },
+    { value: 'M1', label: 'Đã đánh giá mốc M1' },
+    { value: 'M2', label: 'Đã đánh giá mốc M2' },
+    { value: 'HOANTHANH', label: 'Hoàn thành' },
     { value: 'SUSPENDED', label: 'Tạm ngưng' }
   ];
 
@@ -109,29 +109,29 @@ export class ManageStudentsComponent implements OnInit {
         (this.getStudentFirstName(s).toLowerCase().includes(query)) ||
         (s.student_code && s.student_code.toLowerCase().includes(query)) ||
         (s.class_name && s.class_name.toLowerCase().includes(query)) ||
-        (s.company_info?.company_name && s.company_info.company_name.toLowerCase().includes(query))
+        (s.datn_info?.thesis_title && s.datn_info.thesis_title.toLowerCase().includes(query))
       );
     }
 
     if (this.selectedStatus) {
       switch (this.selectedStatus) {
-        case 'DK_DVTT':
-          result = result.filter(s => ['IMPORTED', 'COMPANY_DECLARED'].includes(s.status));
+        case 'CHUAKHAIBAO':
+          result = result.filter(s => ['IMPORTED', 'DATN_DECLARED'].includes(s.status));
           break;
-        case 'DK_KEHOACH':
-          result = result.filter(s => ['COMPANY_APPROVED', 'PLAN_SUBMITTED'].includes(s.status));
+        case 'DANGKY':
+          result = result.filter(s => ['DATN_APPROVED'].includes(s.status));
           break;
-        case 'THUCTAP':
-          result = result.filter(s => ['PLAN_APPROVED', 'IN_PROGRESS'].includes(s.status));
+        case 'THUCHIEN':
+          result = result.filter(s => ['IN_PROGRESS', 'DATN_APPROVED'].includes(s.status));
           break;
-        case 'GIUAKY':
-          result = result.filter(s => s.status === 'STAGE1_EVALUATED');
+        case 'M1':
+          result = result.filter(s => s.status === 'M1_EVALUATED');
           break;
-        case 'BAOCAO':
-          result = result.filter(s => s.status === 'REPORT_SUBMITTED');
+        case 'M2':
+          result = result.filter(s => s.status === 'M2_EVALUATED');
           break;
         case 'HOANTHANH':
-          result = result.filter(s => ['STAGE2_EVALUATED', 'COMPLETED'].includes(s.status));
+          result = result.filter(s => s.status === 'COMPLETED');
           break;
         case 'SUSPENDED':
           result = result.filter(s => s.status === 'SUSPENDED');
@@ -275,58 +275,47 @@ export class ManageStudentsComponent implements OnInit {
 
     const mConfigs = [
       {
-        key: 'tttn01',
-        title: 'Kê khai Đơn vị thực tập',
-        code: 'TTTN-01',
-        description: 'Đăng ký thông tin công ty tiếp nhận thực tập và xin xác nhận của GVHD.',
-        startDate: parseDate(camp.tttn01_start_date),
-        deadline: parseDate(camp.tttn01_deadline),
-        isCompleted: ['COMPANY_APPROVED', 'PLAN_SUBMITTED', 'PLAN_APPROVED', 'IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: status === 'COMPANY_DECLARED',
-        icon: 'domain'
+        key: 'datn01',
+        title: 'Kê khai Nhiệm vụ ĐATN',
+        code: 'ĐATN-01',
+        description: 'Sinh viên kê khai đề tài, mục tiêu, phạm vi và sản phẩm ĐATN; GVHD xác nhận.',
+        startDate: parseDate(camp.m1_start_date),
+        deadline: parseDate(camp.m1_deadline),
+        isCompleted: ['DATN_APPROVED', 'IN_PROGRESS', 'M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status),
+        isPending: status === 'DATN_DECLARED',
+        icon: 'assignment'
       },
       {
-        key: 'tttn02',
-        title: 'Nộp Đề cương kế hoạch',
-        code: 'TTTN-02',
-        description: 'Lập đề cương chi tiết các tuần thực tập và gửi giảng viên hướng dẫn duyệt.',
-        startDate: parseDate(camp.tttn02_start_date),
-        deadline: parseDate(camp.tttn02_deadline),
-        isCompleted: ['PLAN_APPROVED', 'IN_PROGRESS', 'STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: status === 'PLAN_SUBMITTED',
-        icon: 'edit_document'
-      },
-      {
-        key: 'tttn03',
-        title: 'Báo cáo Nhật ký tuần',
-        code: 'TTTN-03',
-        description: 'Cập nhật tiến độ công việc hàng tuần để giảng viên và người hướng dẫn theo dõi.',
-        startDate: parseDate(camp.tttn03_start_date),
-        deadline: parseDate(camp.tttn03_deadline),
-        isCompleted: ['STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: status === 'IN_PROGRESS' || status === 'PLAN_APPROVED',
-        icon: 'menu_book'
-      },
-      {
-        key: 'midterm',
-        title: 'Nhận xét & Đánh giá giữa kỳ',
-        code: 'Giữa kỳ',
-        description: 'Được giảng viên và doanh nghiệp đánh giá kết quả thực tập giai đoạn đầu.',
-        startDate: parseDate(camp.midterm_start_date),
-        deadline: parseDate(camp.midterm_deadline),
-        isCompleted: ['STAGE1_EVALUATED', 'REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: false,
+        key: 'm1',
+        title: 'Đánh giá mốc M1 (đầu kỳ)',
+        code: 'M1',
+        description: 'GVHD đánh giá tiến độ đầu kỳ theo CLO/Rubric, lập phiếu đánh giá mốc M1 (ĐATN-03).',
+        startDate: parseDate(camp.m1_start_date),
+        deadline: parseDate(camp.m1_deadline),
+        isCompleted: ['M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status),
+        isPending: status === 'IN_PROGRESS' || status === 'DATN_APPROVED',
         icon: 'rate_review'
       },
       {
-        key: 'tttn06',
-        title: 'Nộp Báo cáo cuối kỳ',
-        code: 'TTTN-06',
-        description: 'Nộp file báo cáo thực tập chính thức và bản tự nhận xét kết quả (TTTN-08b).',
-        startDate: parseDate(camp.tttn06_start_date),
-        deadline: parseDate(camp.tttn06_deadline),
-        isCompleted: ['REPORT_SUBMITTED', 'STAGE2_EVALUATED', 'COMPLETED'].includes(status),
-        isPending: status === 'REPORT_SUBMITTED',
+        key: 'm2',
+        title: 'Đánh giá mốc M2 (giữa kỳ)',
+        code: 'M2',
+        description: 'GVHD đánh giá tiến độ giữa kỳ theo CLO/Rubric, lập phiếu đánh giá mốc M2 (ĐATN-04).',
+        startDate: parseDate(camp.m2_start_date),
+        deadline: parseDate(camp.m2_deadline),
+        isCompleted: ['M2_EVALUATED', 'COMPLETED'].includes(status),
+        isPending: status === 'M1_EVALUATED',
+        icon: 'rate_review'
+      },
+      {
+        key: 'final',
+        title: 'Nộp Báo cáo & Tổng hợp điểm',
+        code: 'ĐATN-08',
+        description: 'Sinh viên nộp báo cáo tổng kết; Khoa tổng hợp điểm CLO và duyệt kết quả ĐATN.',
+        startDate: parseDate(camp.m2_deadline),
+        deadline: parseDate(camp.end_date),
+        isCompleted: ['COMPLETED'].includes(status),
+        isPending: status === 'M2_EVALUATED',
         icon: 'description'
       }
     ];
@@ -380,18 +369,18 @@ export class ManageStudentsComponent implements OnInit {
     this.selectedStudent = null;
   }
 
-  approveCompany(): void {
+  approveDatn(): void {
     if (!this.selectedStudent) return;
 
     this.isApproving = true;
-    this.studentCampaignService.approveCompanyInfo(this.selectedStudent.id).subscribe({
+    this.studentCampaignService.approveDatnInfo(this.selectedStudent.id).subscribe({
       next: () => {
-        this.toastService.success('Đã duyệt thông tin Đơn vị thực tập thành công!');
+        this.toastService.success('Đã duyệt Nhiệm vụ ĐATN (ĐATN-01) thành công!');
         this.isApproving = false;
 
         // Update local status
         if (this.selectedStudent) {
-          this.selectedStudent.status = 'COMPANY_APPROVED';
+          this.selectedStudent.status = 'DATN_APPROVED';
         }
 
         setTimeout(() => this.closeModal(), 1500);
@@ -407,14 +396,11 @@ export class ManageStudentsComponent implements OnInit {
   getStatusBadgeClass(status: string): string {
     switch (status) {
       case 'IMPORTED': return 'bg-slate-100 text-slate-600';
-      case 'COMPANY_DECLARED': return 'bg-amber-100 text-amber-700';
-      case 'COMPANY_APPROVED': return 'bg-blue-100 text-blue-700';
-      case 'PLAN_SUBMITTED': return 'bg-purple-100 text-purple-700';
-      case 'PLAN_APPROVED': return 'bg-sky-100 text-sky-700';
+      case 'DATN_DECLARED': return 'bg-amber-100 text-amber-700';
+      case 'DATN_APPROVED': return 'bg-blue-100 text-blue-700';
       case 'IN_PROGRESS': return 'bg-emerald-100 text-[#008A5E] border border-emerald-200';
-      case 'STAGE1_EVALUATED': return 'bg-indigo-100 text-indigo-700';
-      case 'REPORT_SUBMITTED': return 'bg-teal-100 text-teal-700';
-      case 'STAGE2_EVALUATED': return 'bg-cyan-100 text-cyan-700';
+      case 'M1_EVALUATED': return 'bg-indigo-100 text-indigo-700';
+      case 'M2_EVALUATED': return 'bg-cyan-100 text-cyan-700';
       case 'COMPLETED': return 'bg-green-100 text-green-700';
       case 'SUSPENDED': return 'bg-red-100 text-red-700';
       default: return 'bg-slate-100 text-slate-600';
@@ -424,14 +410,11 @@ export class ManageStudentsComponent implements OnInit {
   getStatusLabel(status: string): string {
     switch (status) {
       case 'IMPORTED': return 'Chưa kê khai';
-      case 'COMPANY_DECLARED': return 'Chờ duyệt ĐVHD';
-      case 'COMPANY_APPROVED': return 'Đã duyệt ĐVHD';
-      case 'PLAN_SUBMITTED': return 'Chờ duyệt Kế hoạch';
-      case 'PLAN_APPROVED': return 'Kế hoạch được duyệt';
-      case 'IN_PROGRESS': return 'Đang thực tập';
-      case 'STAGE1_EVALUATED': return 'Đã ĐG giữa kỳ';
-      case 'REPORT_SUBMITTED': return 'Đã nộp Báo cáo';
-      case 'STAGE2_EVALUATED': return 'Đã ĐG cuối kỳ';
+      case 'DATN_DECLARED': return 'Chờ duyệt ĐATN-01';
+      case 'DATN_APPROVED': return 'Đã duyệt ĐATN-01';
+      case 'IN_PROGRESS': return 'Đang thực hiện ĐATN';
+      case 'M1_EVALUATED': return 'Đã đánh giá M1';
+      case 'M2_EVALUATED': return 'Đã đánh giá M2';
       case 'COMPLETED': return 'Hoàn thành';
       case 'SUSPENDED': return 'Tạm ngưng';
       default: return status;

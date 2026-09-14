@@ -1,0 +1,236 @@
+- Generating browser application bundles (phase: setup)...
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files                            | Names         |  Raw Size
+vendor.js                                      | vendor        |   3.29 MB |
+main.js                                        | main          |   1.68 MB |
+polyfills.js                                   | polyfills     | 234.35 kB |
+styles.css, styles.js                          | styles        | 217.11 kB |
+runtime.js                                     | runtime       |  14.13 kB |
+
+| Initial Total |   5.43 MB
+
+Lazy Chunk Files                               | Names         |  Raw Size
+node_modules_xlsx-js-style_dist_xlsx_min_js.js | xlsx-js-style |   1.10 MB |
+
+Build at: 2026-09-07T15:54:46.509Z - Hash: 1fe7930d7f8a845b - Time: 30388ms
+
+** Angular Live Development Server is listening on localhost:4200, open your browser on http://localhost:4200/ **
+
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.68 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T16:50:39.309Z - Hash: 8650bcd7ba960267 - Time: 15320ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.68 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T16:52:15.818Z - Hash: 1fe7930d7f8a845b - Time: 30008ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+6 unchanged chunks
+
+Build at: 2026-09-07T16:52:20.263Z - Hash: 1fe7930d7f8a845b - Time: 3970ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.69 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:04:48.592Z - Hash: 0774f2ed50e0afde - Time: 15364ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:04:54.871Z - Hash: db9d7b3d29dc8462 - Time: 6181ms
+
+Error: src/app/pages/admin/campaign-management/campaign-management.component.ts:280:7 - error TS2322: Type '{ code: string | undefined; name: string; academic_year: string | undefined; semester: number | null; description: string | undefined; start_date: string; end_date: string; week_count: number; m1_start_date: string | undefined; m1_deadline: string | undefined; m2_start_date: string | undefined; m2_deadline: string |...' is not assignable to type 'CampaignRequest'.
+  Object literal may only specify known properties, and 'week_count' does not exist in type 'CampaignRequest'.
+
+280       week_count: this.formWeekCount,
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:10:09.694Z - Hash: e0e810af33e31520 - Time: 8448ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:10:30.198Z - Hash: 62a38a79398fb0ce - Time: 6167ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:10:32.288Z - Hash: 036f313f47abd16d - Time: 2047ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:14:15.783Z - Hash: 74f2ad183d379498 - Time: 12511ms
+
+Error: src/app/pages/student/student-dashboard/student-dashboard.component.ts:540:42 - error TS2339: Property 'clo_outcomes' does not exist on type 'FinalResultResponse'.
+
+540     this.cloDetails = (this.finalResult?.clo_outcomes || []).map((o: any) => ({
+                                             ~~~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:16:27.343Z - Hash: c2593293ae3a9ebc - Time: 12854ms
+
+Error: src/app/pages/student/student-dashboard/student-dashboard.component.ts:540:42 - error TS2339: Property 'clo_outcomes' does not exist on type 'FinalResultResponse'.
+
+540     this.cloDetails = (this.finalResult?.clo_outcomes || []).map((o: any) => ({
+                                             ~~~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:16:34.997Z - Hash: 0ead6c38b6e1a72c - Time: 7517ms
+
+Error: src/app/pages/student/student-dashboard/student-dashboard.component.ts:540:42 - error TS2339: Property 'clo_outcomes' does not exist on type 'FinalResultResponse'.
+
+540     this.cloDetails = (this.finalResult?.clo_outcomes || []).map((o: any) => ({
+                                             ~~~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:17:21.081Z - Hash: 2bf869ba1cd96b30 - Time: 3727ms
+
+Error: src/app/pages/student/student-dashboard/student-dashboard.component.ts:540:42 - error TS2339: Property 'clo_outcomes' does not exist on type 'FinalResultResponse'.
+
+540     this.cloDetails = (this.finalResult?.clo_outcomes || []).map((o: any) => ({
+                                             ~~~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:19:44.402Z - Hash: cae8f7809bcafc7d - Time: 2725ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:19:52.144Z - Hash: 84c25b0676574572 - Time: 5001ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:32:01.406Z - Hash: 440d20183c7cd10a - Time: 10694ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+main.js             | main    |  1.70 MB |
+runtime.js          | runtime | 14.13 kB |
+
+4 unchanged chunks
+
+Build at: 2026-09-07T17:32:03.788Z - Hash: ad704b620bbdf7d3 - Time: 2279ms
+
+√ Compiled successfully.
+
+D:\CDTH\datn-frontend>

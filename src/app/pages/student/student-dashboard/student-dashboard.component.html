@@ -1,113 +1,94 @@
 <div class="max-w-6xl mx-auto space-y-6">
-  <app-dashboard-loading *ngIf="isLoading" message="Đang tải dữ liệu..." icon="autorenew"></app-dashboard-loading>
-  
-  <div *ngIf="!isLoading && !hasCurrentCampaign" class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
-    <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-blue-50 text-[#00429D] flex items-center justify-center">
-      <span class="material-symbols-outlined text-3xl">event_busy</span>
+    <app-dashboard-loading *ngIf="isLoading" message="Đang tải dữ liệu..." icon="autorenew"></app-dashboard-loading>
+
+    <div *ngIf="!isLoading && !hasCurrentCampaign" class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
+        <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-blue-50 text-[#00429D] flex items-center justify-center">
+            <span class="material-symbols-outlined text-3xl">event_busy</span>
+        </div>
+        <h2 class="text-xl font-bold text-slate-900 mb-2">Chưa có đợt ĐATN hiện tại</h2>
+        <p class="text-sm text-slate-500 max-w-xl mx-auto">
+            Tài khoản sinh viên đã được xác thực, nhưng bạn chưa nằm trong danh sách sinh viên của đợt ĐATN đang mở hoặc đợt ĐATN cũ đã kết thúc.
+        </p>
     </div>
-    <h2 class="text-xl font-bold text-slate-900 mb-2">Chưa có đợt thực tập hiện tại</h2>
-    <p class="text-sm text-slate-500 max-w-xl mx-auto">
-      Tài khoản sinh viên đã được xác thực, nhưng bạn chưa nằm trong danh sách sinh viên của đợt thực tập đang mở hoặc đợt thực tập cũ đã kết thúc.
-    </p>
-  </div>
 
-  <ng-container *ngIf="!isLoading && hasCurrentCampaign">
-  <!-- Header Welcome -->
-  <app-welcome-header
-    [title]="'Xin chào, ' + studentName + '! 👋'"
-    [subtitle]="'Tổng quan tiến độ thực tập tốt nghiệp của bạn (MSSV: ' + studentId + ')'"
-    [infoTagText]="'Tuần thực tập: ' + currentWeek + '/' + totalWeeks"
-    infoTagIcon="calendar_today">
-  </app-welcome-header>
+    <ng-container *ngIf="!isLoading && hasCurrentCampaign">
+        <!-- Header Welcome -->
+        <app-welcome-header [title]="'Xin chào, ' + studentName + '! 👋'" [subtitle]="'Tổng quan tiến độ ĐATN của bạn (MSSV: ' + studentId + ')'" [infoTagText]="'Tuần ĐATN: ' + currentWeek + '/' + totalWeeks" infoTagIcon="calendar_today">
+        </app-welcome-header>
 
-  <!-- Banner Cảnh báo Tự đánh giá Sinh viên (TTTN-08b) -->
-  <div *ngIf="!isSurveySubmitted" 
-       class="p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-pulse">
-    <div class="flex items-center gap-3">
-      <span class="material-symbols-outlined text-2xl text-red-600">
+        <!-- Banner Cảnh báo Khảo sát Sinh viên (ĐATN-10) -->
+        <div *ngIf="!isSurveySubmitted" class="p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-pulse">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-2xl text-red-600">
         assignment_late
       </span>
-      <div>
-        <p class="font-bold text-sm">Chưa hoàn thành Khảo sát & Tự nhận xét kết quả (Mẫu TTTN-08b)</p>
-        <p class="text-xs opacity-95">Yêu cầu tất cả sinh viên phải thực hiện tự đánh giá kết quả thực tập tốt nghiệp trước khi kết thúc học phần để giảng viên xét điểm.</p>
-      </div>
-    </div>
-    <button routerLink="/student/survey" 
-            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap">
+                <div>
+                    <p class="font-bold text-sm">Chưa hoàn thành Khảo sát & Tự nhận xét kết quả (Mẫu ĐATN-10)</p>
+                    <p class="text-xs opacity-95">Yêu cầu tất cả sinh viên phải thực hiện tự đánh giá kết quả ĐATN trước khi kết thúc học phần để giảng viên xét điểm.</p>
+                </div>
+            </div>
+            <button routerLink="/student/survey" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap">
       Đánh giá ngay
     </button>
-  </div>
+        </div>
 
-  <!-- Banner Cảnh báo Hạn chót -->
-  <ng-container *ngFor="let m of milestones">
-    <div *ngIf="m.warningMessage && (m.state === 'OVERDUE' || m.state === 'IN_PROGRESS')" 
-         class="p-4 rounded-xl border flex items-center justify-between shadow-sm animate-pulse"
-         [ngClass]="m.state === 'OVERDUE' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-amber-50 border-amber-200 text-amber-800'">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-2xl" [ngClass]="m.state === 'OVERDUE' ? 'text-red-600' : 'text-amber-600'">
+        <!-- Banner Cảnh báo Hạn chót -->
+        <ng-container *ngFor="let m of milestones">
+            <div *ngIf="m.warningMessage && (m.state === 'OVERDUE' || m.state === 'IN_PROGRESS')" class="p-4 rounded-xl border flex items-center justify-between shadow-sm animate-pulse" [ngClass]="m.state === 'OVERDUE' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-amber-50 border-amber-200 text-amber-800'">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-2xl" [ngClass]="m.state === 'OVERDUE' ? 'text-red-600' : 'text-amber-600'">
           {{ m.state === 'OVERDUE' ? 'error' : 'warning' }}
         </span>
-        <div>
-          <p class="font-bold text-sm">{{ m.title }}</p>
-          <p class="text-xs opacity-95">{{ m.warningMessage }} Hạn chót nộp: <span class="font-semibold">{{ m.dateLabel }}</span></p>
-        </div>
-      </div>
-      <button (click)="goToMilestone(m)" 
-              class="px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap"
-              [ngClass]="m.state === 'OVERDUE' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-amber-600 text-white hover:bg-amber-700'">
+                    <div>
+                        <p class="font-bold text-sm">{{ m.title }}</p>
+                        <p class="text-xs opacity-95">{{ m.warningMessage }} Hạn chót nộp: <span class="font-semibold">{{ m.dateLabel }}</span></p>
+                    </div>
+                </div>
+                <button (click)="goToMilestone(m)" class="px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap" [ngClass]="m.state === 'OVERDUE' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-amber-600 text-white hover:bg-amber-700'">
         Nộp ngay
       </button>
-    </div>
-  </ng-container>
+            </div>
+        </ng-container>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Cột trái (Chính) -->
-    <div class="lg:col-span-2 space-y-6">
-      
-      <!-- Navigation Tabs -->
-      <div class="flex border-b border-slate-200 bg-slate-50/50 p-1.5 rounded-xl gap-2">
-        <button (click)="activeTab = 'roadmap'"
-                [ngClass]="activeTab === 'roadmap' ? 'bg-[#00429D] text-white shadow-sm' : 'text-slate-600 hover:text-[#00429D] hover:bg-slate-100'"
-                class="flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Cột trái (Chính) -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Navigation Tabs -->
+                <div class="flex border-b border-slate-200 bg-slate-50/50 p-1.5 rounded-xl gap-2">
+                    <button (click)="activeTab = 'roadmap'" [ngClass]="activeTab === 'roadmap' ? 'bg-[#00429D] text-white shadow-sm' : 'text-slate-600 hover:text-[#00429D] hover:bg-slate-100'" class="flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2">
           <span class="material-symbols-outlined text-lg">route</span>
           Lộ trình & Hạn nộp
         </button>
-        <button (click)="activeTab = 'grades'"
-                [ngClass]="activeTab === 'grades' ? 'bg-[#00429D] text-white shadow-sm' : 'text-slate-600 hover:text-[#00429D] hover:bg-slate-100'"
-                class="flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2">
+                    <button (click)="activeTab = 'grades'" [ngClass]="activeTab === 'grades' ? 'bg-[#00429D] text-white shadow-sm' : 'text-slate-600 hover:text-[#00429D] hover:bg-slate-100'" class="flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2">
           <span class="material-symbols-outlined text-lg">fact_check</span>
-          Bảng điểm CĐR (TTTN-07)
+          Bảng điểm CĐR (ĐATN-08)
         </button>
-      </div>
+                </div>
 
-      <!-- TAB 1: LỘ TRÌNH & TIẾN ĐỘ -->
-      <div *ngIf="activeTab === 'roadmap'" class="space-y-6">
-        <!-- Lộ trình thực tập tốt nghiệp -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-          <div (click)="isRoadmapExpanded = !isRoadmapExpanded" 
-               class="flex justify-between items-center cursor-pointer select-none"
-               [ngClass]="{'border-b border-slate-100 pb-4 mb-6': isRoadmapExpanded}">
-            <h3 class="text-base md:text-lg font-bold text-slate-900 flex items-center gap-2 mb-0">
-              <span class="material-symbols-outlined text-[#00429D]">route</span>
-              Lộ trình thực tập tốt nghiệp & Hạn nộp
-            </h3>
-            <div class="flex items-center gap-1 text-[#00429D] hover:text-blue-800 transition-colors">
-              <span class="text-xs font-semibold">{{ isRoadmapExpanded ? 'Thu gọn' : 'Xem chi tiết' }}</span>
-              <span class="material-symbols-outlined text-lg transition-transform duration-300"
-                    [style.transform]="isRoadmapExpanded ? 'rotate(180deg)' : 'rotate(0deg)'">
+                <!-- TAB 1: LỘ TRÌNH & TIẾN ĐỘ -->
+                <div *ngIf="activeTab === 'roadmap'" class="space-y-6">
+                    <!-- Lộ trình ĐATN -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                        <div (click)="isRoadmapExpanded = !isRoadmapExpanded" class="flex justify-between items-center cursor-pointer select-none" [ngClass]="{'border-b border-slate-100 pb-4 mb-6': isRoadmapExpanded}">
+                            <h3 class="text-base md:text-lg font-bold text-slate-900 flex items-center gap-2 mb-0">
+                                <span class="material-symbols-outlined text-[#00429D]">route</span> Lộ trình ĐATN & Hạn nộp
+                            </h3>
+                            <div class="flex items-center gap-1 text-[#00429D] hover:text-blue-800 transition-colors">
+                                <span class="text-xs font-semibold">{{ isRoadmapExpanded ? 'Thu gọn' : 'Xem chi tiết' }}</span>
+                                <span class="material-symbols-outlined text-lg transition-transform duration-300" [style.transform]="isRoadmapExpanded ? 'rotate(180deg)' : 'rotate(0deg)'">
                 expand_more
               </span>
-            </div>
-          </div>
+                            </div>
+                        </div>
 
-          <div *ngIf="isRoadmapExpanded" class="milestone-stepper">
-            <div *ngFor="let m of milestones" class="milestone-item" [ngClass]="m.state">
-              <div class="milestone-indicator">
-                <span class="material-symbols-outlined text-white text-[12px]" *ngIf="m.state === 'COMPLETED'">check</span>
-              </div>
-              
-              <div class="milestone-card border rounded-xl p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                   [ngClass]="{
+                        <div *ngIf="isRoadmapExpanded" class="milestone-stepper">
+                            <div *ngFor="let m of milestones" class="milestone-item" [ngClass]="m.state">
+                                <div class="milestone-indicator">
+                                    <span class="material-symbols-outlined text-white text-[12px]" *ngIf="m.state === 'COMPLETED'">check</span>
+                                </div>
+
+                                <div class="milestone-card border rounded-xl p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4" [ngClass]="{
                      'border-green-200 bg-green-50/20': m.state === 'COMPLETED',
                      'border-blue-200 bg-blue-50/10': m.state === 'IN_PROGRESS',
                      'border-amber-200 bg-amber-50/20': m.state === 'PENDING',
@@ -115,10 +96,9 @@
                      'border-slate-100 bg-slate-50/30': m.state === 'UPCOMING',
                      'border-slate-100 locked-card bg-slate-50/50 opacity-60': m.state === 'LOCKED'
                    }">
-                <div class="flex-1 space-y-1">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
-                          [ngClass]="{
+                                    <div class="flex-1 space-y-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [ngClass]="{
                             'bg-green-100 text-green-700': m.state === 'COMPLETED',
                             'bg-blue-100 text-blue-700': m.state === 'IN_PROGRESS',
                             'bg-amber-100 text-amber-700': m.state === 'PENDING',
@@ -128,16 +108,14 @@
                           }">
                       {{ m.code }}
                     </span>
-                    <h4 class="font-bold text-slate-900 text-sm md:text-base">{{ m.title }}</h4>
-                  </div>
-                  <p class="text-xs md:text-sm text-slate-500">{{ m.description }}</p>
-                  <div class="flex items-center gap-4 text-xs font-semibold mt-2">
-                    <span class="text-slate-600 flex items-center gap-1">
-                      <span class="material-symbols-outlined text-sm">calendar_month</span>
-                      Thời hạn: {{ m.dateLabel }}
-                    </span>
-                    <span *ngIf="m.stateLabel" 
-                          [ngClass]="{
+                                            <h4 class="font-bold text-slate-900 text-sm md:text-base">{{ m.title }}</h4>
+                                        </div>
+                                        <p class="text-xs md:text-sm text-slate-500">{{ m.description }}</p>
+                                        <div class="flex items-center gap-4 text-xs font-semibold mt-2">
+                                            <span class="text-slate-600 flex items-center gap-1">
+                      <span class="material-symbols-outlined text-sm">calendar_month</span> Thời hạn: {{ m.dateLabel }}
+                                            </span>
+                                            <span *ngIf="m.stateLabel" [ngClass]="{
                             'text-green-600': m.state === 'COMPLETED',
                             'text-blue-600': m.state === 'IN_PROGRESS',
                             'text-amber-600': m.state === 'PENDING',
@@ -146,13 +124,11 @@
                           }">
                       • {{ m.stateLabel }}
                     </span>
-                  </div>
-                </div>
+                                        </div>
+                                    </div>
 
-                <div class="flex items-center justify-end">
-                  <button *ngIf="m.state !== 'LOCKED'" (click)="goToMilestone(m)"
-                          class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap"
-                          [ngClass]="{
+                                    <div class="flex items-center justify-end">
+                                        <button *ngIf="m.state !== 'LOCKED'" (click)="goToMilestone(m)" class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap" [ngClass]="{
                             'bg-green-600 text-white hover:bg-green-700 shadow-sm': m.state === 'COMPLETED',
                             'bg-blue-600 text-white hover:bg-blue-700 shadow-sm': m.state === 'IN_PROGRESS',
                             'bg-amber-500 text-white hover:bg-amber-600 shadow-sm': m.state === 'PENDING',
@@ -162,160 +138,147 @@
                     {{ m.state === 'COMPLETED' ? 'Xem lại' : (m.state === 'PENDING' ? 'Kiểm tra' : 'Thực hiện') }}
                     <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                   </button>
-                  <span *ngIf="m.state === 'LOCKED'" class="text-xs text-slate-400 font-medium flex items-center gap-1 whitespace-nowrap">
-                    <span class="material-symbols-outlined text-sm">lock</span>
-                    Chưa mở
-                  </span>
+                                        <span *ngIf="m.state === 'LOCKED'" class="text-xs text-slate-400 font-medium flex items-center gap-1 whitespace-nowrap">
+                    <span class="material-symbols-outlined text-sm">lock</span> Chưa mở
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Tiến độ thời gian -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[#00429D]">timeline</span> Tổng thời gian đợt ĐATN
+                            </h3>
+                            <span class="text-sm font-bold text-[#00429D]">{{ progressPercent | number:'1.0-0' }}%</span>
+                        </div>
+
+                        <div class="w-full bg-slate-100 rounded-full h-3 mb-4 overflow-hidden">
+                            <div class="bg-[#00429D] h-3 rounded-full transition-all duration-1000" [style.width]="progressPercent + '%'"></div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4 text-center bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                            <div class="text-left">
+                                <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Ngày bắt đầu</p>
+                                <p class="text-xs md:text-sm font-bold text-slate-700 mt-0.5">
+                                    {{ startDate ? (startDate | date:'dd/MM/yyyy') : 'Chưa xác định' }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Hiện tại</p>
+                                <p class="text-xs md:text-sm font-bold text-[#00429D] mt-0.5">
+                                    Tuần {{ currentWeek }}/{{ totalWeeks }}
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Ngày kết thúc</p>
+                                <p class="text-xs md:text-sm font-bold text-slate-700 mt-0.5">
+                                    {{ endDate ? (endDate | date:'dd/MM/yyyy') : 'Chưa xác định' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Card Tiến độ thời gian -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#00429D]">timeline</span>
-              Tổng thời gian đợt thực tập
-            </h3>
-            <span class="text-sm font-bold text-[#00429D]">{{ progressPercent | number:'1.0-0' }}%</span>
-          </div>
-          
-          <div class="w-full bg-slate-100 rounded-full h-3 mb-4 overflow-hidden">
-            <div class="bg-[#00429D] h-3 rounded-full transition-all duration-1000" [style.width]="progressPercent + '%'"></div>
-          </div>
-          
-          <div class="grid grid-cols-3 gap-4 text-center bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-            <div class="text-left">
-              <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Ngày bắt đầu</p>
-              <p class="text-xs md:text-sm font-bold text-slate-700 mt-0.5">
-                {{ startDate ? (startDate | date:'dd/MM/yyyy') : 'Chưa xác định' }}
-              </p>
-            </div>
-            <div>
-              <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Hiện tại</p>
-              <p class="text-xs md:text-sm font-bold text-[#00429D] mt-0.5">
-                Tuần {{ currentWeek }}/{{ totalWeeks }}
-              </p>
-            </div>
-            <div class="text-right">
-              <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Ngày kết thúc</p>
-              <p class="text-xs md:text-sm font-bold text-slate-700 mt-0.5">
-                {{ endDate ? (endDate | date:'dd/MM/yyyy') : 'Chưa xác định' }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+                <!-- TAB 2: BẢNG ĐIỂM CHI TIẾT CHUẨN ĐẦU RA (ĐATN-08) -->
+                <div *ngIf="activeTab === 'grades'" class="space-y-6">
+                    <!-- Bảng điểm ĐATN (ĐATN-08) - Extracted Component -->
+                    <app-student-grade-report [finalResult]="finalResult" [cloDetails]="cloDetails" [m1Weight]="m1Weight" [m2Weight]="m2Weight" [hasFinalResult]="hasFinalResult">
+                    </app-student-grade-report>
 
-      <!-- TAB 2: BẢNG ĐIỂM CHI TIẾT CHUẨN ĐẦU RA (TTTN-07) -->
-      <div *ngIf="activeTab === 'grades'" class="space-y-6">
-        <!-- Bảng điểm thực tập tốt nghiệp (TTTN-07) - Extracted Component -->
-        <app-student-grade-report 
-          [finalResult]="finalResult"
-          [cloDetails]="cloDetails"
-          [stage1Weight]="stage1Weight"
-          [stage2Weight]="stage2Weight"
-          [hasFinalResult]="hasFinalResult">
-        </app-student-grade-report>
+                    <!-- Placeholder if no grades but in M2 or final steps -->
+                    <div *ngIf="!hasFinalResult" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex items-start gap-4 transition-all hover:shadow-md">
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <span class="material-symbols-outlined text-2xl">pending_actions</span>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-slate-900 text-sm md:text-base">Tiến độ chấm điểm học phần</h4>
+                            <p class="text-xs md:text-sm text-slate-500">Điểm số ĐATN của bạn đang được xử lý. Kết quả tổng kết mốc M1, M2 và điểm học phần sẽ tự động cập nhật ngay khi người chấm hoàn tất khóa điểm.</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                <span class="text-[11px] text-indigo-600 font-semibold">Hệ thống đang đồng bộ dữ liệu</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Placeholder if no grades but in stage2 or final steps -->
-        <div *ngIf="!hasFinalResult" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex items-start gap-4 transition-all hover:shadow-md">
-          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-            <span class="material-symbols-outlined text-2xl">pending_actions</span>
-          </div>
-          <div class="space-y-1">
-            <h4 class="font-bold text-slate-900 text-sm md:text-base">Tiến độ chấm điểm học phần</h4>
-            <p class="text-xs md:text-sm text-slate-500">Điểm số thực tập của bạn đang được xử lý. Kết quả tổng kết chặng 1, chặng 2 và điểm học phần sẽ tự động cập nhật ngay khi người chấm hoàn tất khóa điểm.</p>
-            <div class="flex items-center gap-2 mt-2">
-              <span class="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
-              <span class="text-[11px] text-indigo-600 font-semibold">Hệ thống đang đồng bộ dữ liệu</span>
             </div>
-          </div>
-        </div>
-      </div>
 
-    </div>
-
-    <!-- Cột phải (Phụ) -->
-    <div class="space-y-6">
-      <!-- Card Cảnh báo / Nhắc nhở -->
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-0 overflow-hidden">
-        <div class="bg-amber-50 px-5 py-4 border-b border-amber-100">
-          <h3 class="text-base font-bold text-amber-800 flex items-center gap-2">
-            <span class="material-symbols-outlined">notification_important</span>
-            Việc cần làm (To-do)
-          </h3>
-        </div>
-        <div class="p-5 space-y-4">
-          <div *ngFor="let task of upcomingTasks" 
-               [routerLink]="task.route ? task.route : null"
-               [ngClass]="{
+            <!-- Cột phải (Phụ) -->
+            <div class="space-y-6">
+                <!-- Card Cảnh báo / Nhắc nhở -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-0 overflow-hidden">
+                    <div class="bg-amber-50 px-5 py-4 border-b border-amber-100">
+                        <h3 class="text-base font-bold text-amber-800 flex items-center gap-2">
+                            <span class="material-symbols-outlined">notification_important</span> Việc cần làm (To-do)
+                        </h3>
+                    </div>
+                    <div class="p-5 space-y-4">
+                        <div *ngFor="let task of upcomingTasks" [routerLink]="task.route ? task.route : null" [ngClass]="{
                  'cursor-pointer hover:shadow-sm hover:scale-[1.01] transition-all': task.route,
                  'border-l-amber-500 bg-amber-50/50 border-amber-100': task.type === 'warning', 
                  'border-l-blue-500 bg-blue-50/50 border-blue-100': task.type === 'info'
-               }"
-               class="flex items-start gap-3 p-3 rounded-lg border border-l-4">
-            <span class="material-symbols-outlined mt-0.5 text-lg" 
-                  [ngClass]="{'text-amber-600': task.type === 'warning', 'text-blue-600': task.type === 'info'}">
+               }" class="flex items-start gap-3 p-3 rounded-lg border border-l-4">
+                            <span class="material-symbols-outlined mt-0.5 text-lg" [ngClass]="{'text-amber-600': task.type === 'warning', 'text-blue-600': task.type === 'info'}">
               {{ task.type === 'warning' ? 'warning' : 'info' }}
             </span>
-            <div class="flex-1">
-              <div class="flex justify-between items-start gap-2">
-                <p class="text-sm font-semibold text-[#1E293B]" [ngClass]="{'hover:text-[#00429D]': task.route}">{{ task.title }}</p>
-                <span *ngIf="task.route" class="material-symbols-outlined text-xs text-slate-400 mt-0.5">open_in_new</span>
-              </div>
-              <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px]">schedule</span> Hạn: {{ task.deadline }}
-              </p>
-            </div>
-          </div>
-          
-          <!-- Nút hành động nhanh -->
-          <button routerLink="/student/internship-report" [queryParams]="{ step: 'TTTN-03' }" class="w-full mt-2 bg-[#00429D] text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors shadow-sm">
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start gap-2">
+                                    <p class="text-sm font-semibold text-[#1E293B]" [ngClass]="{'hover:text-[#00429D]': task.route}">{{ task.title }}</p>
+                                    <span *ngIf="task.route" class="material-symbols-outlined text-xs text-slate-400 mt-0.5">open_in_new</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">schedule</span> Hạn: {{ task.deadline }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Nút hành động nhanh -->
+                        <button routerLink="/student/datn-report" [queryParams]="{ step: 'ĐATN-02' }" class="w-full mt-2 bg-[#00429D] text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors shadow-sm">
             Viết nhật ký tuần này
           </button>
+                    </div>
+                </div>
+
+
+                <!-- Card Thông tin liên hệ -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#00429D]">contact_phone</span> Danh bạ Hỗ trợ
+                    </h3>
+
+                    <div class="space-y-4">
+                        <!-- GVHD -->
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                                GV
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-xs text-slate-500 font-medium">Giảng viên Hướng dẫn</p>
+                                <p class="text-sm font-bold text-slate-800">{{ contacts.teacher.name }}</p>
+                                <p class="text-xs text-slate-600 flex items-center gap-1 mt-1"><span class="material-symbols-outlined text-[14px]">call</span> {{ contacts.teacher.phone }}</p>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-100">
+
+                        <!-- Đề tài ĐATN -->
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                                ĐT
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-xs text-slate-500 font-medium">Đề tài Đồ án tốt nghiệp</p>
+                                <p class="text-sm font-bold text-slate-800">{{ contacts.thesis.name }}</p>
+                                <p class="text-xs text-slate-600 flex items-center gap-1 mt-1"><span class="material-symbols-outlined text-[14px]">description</span> {{ contacts.thesis.email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-
-
-      <!-- Card Thông tin liên hệ -->
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-[#00429D]">contact_phone</span>
-          Danh bạ Hỗ trợ
-        </h3>
-        
-        <div class="space-y-4">
-          <!-- GVHD -->
-          <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-              GV
-            </div>
-            <div class="flex-1">
-              <p class="text-xs text-slate-500 font-medium">Giảng viên Hướng dẫn</p>
-              <p class="text-sm font-bold text-slate-800">{{ contacts.teacher.name }}</p>
-              <p class="text-xs text-slate-600 flex items-center gap-1 mt-1"><span class="material-symbols-outlined text-[14px]">call</span> {{ contacts.teacher.phone }}</p>
-            </div>
-          </div>
-          
-          <hr class="border-slate-100">
-
-          <!-- ĐVHD -->
-          <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-              DN
-            </div>
-            <div class="flex-1">
-              <p class="text-xs text-slate-500 font-medium">Người HD tại Đơn vị</p>
-              <p class="text-sm font-bold text-slate-800">{{ contacts.companyMentor.name }}</p>
-              <p class="text-xs text-slate-600 flex items-center gap-1 mt-1"><span class="material-symbols-outlined text-[14px]">call</span> {{ contacts.companyMentor.phone }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  </ng-container>
+    </ng-container>
 </div>

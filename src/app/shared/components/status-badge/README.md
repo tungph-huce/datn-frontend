@@ -1,6 +1,6 @@
 # Status Badge Component (`<app-status-badge>`)
 
-Đây là component dùng chung (Shared Component) để hiển thị **Trạng thái (Status)** một cách đồng bộ và chuẩn thiết kế trên toàn bộ các trang (TTTN-01, TTTN-02, v.v.).
+Đây là component dùng chung (Shared Component) để hiển thị **Trạng thái (Status)** một cách đồng bộ và chuẩn thiết kế trên toàn bộ các trang (ĐATN-01, ĐATN-02, v.v.).
 
 > [!IMPORTANT]
 > **Yêu cầu đối với AI Agent / Developer:**

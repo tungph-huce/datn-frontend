@@ -1,123 +1,103 @@
 <div class="max-w-6xl mx-auto space-y-6">
-  <!-- Header Welcome -->
-  <app-welcome-header
-    [title]="'Xin chào, ' + teacherName + '! 👋'"
-    subtitle="Tổng quan công tác hướng dẫn thực tập đợt hiện tại"
-    actionText="Xem danh sách Sinh viên"
-    actionLink="/teacher/students"
-    actionIcon="groups">
-  </app-welcome-header>
+    <!-- Header Welcome -->
+    <app-welcome-header [title]="'Xin chào, ' + teacherName + '! 👋'" subtitle="Tổng quan công tác hướng dẫn ĐATN đợt hiện tại" actionText="Xem danh sách Sinh viên" actionLink="/teacher/students" actionIcon="groups">
+    </app-welcome-header>
 
-  <!-- Loading -->
-  <app-dashboard-loading *ngIf="isLoading" message="Đang tải dữ liệu..."></app-dashboard-loading>
+    <!-- Loading -->
+    <app-dashboard-loading *ngIf="isLoading" message="Đang tải dữ liệu..."></app-dashboard-loading>
 
-  <div *ngIf="!isLoading" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Cột trái (Chính) -->
-    <div class="lg:col-span-2 space-y-6">
-      
-      <!-- Card Thống kê Nhanh -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <app-metric-card
-          title="Tổng SV Hướng dẫn"
-          [value]="overviewStats.totalStudents"
-          valueClass="text-[#00429D]">
-        </app-metric-card>
-        <app-metric-card
-          title="Có Đơn vị TT"
-          [value]="overviewStats.companyApproved"
-          valueClass="text-emerald-600">
-        </app-metric-card>
-        <app-metric-card
-          title="Đã chốt Kế hoạch"
-          [value]="overviewStats.planApproved"
-          valueClass="text-blue-600">
-        </app-metric-card>
-        <app-metric-card
-          title="Đã nộp Báo cáo"
-          [value]="overviewStats.reportSubmitted"
-          valueClass="text-purple-600">
-        </app-metric-card>
-      </div>
+    <div *ngIf="!isLoading" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Cột trái (Chính) -->
+        <div class="lg:col-span-2 space-y-6">
 
-      <!-- Card Yêu cầu chờ xử lý -->
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-0 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-          <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <span class="material-symbols-outlined text-[#00429D]">fact_check</span>
-            Yêu cầu cần Phê duyệt
-          </h3>
-          <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">{{ pendingRequests.tttn01 + pendingRequests.tttn02 }} yêu cầu</span>
-        </div>
-        
-        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- TTTN-01 -->
-          <div class="border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:border-blue-300 transition-colors bg-white">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                <span class="material-symbols-outlined">domain</span>
-              </div>
-              <div>
-                <p class="font-bold text-slate-800">Kê khai Đơn vị (TTTN-01)</p>
-                <p class="text-sm text-slate-500 mt-0.5">Sinh viên mới nộp thông tin</p>
-              </div>
+            <!-- Card Thống kê Nhanh -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <app-metric-card title="Tổng SV Hướng dẫn" [value]="overviewStats.totalStudents" valueClass="text-[#00429D]">
+                </app-metric-card>
+                <app-metric-card title="Đã duyệt ĐATN-01" [value]="overviewStats.datnApproved" valueClass="text-emerald-600">
+                </app-metric-card>
+                <app-metric-card title="Đang thực hiện" [value]="overviewStats.inProgress" valueClass="text-blue-600">
+                </app-metric-card>
+                <app-metric-card title="Đã ĐG mốc M2" [value]="overviewStats.m2Evaluated" valueClass="text-purple-600">
+                </app-metric-card>
             </div>
-            <div class="flex items-center gap-4">
-              <span class="text-2xl font-black text-[#00429D]">{{ pendingRequests.tttn01 }}</span>
-              <button routerLink="/teacher/approval-requests" class="text-slate-400 hover:text-[#00429D]">
+
+            <!-- Card Yêu cầu chờ xử lý -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-0 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#00429D]">fact_check</span> Yêu cầu cần Phê duyệt
+                    </h3>
+                    <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">{{ pendingRequests.datn01 + pendingRequests.datnPlan }} yêu cầu</span>
+                </div>
+
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- ĐATN-01 -->
+                    <div class="border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:border-blue-300 transition-colors bg-white">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined">assignment</span>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">Duyệt Nhiệm vụ ĐATN (ĐATN-01)</p>
+                                <p class="text-sm text-slate-500 mt-0.5">Sinh viên mới kê khai đề tài</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-2xl font-black text-[#00429D]">{{ pendingRequests.datn01 }}</span>
+                            <button routerLink="/teacher/approval-requests" class="text-slate-400 hover:text-[#00429D]">
                 <span class="material-symbols-outlined">chevron_right</span>
               </button>
-            </div>
-          </div>
+                        </div>
+                    </div>
 
-          <!-- TTTN-02 -->
-          <div class="border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:border-emerald-300 transition-colors bg-white">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <span class="material-symbols-outlined">edit_document</span>
-              </div>
-              <div>
-                <p class="font-bold text-slate-800">Kế hoạch TT (TTTN-02)</p>
-                <p class="text-sm text-slate-500 mt-0.5">Cần duyệt mục tiêu chi tiết</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <span class="text-2xl font-black text-emerald-600">{{ pendingRequests.tttn02 }}</span>
-              <button routerLink="/teacher/approval-requests" class="text-slate-400 hover:text-emerald-600">
+                    <!-- Kế hoạch ĐATN -->
+                    <div class="border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:border-emerald-300 transition-colors bg-white">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined">edit_document</span>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">Kế hoạch thực hiện ĐATN</p>
+                                <p class="text-sm text-slate-500 mt-0.5">Cần duyệt mục tiêu chi tiết</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-2xl font-black text-emerald-600">{{ pendingRequests.datnPlan }}</span>
+                            <button routerLink="/teacher/approval-requests" class="text-slate-400 hover:text-emerald-600">
                 <span class="material-symbols-outlined">chevron_right</span>
               </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Cột phải (Phụ) -->
-    <div class="space-y-6">
-      
-      <!-- Card Cảnh báo Sinh viên -->
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-0 overflow-hidden">
-        <div class="bg-red-50 px-5 py-4 border-b border-red-100 flex justify-between items-center">
-          <h3 class="text-base font-bold text-red-800 flex items-center gap-2">
-            <span class="material-symbols-outlined">warning</span>
-            Cảnh báo Sinh viên
-          </h3>
-          <span class="bg-red-200 text-red-800 text-xs font-bold px-2 py-0.5 rounded-full">{{ studentAlerts.length }}</span>
-        </div>
-        <div class="p-0">
-          <div *ngFor="let alert of studentAlerts" class="p-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-            <p class="text-sm font-bold text-slate-800">{{ alert.name }} <span class="text-xs font-normal text-slate-500">({{ alert.mssv }})</span></p>
-            <p class="text-sm mt-1 flex items-start gap-1"
-               [ngClass]="{'text-amber-600': alert.type === 'warning', 'text-red-600': alert.type === 'danger'}">
-               <span class="material-symbols-outlined text-[16px] mt-0.5">{{ alert.type === 'warning' ? 'error_outline' : 'report' }}</span>
-               <span>{{ alert.issue }}</span>
-            </p>
-          </div>
-          <div *ngIf="studentAlerts.length === 0" class="p-6 text-center text-slate-500 text-sm">
-            Tất cả sinh viên đang thực hiện tốt tiến độ.
-          </div>
-        </div>
-      </div>
+        <!-- Cột phải (Phụ) -->
+        <div class="space-y-6">
 
+            <!-- Card Cảnh báo Sinh viên -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-0 overflow-hidden">
+                <div class="bg-red-50 px-5 py-4 border-b border-red-100 flex justify-between items-center">
+                    <h3 class="text-base font-bold text-red-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined">warning</span> Cảnh báo Sinh viên
+                    </h3>
+                    <span class="bg-red-200 text-red-800 text-xs font-bold px-2 py-0.5 rounded-full">{{ studentAlerts.length }}</span>
+                </div>
+                <div class="p-0">
+                    <div *ngFor="let alert of studentAlerts" class="p-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                        <p class="text-sm font-bold text-slate-800">{{ alert.name }} <span class="text-xs font-normal text-slate-500">({{ alert.mssv }})</span></p>
+                        <p class="text-sm mt-1 flex items-start gap-1" [ngClass]="{'text-amber-600': alert.type === 'warning', 'text-red-600': alert.type === 'danger'}">
+                            <span class="material-symbols-outlined text-[16px] mt-0.5">{{ alert.type === 'warning' ? 'error_outline' : 'report' }}</span>
+                            <span>{{ alert.issue }}</span>
+                        </p>
+                    </div>
+                    <div *ngIf="studentAlerts.length === 0" class="p-6 text-center text-slate-500 text-sm">
+                        Tất cả sinh viên đang thực hiện tốt tiến độ.
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
-  </div>
 </div>

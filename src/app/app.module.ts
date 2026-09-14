@@ -12,10 +12,10 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
 import { CampaignManagementComponent } from './pages/admin/campaign-management/campaign-management.component';
 import { CloRubricConfigComponent } from './pages/ldkbm/clo-rubric-config/clo-rubric-config.component';
 import { StudentAssignmentComponent } from './pages/ldkbm/student-assignment/student-assignment.component';
-import { CompanyDeclarationComponent } from './pages/student/company-declaration/company-declaration.component';
+import { DatnDeclarationComponent } from './pages/student/datn-declaration/datn-declaration.component';
 import { PaginationComponent } from './shared/components/pagination/pagination.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
-import { InternshipPlanComponent } from './pages/student/internship-plan/internship-plan.component';
+import { DatnPlanComponent } from './pages/student/datn-plan/datn-plan.component';
 import { WeeklyLogComponent } from './pages/student/weekly-log/weekly-log.component';
 import { FinalReportComponent } from './pages/student/final-report/final-report.component';
 import { AdminLayoutComponent } from './layout/admin-layout/admin-layout.component';
@@ -25,19 +25,15 @@ import { TeacherLayoutComponent } from './layout/teacher-layout/teacher-layout.c
 import { RubricEvaluationComponent } from './pages/teacher/rubric-evaluation/rubric-evaluation.component';
 import { ScoreSummaryComponent } from './pages/teacher/score-summary/score-summary.component';
 import { SurveyStudentComponent } from './pages/student/survey-student/survey-student.component';
-import { SurveyCompanyComponent } from './pages/company/survey-company/survey-company.component';
 import { SurveyDashboardComponent } from './pages/ldkbm/survey-dashboard/survey-dashboard.component';
 import { GeneralDashboardComponent } from './pages/ldkbm/general-dashboard/general-dashboard.component';
-import { CompanyLayoutComponent } from './layout/company-layout/company-layout.component';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
-import { ManageInternsComponent } from './pages/company/manage-interns/manage-interns.component';
 import { ApprovalRequestsComponent } from './pages/teacher/approval-requests/approval-requests.component';
 import { StudentDashboardComponent } from './pages/student/student-dashboard/student-dashboard.component';
 import { StudentGradeReportComponent } from './pages/student/student-dashboard/student-grade-report.component';
 import { TeacherDashboardComponent } from './pages/teacher/teacher-dashboard/teacher-dashboard.component';
 import { ManageStudentsComponent } from './pages/teacher/manage-students/manage-students.component';
 import { AdminDashboardComponent } from './pages/admin/admin-dashboard/admin-dashboard.component';
-import { CompanyDashboardComponent } from './pages/company/company-dashboard/company-dashboard.component';
 import { AuthLayoutComponent } from './layout/auth-layout/auth-layout.component';
 import { LoginComponent } from './pages/auth/login/login.component';
 import { RegisterComponent } from './pages/auth/register/register.component';
@@ -49,7 +45,7 @@ import { LdkbmScoreSummaryComponent } from './pages/ldkbm/score-summary/score-su
 import { SetupPasswordComponent } from './pages/auth/setup-password/setup-password.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { StatusBadgeComponent } from './shared/components/status-badge/status-badge.component';
-import { InternshipReportComponent } from './pages/student/internship-report/internship-report.component';
+import { DatnReportComponent } from './pages/student/datn-report/datn-report.component';
 import { WelcomeHeaderComponent } from './shared/components/welcome-header/welcome-header.component';
 import { MetricCardComponent } from './shared/components/metric-card/metric-card.component';
 import { DashboardLoadingComponent } from './shared/components/dashboard-loading/dashboard-loading.component';
@@ -68,10 +64,10 @@ import { TableCellDirective } from './shared/components/table/table-cell.directi
     CampaignManagementComponent,
     CloRubricConfigComponent,
     StudentAssignmentComponent,
-    CompanyDeclarationComponent,
+    DatnDeclarationComponent,
     PaginationComponent,
     ModalComponent,
-    InternshipPlanComponent,
+    DatnPlanComponent,
     WeeklyLogComponent,
     FinalReportComponent,
     AdminLayoutComponent,
@@ -81,18 +77,14 @@ import { TableCellDirective } from './shared/components/table/table-cell.directi
     RubricEvaluationComponent,
     ScoreSummaryComponent,
     SurveyStudentComponent,
-    SurveyCompanyComponent,
     SurveyDashboardComponent,
     GeneralDashboardComponent,
-    CompanyLayoutComponent,
-    ManageInternsComponent,
     ApprovalRequestsComponent,
     StudentDashboardComponent,
     StudentGradeReportComponent,
     TeacherDashboardComponent,
     ManageStudentsComponent,
     AdminDashboardComponent,
-    CompanyDashboardComponent,
     AuthLayoutComponent,
     LoginComponent,
     RegisterComponent,
@@ -103,7 +95,7 @@ import { TableCellDirective } from './shared/components/table/table-cell.directi
     LdkbmScoreSummaryComponent,
     SetupPasswordComponent,
     StatusBadgeComponent,
-    InternshipReportComponent,
+    DatnReportComponent,
     WelcomeHeaderComponent,
     MetricCardComponent,
     DashboardLoadingComponent,

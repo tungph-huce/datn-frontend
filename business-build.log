@@ -1,0 +1,25 @@
+
+> datn-frontend@0.0.0 build
+> ng build --configuration development
+
+- Generating browser application bundles (phase: setup)...
+√ Browser application bundle generation complete.
+√ Browser application bundle generation complete.
+- Copying assets...
+√ Copying assets complete.
+- Generating index html...
+√ Index html generation complete.
+
+Initial Chunk Files                            | Names         |  Raw Size
+vendor.js                                      | vendor        |   3.17 MB |
+main.js                                        | main          |   1.70 MB |
+polyfills.js                                   | polyfills     | 106.32 kB |
+styles.css                                     | styles        |  88.53 kB |
+runtime.js                                     | runtime       |  13.53 kB |
+
+| Initial Total |   5.07 MB
+
+Lazy Chunk Files                               | Names         |  Raw Size
+node_modules_xlsx-js-style_dist_xlsx_min_js.js | xlsx-js-style |   1.10 MB |
+
+Build at: 2026-09-07T17:22:58.409Z - Hash: d09f3413cbd38848 - Time: 123183ms

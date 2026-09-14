@@ -11,10 +11,13 @@ export interface ScoreItem {
 }
 
 export interface EvaluationRequest {
+  conclusion: 'PASSED' | 'REVISION_REQUIRED' | 'FAILED';
+  revision_resolved?: boolean;
+  reassessment?: boolean;
   student_campaign_id: number;
-  evaluator_type: 'GVHD' | 'COMPANY' | 'COUNCIL' | 'COMPANY_SUPERVISOR' | 'COMMITTEE_MEMBER';
+  evaluator_type: 'GVHD';
   evaluator_id: number;
-  stage: 'STAGE_1' | 'STAGE_2';
+  stage: 'M1' | 'M2';
   general_comment?: string;
   scores: ScoreItem[];
 }
@@ -50,8 +53,8 @@ export class EvaluationService {
 
   lockFinalResultStage(
     studentCampaignId: number,
-    stage: 'STAGE_1' | 'STAGE_2',
-    evaluatorType: 'GVHD' | 'COMPANY_SUPERVISOR'
+    stage: 'M1' | 'M2',
+    evaluatorType: 'GVHD'
   ): Observable<any> {
     return this.apiService.patch<any>(
       `/base/evaluations/final-result/${studentCampaignId}/lock?stage=${stage}&evaluator_type=${evaluatorType}`,
@@ -59,23 +62,27 @@ export class EvaluationService {
     );
   }
 
-  exportStage1Tttn04(studentCampaignId: number): Observable<Blob> {
+  exportM1Datn03(studentCampaignId: number): Observable<Blob> {
     return this.http.get(
-      `${environment.apiUrl}/base/evaluations/stage1/${studentCampaignId}/tttn-04`,
+      `${environment.apiUrl}/base/evaluations/m1/${studentCampaignId}/datn-03`,
       { responseType: 'blob' }
     );
   }
 
-  exportStage2Tttn05(studentCampaignId: number): Observable<Blob> {
+  exportStageDatn07(studentCampaignId: number, stage: 'M1' | 'M2'): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/base/evaluations/stage/${stage}/${studentCampaignId}/datn-07`, { responseType: 'blob' });
+  }
+
+  exportM2Datn04(studentCampaignId: number): Observable<Blob> {
     return this.http.get(
-      `${environment.apiUrl}/base/evaluations/stage2/${studentCampaignId}/tttn-05`,
+      `${environment.apiUrl}/base/evaluations/m2/${studentCampaignId}/datn-04`,
       { responseType: 'blob' }
     );
   }
 
-  exportTttn07Zip(campaignId: number, studentCampaignIds: number[]): Observable<Blob> {
+  exportDatn07Zip(campaignId: number, studentCampaignIds: number[]): Observable<Blob> {
     return this.http.post(
-      `${environment.apiUrl}/base/evaluations/tttn-07/export`,
+      `${environment.apiUrl}/base/evaluations/datn-08/export`,
       {
         campaign_id: campaignId,
         student_campaign_ids: studentCampaignIds
