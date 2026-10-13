@@ -281,7 +281,7 @@ export class ManageStudentsComponent implements OnInit {
         description: 'Sinh viên kê khai đề tài, mục tiêu, phạm vi và sản phẩm ĐATN; GVHD xác nhận.',
         startDate: parseDate(camp.m1_start_date),
         deadline: parseDate(camp.m1_deadline),
-        isCompleted: ['DATN_APPROVED', 'IN_PROGRESS', 'M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status),
+        isCompleted: ['DATN_APPROVED', 'IN_PROGRESS', 'M1_EVALUATED', 'M2_EVALUATED', 'M3_EVALUATED', 'COMPLETED'].includes(status),
         isPending: status === 'DATN_DECLARED',
         icon: 'assignment'
       },
@@ -292,7 +292,7 @@ export class ManageStudentsComponent implements OnInit {
         description: 'GVHD đánh giá tiến độ đầu kỳ theo CLO/Rubric, lập phiếu đánh giá mốc M1 (ĐATN-03).',
         startDate: parseDate(camp.m1_start_date),
         deadline: parseDate(camp.m1_deadline),
-        isCompleted: ['M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status),
+        isCompleted: ['M1_EVALUATED', 'M2_EVALUATED', 'M3_EVALUATED', 'COMPLETED'].includes(status),
         isPending: status === 'IN_PROGRESS' || status === 'DATN_APPROVED',
         icon: 'rate_review'
       },
@@ -303,7 +303,7 @@ export class ManageStudentsComponent implements OnInit {
         description: 'GVHD đánh giá tiến độ giữa kỳ theo CLO/Rubric, lập phiếu đánh giá mốc M2 (ĐATN-04).',
         startDate: parseDate(camp.m2_start_date),
         deadline: parseDate(camp.m2_deadline),
-        isCompleted: ['M2_EVALUATED', 'COMPLETED'].includes(status),
+        isCompleted: ['M2_EVALUATED', 'M3_EVALUATED', 'COMPLETED'].includes(status),
         isPending: status === 'M1_EVALUATED',
         icon: 'rate_review'
       },

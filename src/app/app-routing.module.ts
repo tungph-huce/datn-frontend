@@ -1,3 +1,5 @@
+import { AcademicManagementComponent } from './pages/academic/academic-management.component';
+import { CouncilScoringComponent } from './pages/academic/council-scoring.component';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
@@ -47,6 +49,7 @@ const routes: Routes = [
       { path: 'dashboard', component: AdminDashboardComponent },
       { path: 'campaigns', component: CampaignManagementComponent },
       { path: 'departments', component: DepartmentManagementComponent },
+      { path: 'academic', component: AcademicManagementComponent },
       { path: 'users', component: UserManagementComponent },
       { path: 'settings', component: SystemSettingsComponent },
       { path: 'notifications', component: NotificationManagementComponent },
@@ -60,6 +63,7 @@ const routes: Routes = [
     children: [
       { path: 'general-dashboard', component: GeneralDashboardComponent },
       { path: 'clo-config', component: CloRubricConfigComponent },
+      { path: 'academic', component: AcademicManagementComponent },
       { path: 'student-assignment', component: StudentAssignmentComponent },
       { path: 'survey-dashboard', component: SurveyDashboardComponent },
       { path: 'score-summary', component: LdkbmScoreSummaryComponent },
@@ -87,6 +91,7 @@ const routes: Routes = [
       { path: 'students', component: ManageStudentsComponent },
       { path: 'approval-requests', component: ApprovalRequestsComponent },
       { path: 'rubric-evaluation', component: RubricEvaluationComponent },
+      { path: 'council-scoring', component: CouncilScoringComponent },
       { path: 'score-summary', component: ScoreSummaryComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

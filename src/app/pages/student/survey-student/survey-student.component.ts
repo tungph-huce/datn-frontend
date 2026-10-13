@@ -25,7 +25,7 @@ export class SurveyStudentComponent implements OnInit {
   };
 
   closAssessment = [
-    { id: 'clo1', title: 'CLO1: Áp dụng kiến thức chuyên ngành vào thực tiễn.', level: null as number | null, evidence: '' },
+    { id: 'clo1', title: 'CLO1: Áp dụng kiến thức ngành đào tạo vào thực tiễn.', level: null as number | null, evidence: '' },
     { id: 'clo2', title: 'CLO2: Kỹ năng giải quyết vấn đề kỹ thuật.', level: null as number | null, evidence: '' },
     { id: 'clo3', title: 'CLO3: Kỹ năng làm việc nhóm và giao tiếp.', level: null as number | null, evidence: '' }
   ];

@@ -53,6 +53,7 @@ export interface UserInfo {
  * Khớp với backend CampaignResponse.java
  */
 export interface CampaignResponse {
+  m3_start_date?: string; m3_deadline?: string;
   week_count?: number;
   id: number;
   code: string;
@@ -134,6 +135,7 @@ export interface DatnPlanResponse {
 }
 
 export interface StudentCampaignResponse {
+  major_id?: number; major_name?: string; cohort?: string; clo_set_id?: number;
   id: number;
   student_code: string;
   full_name: string;

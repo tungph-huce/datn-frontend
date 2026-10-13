@@ -105,6 +105,7 @@
                         <th class="px-2 py-3 border-r border-slate-200 text-center">Lớp</th>
                         <th class="px-2 py-3 border-r border-slate-200 text-center bg-blue-50/50 leading-tight">Điểm mốc M1<br/><span class="text-[10px] font-normal normal-case text-slate-500">(GVHD)</span></th>
                         <th class="px-2 py-3 border-r border-slate-200 text-center bg-purple-50/50 leading-tight">Điểm mốc M2<br/><span class="text-[10px] font-normal normal-case text-slate-500">(GVHD)</span></th>
+                        <th class="px-2 py-3 text-center">Điểm M3<br/>Hội đồng</th>
                         <th class="px-2 py-3 border-r border-slate-200 text-center bg-orange-50/50 leading-tight">Tổng điểm HP<br/><span class="text-[10px] font-normal normal-case text-slate-500">(Hệ số 10)</span></th>
                         <th class="px-2 py-3 text-center">Kết quả</th>
                     </tr>
@@ -112,7 +113,7 @@
                 <!-- Table Body -->
                 <tbody class="divide-y divide-slate-200 text-slate-800">
                     <tr *ngIf="paginatedStudents.length === 0">
-                        <td colspan="9" class="py-8 text-center text-slate-500 font-medium">
+                        <td colspan="10" class="py-8 text-center text-slate-500 font-medium">
                             Không tìm thấy sinh viên nào khớp bộ lọc.
                         </td>
                     </tr>
@@ -143,6 +144,7 @@
                             </button>
                         </td>
 
+                        <td class="px-2 py-3 border-r border-slate-200 text-center">{{ student.m3Score === null ? "-" : (student.m3Score | number:'1.1-1') }}</td>
                         <!-- Final Score -->
                         <td class="px-2 py-3 border-r border-slate-200 text-center">
                             <button type="button" (click)="goToEvaluation(student, 'SUMMARY')" class="inline-flex min-w-14 items-center justify-center rounded border border-transparent px-2 py-1 hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"

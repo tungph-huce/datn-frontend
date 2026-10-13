@@ -14,6 +14,7 @@ import { SurveyService } from '../../../core/services/survey.service';
   styleUrls: ['./student-dashboard.component.scss']
 })
 export class StudentDashboardComponent implements OnInit {
+  studentCampaign: any = null;
   isLoading = true;
   hasCurrentCampaign = true;
   studentName = '';
@@ -87,6 +88,7 @@ export class StudentDashboardComponent implements OnInit {
         if (campaigns.length > 0) {
           this.hasCurrentCampaign = true;
           const campaign = campaigns[0];
+          this.studentCampaign = campaign;
           this.studentName = campaign.full_name;
           this.studentId = campaign.student_code;
 
@@ -447,7 +449,7 @@ export class StudentDashboardComponent implements OnInit {
         description: 'GVHD đánh giá tiến độ đầu kỳ theo CLO/Rubric (ĐATN-03).',
         startDate: parseDate(activeSource.m1_start_date),
         deadline: parseDate(activeSource.m1_deadline),
-        isCompleted: ['M1_EVALUATED', 'M2_EVALUATED', 'COMPLETED'].includes(status),
+        isCompleted: ['M1_EVALUATED', 'M2_EVALUATED', 'M3_EVALUATED', 'COMPLETED'].includes(status),
         isPending: status === 'IN_PROGRESS' || status === 'DATN_APPROVED',
         icon: 'rate_review',
         stepCode: 'M1'
@@ -459,20 +461,32 @@ export class StudentDashboardComponent implements OnInit {
         description: 'GVHD đánh giá tiến độ giữa kỳ theo CLO/Rubric (ĐATN-04).',
         startDate: parseDate(activeSource.m2_start_date),
         deadline: parseDate(activeSource.m2_deadline),
-        isCompleted: ['M2_EVALUATED', 'COMPLETED'].includes(status),
+        isCompleted: ['M2_EVALUATED', 'M3_EVALUATED', 'COMPLETED'].includes(status),
         isPending: status === 'M1_EVALUATED',
         icon: 'rate_review',
         stepCode: 'M2'
+      },
+      {
+        key: 'm3',
+        title: 'Đánh giá mốc M3 (hội đồng)',
+        code: 'M3',
+        description: 'Các thành viên hội đồng chấm độc lập; tổng hợp khi đủ phiếu.',
+        startDate: parseDate(activeSource.m3_start_date || camp.m3_start_date),
+        deadline: parseDate(activeSource.m3_deadline || camp.m3_deadline),
+        isCompleted: status === 'COMPLETED',
+        isPending: status === 'M3_EVALUATED',
+        icon: 'groups',
+        stepCode: 'M3'
       },
       {
         key: 'final',
         title: 'Báo cáo & Tổng hợp điểm',
         code: 'ĐATN-08',
         description: 'Nộp báo cáo tổng kết; Khoa tổng hợp điểm CLO và duyệt kết quả.',
-        startDate: parseDate(activeSource.m2_deadline),
-        deadline: parseDate(activeSource.end_date),
+        startDate: parseDate(activeSource.m3_start_date || camp.m3_start_date || activeSource.m2_deadline),
+        deadline: parseDate(activeSource.grade_deadline || camp.grade_deadline || activeSource.end_date),
         isCompleted: ['COMPLETED'].includes(status),
-        isPending: status === 'M2_EVALUATED',
+        isPending: status === 'M3_EVALUATED',
         icon: 'description',
         stepCode: 'BAO_CAO'
       }
@@ -541,7 +555,7 @@ export class StudentDashboardComponent implements OnInit {
       clo_code: o.code, description: o.description,
       s1_gvhd: o.m1, s1_tb: o.m1, s2_gvhd: o.m2, s2_tb: o.m2,
       clo_final: o.score, alpha_weight: o.alphaWeight,
-      m1_weight: o.m1Weight, m2_weight: o.m2Weight,
+      m1_weight: o.m1Weight, m2_weight: o.m2Weight, m3_weight: o.m3Weight, s3: o.m3,
       clo_converted: o.rawScore == null ? null : o.rawScore * o.alphaWeight / 100,
       achieved: o.achieved, required: o.required
     }));

@@ -8,6 +8,7 @@ export interface RubricItem {
 }
 
 export interface CloItem {
+  m3_weight?: number;
   required_for_completion?: boolean;
   clo_code: string;
   description: string;
@@ -19,6 +20,7 @@ export interface CloItem {
 }
 
 export interface CloConfigRequest {
+  major_id?: number; cohort?: string; m3_weight?: number;
   program_type?: string;
   completion_rule?: string;
   department_campaign_id: number;

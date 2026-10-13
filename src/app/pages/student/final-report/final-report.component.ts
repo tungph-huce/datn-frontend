@@ -220,7 +220,7 @@ export class FinalReportComponent implements OnInit {
   }
 
   hasSubmittedReport(): boolean {
-    const submittedStatuses = ['M2_EVALUATED', 'COMPLETED'];
+    const submittedStatuses = ['M2_EVALUATED', 'M3_EVALUATED', 'COMPLETED'];
     return submittedStatuses.includes(this.studentCampaign?.status || '')
       || this.attachedFiles.some(file => file.id > 0);
   }

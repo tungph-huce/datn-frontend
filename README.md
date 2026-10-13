@@ -1,5 +1,7 @@
 # Hệ thống Quản lý Đồ án Tốt nghiệp (ĐATN) — Frontend Web Application
 
+> Cập nhật 20/09/2026: đã bổ sung M3 do hội đồng chấm, chuyên ngành/khóa, CLO riêng từng SV và GVHD ngoài trường. Xem [luồng hiện hành, seed và tài khoản demo](../docs/M3-ACADEMIC-DEMO.md). Các nội dung chỉ có M1/M2 bên dưới mô tả phạm vi cũ.
+
 Giao diện Frontend (Client-side) của **Hệ thống Quản lý Đồ án Tốt nghiệp (ĐATN)** HUCE. Ứng dụng cung cấp các Web Portal chuyên biệt theo vai trò: **Admin**, **LDKBM** (Lãnh đạo Khoa/Bộ môn), **GVHD** (Giảng viên hướng dẫn) và **Sinh viên**.
 
 > Dự án này là phiên bản **Đồ án Tốt nghiệp (ĐATN)**, được chuyển đổi từ hệ thống Thực tập Tốt nghiệp của HUCE. Tài liệu tổng quan và lịch sử chuyển đổi nằm tại thư mục [`../docs/`](../docs/).

@@ -1,3 +1,4 @@
+<div *ngIf="studentCampaign" class="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-4"><strong>Ngành: {{studentCampaign.major_name || 'Chưa được cập nhật'}}</strong><span class="ml-4">Khóa {{studentCampaign.cohort || '—'}}</span></div>
 <div class="max-w-6xl mx-auto space-y-6">
     <app-dashboard-loading *ngIf="isLoading" message="Đang tải dữ liệu..." icon="autorenew"></app-dashboard-loading>
 

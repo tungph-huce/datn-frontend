@@ -16,7 +16,7 @@ export class CampaignManagementComponent implements OnInit {
   // Unlock Grade Modal State
   isUnlockModalOpen = false;
   selectedCampaignForUnlock: CampaignResponse | null = null;
-  unlockStage: 'M1' | 'M2' | 'ALL' = 'M1';
+  unlockStage: 'M1' | 'M2' | 'M3' | 'ALL' = 'M1';
   unlockReason = '';
   isUnlocking = false;
 
@@ -45,6 +45,8 @@ export class CampaignManagementComponent implements OnInit {
   formM1Deadline = '';
   formM2StartDate = '';
   formM2Deadline = '';
+  formM3StartDate = '';
+  formM3Deadline = '';
   formAutoGenerateTimeline = true;
   isTimelinePreviewLoading = false;
   private timelineEditedManually = false;
@@ -138,6 +140,8 @@ export class CampaignManagementComponent implements OnInit {
     this.formM1Deadline = campaign.m1_deadline ? campaign.m1_deadline.substring(0, 10) : '';
     this.formM2StartDate = campaign.m2_start_date ? campaign.m2_start_date.substring(0, 10) : '';
     this.formM2Deadline = campaign.m2_deadline ? campaign.m2_deadline.substring(0, 10) : '';
+    this.formM3StartDate = this.toDateInput(campaign.m3_start_date);
+    this.formM3Deadline = this.toDateInput(campaign.m3_deadline);
     
     this.isModalOpen = true;
   }
@@ -160,6 +164,8 @@ export class CampaignManagementComponent implements OnInit {
     this.formM1Deadline = '';
     this.formM2StartDate = '';
     this.formM2Deadline = '';
+    this.formM3StartDate = '';
+    this.formM3Deadline = '';
     this.formAutoGenerateTimeline = true;
     this.timelineEditedManually = false;
     this.isTimelinePreviewLoading = false;
@@ -234,6 +240,8 @@ export class CampaignManagementComponent implements OnInit {
     this.formM1Deadline = this.toDateInput(timeline.m1_deadline);
     this.formM2StartDate = this.toDateInput(timeline.m2_start_date);
     this.formM2Deadline = this.toDateInput(timeline.m2_deadline);
+    this.formM3StartDate = this.toDateInput(timeline.m3_start_date);
+    this.formM3Deadline = this.toDateInput(timeline.m3_deadline);
     this.isApplyingTimelinePreview = false;
   }
 
@@ -283,7 +291,9 @@ export class CampaignManagementComponent implements OnInit {
       m1_start_date: this.formM1StartDate ? this.formM1StartDate + 'T00:00:00' : undefined,
       m1_deadline: this.formM1Deadline ? this.formM1Deadline + 'T23:59:59' : undefined,
       m2_start_date: this.formM2StartDate ? this.formM2StartDate + 'T00:00:00' : undefined,
-      m2_deadline: this.formM2Deadline ? this.formM2Deadline + 'T23:59:59' : undefined
+      m2_deadline: this.formM2Deadline ? this.formM2Deadline + 'T23:59:59' : undefined,
+      m3_start_date: this.formM3StartDate ? this.formM3StartDate + 'T00:00:00' : undefined,
+      m3_deadline: this.formM3Deadline ? this.formM3Deadline + 'T23:59:59' : undefined
     };
 
     this.isLoading = true;

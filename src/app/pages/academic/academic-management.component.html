@@ -1,0 +1,34 @@
+<h2>Ngành, CLO sinh viên và Hội đồng M3</h2>
+<p class="muted">Chọn nhóm chuyên môn và đợt để quản lý. Khóa được lấy từ hai chữ số cuối của MSSV.</p>
+<section>
+ <label>Nhóm chuyên môn<select [(ngModel)]="departmentId" (ngModelChange)="load()"><option *ngFor="let d of departments" [ngValue]="d.id">{{d.name}}</option></select></label>
+ <label>Đợt ĐATN<select [(ngModel)]="campaignId" (ngModelChange)="load()"><option *ngFor="let c of campaigns" [ngValue]="c.id">{{c.name}}</option></select></label>
+</section>
+<section><h3>1. Ngành thuộc nhóm chuyên môn</h3>
+ <span *ngFor="let m of majors" class="inline-block px-3 py-1 m-1 rounded bg-blue-50">{{m.code}} · {{m.name}}</span>
+ <div><label>Mã ngành<input [(ngModel)]="majorCode"></label><label>Tên ngành<input [(ngModel)]="majorName"></label><button (click)="createMajor()" [disabled]="!majorName || !majorCode">Thêm ngành</button></div>
+</section>
+<section><h3>2. Gán CLO theo đợt, ngành và khóa</h3>
+ <p class="muted">Tạo bộ CLO trong mục “Cấu hình CLO & Rubric”, sau đó gán tại đây. Bộ đã gán trên hồ sơ SV được giữ nguyên khi thay đổi cấu hình mặc định.</p>
+ <label>Ngành<select [(ngModel)]="majorId" (ngModelChange)="setId=null"><option [ngValue]="null">Chọn ngành</option><option *ngFor="let m of majors" [ngValue]="m.id">{{m.name}}</option></select></label>
+ <label>Khóa<input [(ngModel)]="cohort" maxlength="2" (ngModelChange)="setId=null"></label>
+ <label>Bộ CLO<select [(ngModel)]="setId"><option [ngValue]="null">Chọn bộ đúng ngành/khóa</option><option *ngFor="let s of matchingSets" [ngValue]="s.id">{{s.name}}</option></select></label>
+ <button (click)="bind()" [disabled]="!setId || !campaignId">Gán vào đợt</button>
+ <p *ngFor="let b of bindings" class="muted">{{majorLabel(b.major_id)}} · K{{b.cohort}} → {{setName(b.clo_set_id)}}</p>
+ <div class="overflow-auto"><table><thead><tr><th>Chọn</th><th>SV</th><th>Ngành / Khóa</th><th>Bộ CLO riêng</th><th>Thao tác</th></tr></thead><tbody><tr *ngFor="let s of students"><td><input type="checkbox" [(ngModel)]="s.selected"></td><td>{{s.full_name}}<div class="muted">{{s.student_code}}</div></td><td>{{s.major_name || 'Chưa cập nhật'}} · K{{s.cohort}}</td><td>{{setName(s.clo_set_id)}}</td><td><button (click)="assignClo(s)">Gán CLO theo đợt/khóa</button></td></tr></tbody></table></div>
+</section>
+<section><h3>3. Người hướng dẫn trong và ngoài trường</h3>
+ <label>Tìm theo tên, email, đơn vị<input [(ngModel)]="query" (keyup.enter)="search()"></label><button (click)="search()">Tìm</button>
+ <div class="overflow-auto max-h-72"><table><tr *ngFor="let t of teachers"><td>{{t.full_name}}<div class="muted">{{t.email}}</div></td><td>{{t.external_supervisor ? 'Ngoài trường' : 'Giảng viên'}} · {{t.organization}}</td><td><button (click)="invite(t)" [disabled]="!campaignId">Mời hướng dẫn</button></td></tr></table></div>
+ <h3 class="mt-6">Thêm người hướng dẫn từ đơn vị bên ngoài</h3>
+ <label>Họ tên<input [(ngModel)]="external.full_name"></label><label>Email đăng nhập<input type="email" [(ngModel)]="external.email"></label><label>Đơn vị<input [(ngModel)]="external.organization"></label>
+ <label>Chức danh<input [(ngModel)]="external.position"></label><label>Chuyên môn<input [(ngModel)]="external.expertise"></label><label>Điện thoại<input [(ngModel)]="external.phone"></label><label>Mật khẩu ban đầu (từ 10 ký tự)<input type="password" autocomplete="new-password" [(ngModel)]="external.password"></label>
+ <button (click)="addExternal()" [disabled]="!campaignId || !external.full_name || !external.organization || external.password.length < 10">Tạo tài khoản hướng dẫn ngoài</button>
+</section>
+<section><h3>4. Hội đồng chấm M3</h3>
+ <p class="muted">Ít nhất 3 thành viên, có Chủ tịch và Thư ký. Hội đồng phải bao gồm người hướng dẫn của SV. Điểm M3 là trung bình các phiếu thành viên; đủ phiếu mới được khóa.</p>
+ <label>Tên hội đồng<input [(ngModel)]="councilName"></label>
+ <div *ngFor="let m of memberRows"><label>Thành viên<select [(ngModel)]="m.user_id"><option [ngValue]="null">Chọn thành viên</option><option *ngFor="let t of teachers" [ngValue]="t.id">{{t.full_name}} — {{t.email}}</option></select></label><label>Vai trò<select [(ngModel)]="m.role"><option value="PRESIDENT">Chủ tịch</option><option value="SECRETARY">Thư ký</option><option value="MEMBER">Ủy viên</option></select></label></div>
+ <button (click)="memberRows.push({user_id:null,role:'MEMBER'})">Thêm thành viên</button><button (click)="createCouncil()" [disabled]="!dcId || !councilName">Tạo hội đồng</button>
+ <hr class="my-4"><label>Hội đồng<select [(ngModel)]="councilId"><option *ngFor="let c of councils" [ngValue]="c.id">{{c.name}}</option></select></label><button (click)="assignCouncil()" [disabled]="!councilId">Gán hội đồng cho SV đã chọn</button>
+</section>

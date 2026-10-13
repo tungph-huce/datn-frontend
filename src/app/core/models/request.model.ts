@@ -18,6 +18,8 @@ export interface RegisterRequest {
 }
 
 export interface StudentItem {
+  major_id?: number;
+  major_code?: string;
   student_code: string;
   full_name: string;
   class_name: string;
@@ -25,6 +27,7 @@ export interface StudentItem {
 }
 
 export interface ImportStudentRequest {
+  major_id?: number;
   campaign_id: number;
   department_id: number;
   students: StudentItem[];

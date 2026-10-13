@@ -152,6 +152,7 @@
                         <th class="py-4 px-6">Lớp</th>
                         <th class="py-4 px-6 text-center">Điểm M1</th>
                         <th class="py-4 px-6 text-center">Điểm M2</th>
+                        <th class="py-4 px-6 text-center">Điểm M3</th>
                         <th class="py-4 px-6 text-center font-bold">Tổng kết</th>
                         <th class="py-4 px-6 text-center">Xếp loại</th>
                         <th class="py-4 px-6 text-center">Trạng thái</th>
@@ -159,12 +160,12 @@
                 </thead>
                 <tbody class="text-gray-600 text-sm divide-y divide-gray-100">
                     <tr *ngIf="loading">
-                        <td colspan="9" class="text-center py-12 text-gray-400">
+                        <td colspan="10" class="text-center py-12 text-gray-400">
                             <span class="inline-block animate-pulse">Đang tải dữ liệu...</span>
                         </td>
                     </tr>
                     <tr *ngIf="!loading && paginatedResults.length === 0">
-                        <td colspan="9" class="text-center py-12 text-gray-400 font-medium">
+                        <td colspan="10" class="text-center py-12 text-gray-400 font-medium">
                             Không tìm thấy sinh viên nào khớp bộ lọc.
                         </td>
                     </tr>
@@ -183,6 +184,7 @@
                             <span *ngIf="res.m2_score !== null && res.m2_score !== undefined" class="font-medium text-gray-800">{{ res.m2_score }}</span>
                             <span *ngIf="res.m2_score === null || res.m2_score === undefined" class="text-gray-300">-</span>
                         </td>
+                        <td class="py-4 px-6 text-center">{{ res.m3_score === null || res.m3_score === undefined ? "-" : res.m3_score }}</td>
                         <td class="py-4 px-6 text-center font-bold">
                             <span *ngIf="res.final_hp_score !== null && res.final_hp_score !== undefined" [ngClass]="res.final_hp_score >= 4.0 ? 'text-blue-600' : 'text-red-500'">
                 {{ res.final_hp_score }}
@@ -197,7 +199,7 @@
                         </td>
                         <td class="py-4 px-6 text-center">
                             <app-status-badge *ngIf="res.is_approved" text="Đã công nhận" type="success"></app-status-badge>
-                            <button *ngIf="!res.is_approved && res.m1_locked && res.m2_locked" (click)="approvalTarget = res; integrityConfirmed = false; evidenceConfirmed = false" class="text-blue-700 text-sm underline">Kiểm tra &amp; công nhận</button>
+                            <button *ngIf="!res.is_approved && res.m1_locked && res.m2_locked && m3Ready(res)" (click)="approvalTarget = res; integrityConfirmed = false; evidenceConfirmed = false" class="text-blue-700 text-sm underline">Kiểm tra &amp; công nhận</button>
                             <span *ngIf="res.final_hp_score !== null && res.final_hp_score !== undefined" class="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200 py-1 px-2.5 rounded-full text-xs font-semibold">
                 <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Đã có kết quả
                             </span>

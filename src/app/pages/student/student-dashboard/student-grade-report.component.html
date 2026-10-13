@@ -11,7 +11,7 @@
         </div>
         <div class="flex items-center gap-2 flex-wrap">
             <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 py-1 px-3 rounded-full text-xs font-bold">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Đã có kết quả
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> {{ finalResult.final_hp_score == null ? 'Chưa đủ điểm các mốc' : 'Đã có điểm tổng hợp' }}
             </span>
         </div>
     </div>
@@ -25,6 +25,7 @@
                     <th class="px-3 py-2.5 border text-left font-bold" rowspan="2">Mô tả năng lực đầu ra (CLO)</th>
                     <th class="px-3 py-2 border text-center font-bold" colspan="2">Điểm mốc M1</th>
                     <th class="px-3 py-2 border text-center font-bold" colspan="2">Điểm mốc M2</th>
+                    <th class="px-3 py-2.5 border text-center" rowspan="2">M3 Hội đồng</th>
                     <th class="px-3 py-2.5 border text-center font-bold text-[#00429D] bg-blue-50/50" rowspan="2">CĐR CLOi</th>
                     <th class="px-3 py-2.5 border text-center font-bold" rowspan="2">Trọng số (αᵢ)</th>
                     <th class="px-3 py-2.5 border text-center font-bold text-emerald-800 bg-emerald-50/50" rowspan="2">Quy đổi (CLOi x αᵢ)</th>
@@ -42,7 +43,7 @@
                     <tr *ngFor="let clo of displayCloDetails; let i = index" class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-3 py-2.5 font-bold text-slate-900 border text-center bg-slate-50/30">{{ clo.clo_code }}</td>
                         <td class="px-3 py-2.5 text-slate-700 border font-medium leading-relaxed min-w-[180px] max-w-[280px] whitespace-normal">
-                            {{ clo.description }}<div class="text-xs">M1 {{ clo.m1_weight }}% · M2 {{ clo.m2_weight }}%</div>
+                            {{ clo.description }}<div class="text-xs">M1 {{ clo.m1_weight }}% · M2 {{ clo.m2_weight }}% · M3 {{ clo.m3_weight || 0 }}%</div>
                             <div *ngIf="clo.s1_gvhd_comment || clo.s2_gvhd_comment" class="mt-2 space-y-1 text-[10px] font-normal text-slate-500">
                                 <p *ngIf="clo.s1_gvhd_comment">
                                     <span class="font-semibold text-slate-600">NX mốc M1:</span>
@@ -68,6 +69,7 @@
                         <td class="px-2 py-2.5 text-center border bg-blue-50/30 font-semibold text-slate-900">
                             {{ clo.s2_tb !== null ? (clo.s2_tb | number:'1.1-1') : '-' }}
                         </td>
+                        <td class="px-2 py-2.5 text-center border">{{ !clo.m3_weight ? "Không áp dụng" : clo.s3 == null ? "Chưa đủ phiếu" : (clo.s3 | number:'1.1-1') }}</td>
                         <!-- CĐR CLOi & Alpha -->
                         <td class="px-2 py-2.5 text-center border bg-[#00429D]/5 font-bold text-[#00429D] text-sm">
                             {{ clo.clo_final !== null ? (clo.clo_final | number:'1.1-1') : '-' }}
@@ -83,7 +85,7 @@
 
                 <!-- Empty state -->
                 <tr *ngIf="!displayCloDetails || displayCloDetails.length === 0">
-                    <td colspan="11" class="px-4 py-8 text-center text-slate-400 border bg-slate-50/20">
+                    <td colspan="10" class="px-4 py-8 text-center text-slate-400 border bg-slate-50/20">
                         <div class="flex flex-col items-center gap-2">
                             <span class="material-symbols-outlined text-3xl text-slate-300">error</span>
                             <p class="text-xs font-semibold">Chưa có cấu hình chuẩn đầu ra (CLO) cho đợt ĐATN này.</p>
@@ -98,12 +100,13 @@
                             <span class="material-symbols-outlined text-[18px]">verified</span> TỔNG ĐIỂM HỌC PHẦN (ĐATN-08)
                         </div>
                     </td>
-                    <td colspan="3" class="px-2 py-3 text-center border text-[11px] text-slate-500 font-medium bg-slate-50/50">
+                    <td colspan="2" class="px-2 py-3 text-center border text-[11px] text-slate-500 font-medium bg-slate-50/50">
                         Tổng mốc M1: <span class="font-bold text-slate-800 text-xs">{{ getM1Score() !== null ? (getM1Score() | number:'1.1-1') : '-' }}</span>
                     </td>
-                    <td colspan="3" class="px-2 py-3 text-center border text-[11px] text-slate-500 font-medium bg-slate-50/50">
+                    <td colspan="2" class="px-2 py-3 text-center border text-[11px] text-slate-500 font-medium bg-slate-50/50">
                         Tổng mốc M2: <span class="font-bold text-slate-800 text-xs">{{ getM2Score() !== null ? (getM2Score() | number:'1.1-1') : '-' }}</span>
                     </td>
+                    <td class="px-2 py-3 text-center border">M3: {{ finalResult.m3_score == null ? "-" : (finalResult.m3_score | number:'1.1-1') }}</td>
                     <td class="px-2 py-3 text-center border bg-[#00429D]/10 font-bold text-[#00429D] text-sm">
                         {{ finalResult.final_hp_score !== null ? (finalResult.final_hp_score | number:'1.1-1') : '-' }}
                     </td>
@@ -116,7 +119,7 @@
                 <!-- Grade Classification Row -->
                 <tr class="bg-slate-50/80 font-bold text-slate-800 border-t border-slate-200">
                     <td colspan="2" class="px-3 py-3 border text-left">XẾP LOẠI CHỮ HỌC PHẦN</td>
-                    <td colspan="6" class="px-3 py-3 border text-left bg-white font-medium text-slate-700">
+                    <td colspan="5" class="px-3 py-3 border text-left bg-white font-medium text-slate-700">
                         <span class="text-xs font-black bg-[#00429D]/10 text-[#00429D] px-3 py-1 rounded border border-[#00429D]/20">
               Hạng {{ finalResult.grade_level }}
             </span>
@@ -129,7 +132,7 @@
                 <!-- Conclusion Status Row -->
                 <tr class="bg-slate-50/80 font-bold text-slate-800 border-t border-slate-200">
                     <td colspan="2" class="px-3 py-3 border text-left">TRẠNG THÁI KẾT LUẬN</td>
-                    <td colspan="6" class="px-3 py-3 border text-left bg-white">
+                    <td colspan="5" class="px-3 py-3 border text-left bg-white">
                         <span class="font-bold">{{ finalResult.is_approved ? 'ĐÃ CÔNG NHẬN HOÀN THÀNH' : 'CHƯA ĐƯỢC CÔNG NHẬN' }}</span>
                     </td>
                     <td colspan="3" class="px-3 py-3 border text-center font-bold text-slate-500 bg-slate-50/50">
@@ -144,7 +147,7 @@
                             <span class="material-symbols-outlined text-[18px]">warning</span> CẢNH BÁO ĐIỂM LIỆT
                         </div>
                     </td>
-                    <td colspan="9" class="px-3 py-3 border text-left text-xs font-semibold leading-relaxed bg-white text-red-700">
+                    <td colspan="8" class="px-3 py-3 border text-left text-xs font-semibold leading-relaxed bg-white text-red-700">
                         Kết quả học phần không đạt do bị điểm liệt (một hoặc nhiều chuẩn đầu ra / mốc đánh giá dưới mức tối thiểu theo quy định HUCE).
                     </td>
                 </tr>

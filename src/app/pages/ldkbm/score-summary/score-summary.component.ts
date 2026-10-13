@@ -26,6 +26,9 @@ export class LdkbmScoreSummaryComponent implements OnInit {
   integrityConfirmed = false;
   evidenceConfirmed = false;
   isApproving = false;
+  m3Ready(result: FinalResultResponse): boolean {
+    return !(result.clo_outcomes || []).some((c: any) => c.m3Weight > 0) || !!result.m3_locked;
+  }
   approveResult(): void {
     if (!this.approvalTarget || !this.integrityConfirmed || !this.evidenceConfirmed) return;
     this.isApproving = true;
@@ -182,6 +185,7 @@ export class LdkbmScoreSummaryComponent implements OnInit {
       'Mã SV': r.student_code,
       'Lớp': r.class_name,
       'Điểm M1': r.m1_score !== null && r.m1_score !== undefined ? r.m1_score : '-',
+      'Điểm M3': r.m3_score ?? '-',
       'Điểm M2': r.m2_score !== null && r.m2_score !== undefined ? r.m2_score : '-',
       'Điểm Tổng Kết': r.final_hp_score !== null && r.final_hp_score !== undefined ? r.final_hp_score : '-',
       'Xếp Loại': r.grade_level || 'Chưa xếp loại',

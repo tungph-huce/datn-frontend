@@ -1,9 +1,11 @@
+import { ApiService } from '../../../core/services/api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Component, OnInit } from '@angular/core';
 import { DepartmentCampaignService, CloConfigRequest, CloItem, RubricItem } from '../../../core/services/department-campaign.service';
 import { CampaignService } from '../../../core/services/campaign.service';
 import { CampaignResponse } from '../../../core/models/base.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { DepartmentService } from '../../../core/services/department.service';
 
 @Component({
   selector: 'app-clo-rubric-config',
@@ -11,6 +13,8 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrls: ['./clo-rubric-config.component.scss']
 })
 export class CloRubricConfigComponent implements OnInit {
+  departments: any[] = [];
+  majors:any[]=[]; majorId:number|null=null; cohort='68'; m3Weight=50;
   isLoading = false;
   isSaving = false;
       campaigns: CampaignResponse[] = [];
@@ -19,8 +23,8 @@ export class CloRubricConfigComponent implements OnInit {
   departmentCampaignId: number | null = null;
   programType = 'STANDARD';
   completionRule = '';
-  m1Weight: number = 40;
-  m2Weight: number = 60;
+  m1Weight: number = 20;
+  m2Weight: number = 30;
 
   cloSets: any[] = [];
   selectedCloSetId: number | null = null;
@@ -31,7 +35,7 @@ export class CloRubricConfigComponent implements OnInit {
   clos: CloItem[] = [];
   selectedCloIndex: number = 0;
 
-  constructor(private toastService: ToastService, private deptCampaignService: DepartmentCampaignService,
+  constructor(private departmentService: DepartmentService, private api:ApiService, private toastService: ToastService, private deptCampaignService: DepartmentCampaignService,
     private campaignService: CampaignService,
     private authService: AuthService) {}
 
@@ -39,6 +43,11 @@ export class CloRubricConfigComponent implements OnInit {
     const user = this.authService.getCurrentUser();
     if (user && user.departmentId) {
       this.departmentId = user.departmentId;
+      this.departmentService.getById(this.departmentId).subscribe(d => {
+        this.departments = [d];
+        this.departmentService.getChildren(d.id).subscribe(children => this.departments.push(...children));
+      });
+      this.api.get<any[]>(`/base/academic/majors?department_id=${this.departmentId}`).subscribe(r=>this.majors=r);
     }
     this.loadCampaigns();
   }
@@ -53,6 +62,14 @@ export class CloRubricConfigComponent implements OnInit {
         }
       }
     });
+  }
+
+  onDepartmentChange(): void {
+    this.majorId = null;
+    this.majors = [];
+    if (!this.departmentId) return;
+    this.api.get<any[]>(`/base/academic/majors?department_id=${this.departmentId}`).subscribe(r => this.majors = r);
+    this.onCampaignChange();
   }
 
   hasExistingConfig: boolean = false;
@@ -86,6 +103,7 @@ export class CloRubricConfigComponent implements OnInit {
 
         if (res.m1_weight !== undefined) this.m1Weight = res.m1_weight;
         if (res.m2_weight !== undefined) this.m2Weight = res.m2_weight;
+        this.m3Weight=res.m3_weight ?? 0;
         if (this.departmentCampaignId) {
           this.loadCloSets();
           this.loadCloConfigs();
@@ -181,6 +199,7 @@ export class CloRubricConfigComponent implements OnInit {
 
   startCreatingNew(): void {
     this.showConfig = true;
+    this.m1Weight=20;this.m2Weight=30;this.m3Weight=50;
     this.hasDefinedCloCount = false;
     this.newCloSetName = '';
     this.clos = [];
@@ -223,8 +242,9 @@ export class CloRubricConfigComponent implements OnInit {
       alpha_weight: 0,
       m1_weight: this.m1Weight,
       m2_weight: this.m2Weight,
+      m3_weight: this.m3Weight,
       gvhd_beta: 100,
-      rubrics: []
+      rubrics: [0,1,2,3,4].map(level=>({score_level:level,description:`Mức ${level}`}))
     };
   }
 
@@ -257,7 +277,7 @@ export class CloRubricConfigComponent implements OnInit {
   }
 
   get totalStageWeight(): number {
-    return (this.m1Weight || 0) + (this.m2Weight || 0);
+    return (this.m1Weight || 0) + (this.m2Weight || 0) + (this.m3Weight || 0);
   }
 
   get isStageWeightValid(): boolean {
@@ -319,6 +339,7 @@ export class CloRubricConfigComponent implements OnInit {
 
   saveConfigs(): void {
     if (!this.departmentCampaignId) return;
+    if(!this.majorId || !/^[0-9]{2}$/.test(this.cohort)){this.showError('Chọn ngành và khóa gồm hai chữ số.');return;}
 
     // Validate
     let totalAlpha = 0;
@@ -330,9 +351,9 @@ export class CloRubricConfigComponent implements OnInit {
       }
       totalAlpha += clo.alpha_weight || 0;
 
-      const totalCloStageWeight = (clo.m1_weight || 0) + (clo.m2_weight || 0);
+      const totalCloStageWeight = (clo.m1_weight || 0) + (clo.m2_weight || 0) + (clo.m3_weight || 0);
       if (Math.abs(totalCloStageWeight - 100) > 0.01) {
-        this.showError(`Tổng trọng số M1 + M2 của ${clo.clo_code} phải bằng 100%.`);
+        this.showError(`Tổng trọng số M1 + M2 + M3 của ${clo.clo_code} phải bằng 100%.`);
         return;
       }
 
@@ -361,8 +382,8 @@ export class CloRubricConfigComponent implements OnInit {
       }
     }
 
-    if (this.m1Weight + this.m2Weight !== 100) {
-      this.showError('Tổng trọng số mốc M1 và M2 phải bằng 100%.');
+    if (this.m1Weight + this.m2Weight + this.m3Weight !== 100) {
+      this.showError('Tổng trọng số mốc M1, M2 và M3 phải bằng 100%.');
       return;
     }
 
@@ -377,11 +398,13 @@ export class CloRubricConfigComponent implements OnInit {
     }
 
     const request: CloConfigRequest = {
+      major_id: this.majorId || undefined, cohort: this.cohort,
       program_type: this.programType,
       completion_rule: this.completionRule || undefined,
       department_campaign_id: this.departmentCampaignId,
       m1_weight: this.m1Weight,
       m2_weight: this.m2Weight,
+      m3_weight: this.m3Weight,
       clo_set_name: this.newCloSetName,
       clos: this.clos
     };

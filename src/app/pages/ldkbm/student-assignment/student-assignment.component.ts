@@ -1,3 +1,4 @@
+import { ApiService } from '../../../core/services/api.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { StudentCampaignService } from '../../../core/services/student-campaign.service';
@@ -17,6 +18,7 @@ import {
 import { CampaignResponse, DepartmentResponse, PaginationRequest, UserResponse } from '../../../core/models/base.model';
 import { AuthService } from '../../../core/services/auth.service';
 import * as XLSX from 'xlsx';
+import { parseStudentImport, studentImportWorkbook } from './student-import';
 
 @Component({
   selector: 'app-student-assignment',
@@ -24,6 +26,11 @@ import * as XLSX from 'xlsx';
   styleUrls: ['./student-assignment.component.scss']
 })
 export class StudentAssignmentComponent implements OnInit {
+  academicMajors: any[] = []; selectedMajorId: number | null = null;
+  refreshMajors(): void {
+    const id=this.getStudentTargetDepartmentId();this.selectedMajorId=null;
+    if(id)this.api.get<any[]>(`/base/academic/majors?department_id=${id}`).subscribe({next:r=>this.academicMajors=r,error:()=>this.academicMajors=[]});
+  }
   isLoading = false;
       campaigns: CampaignResponse[] = [];
   selectedCampaignId: number | null = null;
@@ -81,7 +88,7 @@ export class StudentAssignmentComponent implements OnInit {
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
-  constructor(private toastService: ToastService, private studentCampaignService: StudentCampaignService,
+  constructor(private api:ApiService, private toastService: ToastService, private studentCampaignService: StudentCampaignService,
     private campaignService: CampaignService,
     private userService: UserService,
     private departmentService: DepartmentService,
@@ -108,12 +115,12 @@ export class StudentAssignmentComponent implements OnInit {
           this.departmentService.getChildren(department.id).subscribe({
             next: (children) => {
               this.childDepartments = (children || []).filter(child => child.status === 'ACTIVE');
-              this.selectedStudentDepartmentId = this.childDepartments[0]?.id || null;
+              this.selectedStudentDepartmentId = this.childDepartments[0]?.id || null; this.refreshMajors();
               this.loadTeachers();
             }
           });
         } else {
-          this.selectedStudentDepartmentId = department.id;
+          this.selectedStudentDepartmentId = department.id; this.refreshMajors();
         }
       }
     });
@@ -254,6 +261,7 @@ export class StudentAssignmentComponent implements OnInit {
     if (!this.ensureStudentTargetDepartmentSelected()) {
       return;
     }
+    if (!this.selectedMajorId) { this.showError('Chọn ngành trước khi thêm SV.'); return; }
     this.formStudentCode = '';
     this.formFullName = '';
     this.formClassName = '';
@@ -284,6 +292,7 @@ export class StudentAssignmentComponent implements OnInit {
     const req: ImportStudentRequest = {
       campaign_id: this.selectedCampaignId!,
       department_id: this.getStudentTargetDepartmentId()!,
+      major_id: this.selectedMajorId || undefined,
       students: [item]
     };
 
@@ -365,107 +374,7 @@ export class StudentAssignmentComponent implements OnInit {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const importSheet = this.findImportSheet(workbook);
-        if (!importSheet) {
-          this.showError('Không tìm thấy sheet danh sách sinh viên. File cần có các cột "MSSV", "Họ và tên", "Lớp".');
-          return;
-        }
-
-        const rawRows = importSheet.rows;
-        if (rawRows.length <= importSheet.headerRowIndex + 1) {
-          this.showError('File Excel trống hoặc không có dữ liệu sinh viên.');
-          return;
-        }
-
-        // Xác định header: tìm vị trí cột dựa trên header row
-        const headerRow = rawRows[importSheet.headerRowIndex].map((h: any) => String(h || '').trim());
-        const normalizedHeaderRow = headerRow.map((h: string) => this.normalizeHeader(h));
-
-        // Tìm index cột theo tên header (hỗ trợ nhiều format)
-        const mssvIdx = normalizedHeaderRow.findIndex((h: string) => h === 'mssv' || h === 'ma sv' || h === 'ma sinh vien');
-        const lopIdx = normalizedHeaderRow.findIndex((h: string) => h === 'lop');
-        const hoVaTenIdx = normalizedHeaderRow.findIndex((h: string) => h === 'ho va ten' || h === 'ho ten');
-        const hoIdx = normalizedHeaderRow.findIndex((h: string) => h === 'ho' || h === 'ho dem');
-        const tenIdx = normalizedHeaderRow.findIndex((h: string) => h === 'ten');
-        const companyIdx = normalizedHeaderRow.findIndex((h: string) => h === 'don vi thuc tap' || h === 'dv thuc tap' || h === 'dvtt');
-
-        // Mẫu chuẩn: B1:C1 gộp tiêu đề "Họ và tên"; dữ liệu B là họ đệm, C là tên.
-        // Vẫn hỗ trợ format 1 cột "Họ và tên" để tránh lỗi với file cũ.
-        const isMergedFormat = hoVaTenIdx >= 0 && (
-          headerRow[hoVaTenIdx + 1] === '' || headerRow[hoVaTenIdx + 1] === undefined ||
-          lopIdx === hoVaTenIdx + 2
-        );
-
-        const students: StudentItem[] = [];
-
-        for (let i = importSheet.headerRowIndex + 1; i < rawRows.length; i++) {
-          const row = rawRows[i];
-          if (!row || row.length === 0) continue;
-
-          let studentCode = '';
-          let fullName = '';
-          let lastName = '';
-          let firstName = '';
-          let className = '';
-          let companyName = '';
-
-          if (mssvIdx >= 0) {
-            // Có header rõ ràng → đọc theo index
-            studentCode = String(row[mssvIdx] || '').trim();
-            
-            if (hoIdx >= 0 && tenIdx >= 0) {
-              lastName = String(row[hoIdx] || '').trim();
-              firstName = String(row[tenIdx] || '').trim();
-              fullName = `${lastName} ${firstName}`.trim();
-            } else if (isMergedFormat && hoVaTenIdx >= 0) {
-              // Họ đệm ở cột hoVaTenIdx, tên ở cột hoVaTenIdx + 1.
-              lastName = String(row[hoVaTenIdx] || '').trim();
-              firstName = String(row[hoVaTenIdx + 1] || '').trim();
-              fullName = firstName ? `${lastName} ${firstName}` : lastName;
-            } else if (hoVaTenIdx >= 0) {
-              // Format 1 cột họ tên
-              fullName = String(row[hoVaTenIdx] || '').trim();
-              const parts = this.splitFullName(fullName);
-              lastName = parts.lastName;
-              firstName = parts.firstName;
-            }
-
-            className = lopIdx >= 0 ? String(row[lopIdx] || '').trim() : '';
-            companyName = companyIdx >= 0 ? String(row[companyIdx] || '').trim() : '';
-          } else {
-            // Fallback mẫu chuẩn: A=MSSV, B=Họ đệm, C=Tên, D=Lớp.
-            // Header gộp B1:C1 là "Họ và tên" như file mẫu.
-            studentCode = String(row[0] || '').trim();
-            if (row.length >= 5 && String(row[4] || '').trim()) {
-              lastName = String(row[1] || '').trim();
-              firstName = String(row[2] || '').trim();
-              fullName = firstName ? `${lastName} ${firstName}` : lastName;
-              className = String(row[3] || '').trim();
-              companyName = String(row[4] || '').trim();
-            } else {
-              fullName = String(row[1] || '').trim();
-              const parts = this.splitFullName(fullName);
-              lastName = parts.lastName;
-              firstName = parts.firstName;
-              className = String(row[2] || '').trim();
-              companyName = String(row[3] || '').trim();
-            }
-          }
-
-          if (studentCode && fullName) {
-            students.push({
-              student_code: studentCode,
-              full_name: fullName,
-              class_name: className,
-              email: ''
-            });
-          }
-        }
-
-        if (students.length === 0) {
-          this.showError('Không tìm thấy dữ liệu hợp lệ trong file Excel. File cần có cột "MSSV", "Họ và tên", "Lớp".');
-          return;
-        }
+        const students = parseStudentImport(workbook, this.academicMajors);
 
         const req: ImportStudentRequest = {
           campaign_id: this.selectedCampaignId!,
@@ -485,8 +394,8 @@ export class StudentAssignmentComponent implements OnInit {
           }
         });
 
-      } catch (error) {
-        this.showError('Lỗi đọc file Excel. Định dạng không được hỗ trợ.');
+      } catch (error: any) {
+        this.showError(error.message || 'Lỗi đọc file Excel. Định dạng không được hỗ trợ.');
       }
     };
     reader.readAsArrayBuffer(file);
@@ -495,70 +404,11 @@ export class StudentAssignmentComponent implements OnInit {
   }
 
   downloadTemplate(): void {
-    const rows: any[][] = [
-      ['MSSV', 'Họ và tên', '', 'Lớp'],
-      ['1501665', 'Lại Thế', 'Anh', '65PM4'],
-      ['0002267', 'Mai Văn', 'Cường', '67CNPM'],
-      ['85365', 'Vũ Huy', 'Hoàng', '65PM4'],
-      ['113465', 'Lê Ngọc', 'Lâm', '65PM4'],
-      ['119365', 'Vũ Ngọc Hoài', 'Linh', '65PM3'],
-      ['0197766', 'Nguyễn Hoàng', 'Nam', '66CNPM'],
-      ['142165', 'Nguyễn Phương', 'Nam', '65PM6'],
-      ['154765', 'Đỗ Khoa Hải', 'Phong', '65PM6'],
-      ['181165', 'Lê Bá', 'Thắng', '65PM6']
-    ];
-
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!merges'] = [
-      { s: { r: 0, c: 1 }, e: { r: 0, c: 2 } }
-    ];
-    
-    // Đặt độ rộng cột
-    ws['!cols'] = [
-      { wch: 10 },  // A: MSSV
-      { wch: 20 },  // B: Họ đệm
-      { wch: 12 },  // C: Tên
-      { wch: 12 }   // D: Lớp
-    ];
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'SinhVien');
-    XLSX.writeFile(wb, 'Template_Import_SinhVien.xlsx');
-  }
-
-  private normalizeHeader(value: string): string {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd')
-      .replace(/Đ/g, 'D')
-      .trim()
-      .toLowerCase();
-  }
-
-  private findImportSheet(workbook: XLSX.WorkBook): { rows: any[][]; headerRowIndex: number } | null {
-    for (const sheetName of workbook.SheetNames) {
-      const worksheet = workbook.Sheets[sheetName];
-      const rows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-      const maxHeaderScan = Math.min(rows.length, 30);
-
-      for (let i = 0; i < maxHeaderScan; i++) {
-        const normalizedRow = (rows[i] || []).map((h: any) => this.normalizeHeader(String(h || '')));
-        const hasStudentCode = normalizedRow.some((h: string) =>
-          h === 'mssv' || h === 'ma sv' || h === 'ma sinh vien' || h === 'ma so sinh vien'
-        );
-        const hasFullName = normalizedRow.some((h: string) => h === 'ho va ten' || h === 'ho ten');
-        const hasSplitName = normalizedRow.some((h: string) => h === 'ho' || h === 'ho dem')
-          && normalizedRow.some((h: string) => h === 'ten');
-        const hasClassName = normalizedRow.some((h: string) => h === 'lop');
-
-        if (hasStudentCode && (hasFullName || hasSplitName) && hasClassName) {
-          return { rows, headerRowIndex: i };
-        }
-      }
+    try {
+      XLSX.writeFile(studentImportWorkbook(this.academicMajors, this.selectedMajorId), 'Template_Import_SinhVien.xlsx');
+    } catch (error: any) {
+      this.showError(error.message || 'Không thể tạo mẫu Excel.');
     }
-
-    return null;
   }
 
   private splitFullName(fullName: string): { lastName: string; firstName: string } {

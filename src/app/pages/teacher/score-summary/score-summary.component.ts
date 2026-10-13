@@ -17,6 +17,7 @@ interface StudentScore {
   thesisTitle: string;
   gvhdName: string;
   m1Score: number | null; // Điểm mốc M1
+  m3Score: number | null;
   m2Score: number | null; // Điểm mốc M2
   totalScore: number | null;  // Điểm tổng hợp
   status: string;
@@ -110,6 +111,7 @@ export class ScoreSummaryComponent implements OnInit {
         gvhdName: result.gvhd_name || 'N/A',
         m1Score,
         m2Score,
+        m3Score: this.toNullableScore(result.m3_score),
         totalScore,
         status: this.getResultStatus(result.grade_level, totalScore),
         campaignId: result.campaign_id || 0,
@@ -316,13 +318,14 @@ export class ScoreSummaryComponent implements OnInit {
   }
 
   private async buildExportDetail(student: StudentScore): Promise<any> {
-    const [config, evaluationResponse] = await Promise.all([
+    const [config, evaluationResponse, finalResult] = await Promise.all([
       this.getExportConfig(student),
-      firstValueFrom(this.evaluationService.findEvaluations(student.id))
+      firstValueFrom(this.evaluationService.findEvaluations(student.id)),
+      firstValueFrom(this.evaluationService.getFinalResult(student.id))
     ]);
 
     return {
-      student,
+      student, finalResult,
       m1Weight: config.m1Weight,
       m2Weight: config.m2Weight,
       clos: config.clos,
@@ -331,14 +334,14 @@ export class ScoreSummaryComponent implements OnInit {
   }
 
   private async getExportConfig(student: StudentScore): Promise<any> {
-    const cacheKey = `${student.campaignId}-${student.departmentId}`;
+    const cacheKey = `${student.id}`;
     if (!this.exportConfigCache.has(cacheKey)) {
       this.exportConfigCache.set(cacheKey, (async () => {
         const deptCampaignResponse = await firstValueFrom(
           this.departmentCampaignService.findOrCreate(student.campaignId, student.departmentId)
         );
         const deptCampaign = this.unwrapResponse(deptCampaignResponse);
-        const cloResponse = await firstValueFrom(this.departmentCampaignService.getCloConfigs(deptCampaign.id));
+        const cloResponse = await firstValueFrom(this.evaluationService.studentClos(student.id));
 
         return {
           m1Weight: this.toNumber(deptCampaign.m1_weight, 40),
@@ -362,7 +365,7 @@ export class ScoreSummaryComponent implements OnInit {
     put(7, 2, 'Họ và tên sinh viên'); put(7, 3, student.name);
     put(8, 2, 'Mã số sinh viên'); put(8, 3, student.mssv);
     put(9, 2, 'Lớp / Khoa'); put(9, 3, student.class);
-    put(10, 2, 'Ngành / Chuyên ngành'); put(10, 3, '');
+    put(10, 2, 'Ngành'); put(10, 3, '');
     put(11, 2, 'Email'); put(12, 2, 'Số điện thoại');
     put(14, 2, 'B. GIẢNG VIÊN HƯỚNG DẪN (GVHD)');
     put(15, 2, 'Họ và tên GVHD'); put(15, 3, student.gvhdName);
@@ -487,7 +490,7 @@ export class ScoreSummaryComponent implements OnInit {
     const student = detail.student;
 
     put(2, 2, 'BẢNG TỔNG HỢP ĐIỂM CHUẨN ĐẦU RA & ĐIỂM HỌC PHẦN');
-    put(4, 2, `Tự động tổng hợp từ mốc M1 (${detail.m1Weight}%) và mốc M2 (${detail.m2Weight}%) - QĐ ĐATN HUCE 2026`);
+    put(4, 2, 'Tổng hợp M1/M2/M3 theo bộ CLO riêng của sinh viên');
     put(6, 2, 'Họ tên sinh viên:'); put(6, 3, student.name);
     put(6, 7, 'Mã số sinh viên:'); put(6, 8, student.mssv);
     put(7, 2, 'GVHD:'); put(7, 3, student.gvhdName);
@@ -505,14 +508,14 @@ export class ScoreSummaryComponent implements OnInit {
       const w1 = this.toPercentFraction(this.toNumber(clo.m1_weight, detail.m1Weight));
       const w2 = this.toPercentFraction(this.toNumber(clo.m2_weight, detail.m2Weight));
       const alpha = this.toPercentFraction(this.toNumber(clo.alpha_weight, 0));
-      const complete = (w1 === 0 || stage1 !== null) && (w2 === 0 || stage2 !== null);
-      const cloScore = complete ? (stage1 ?? 0) * w1 + (stage2 ?? 0) * w2 : null;
+      const outcome=(detail.finalResult?.clo_outcomes || []).find((o:any)=>o.code===clo.clo_code);
+      const cloScore=outcome?.rawScore ?? null;
       const contribution = cloScore !== null ? cloScore * alpha : null;
       if (contribution !== null) contributions.push(contribution);
 
       put(row, 2, index + 1);
       put(row, 3, clo.clo_code);
-      put(row, 4, clo.description || '');
+      put(row, 4, `${clo.description || ''}\nM3: ${outcome?.m3 ?? 'Chưa đủ phiếu'} (${outcome?.m3Weight ?? 0}%)`);
       put(row, 5, alpha);
       put(row, 6, this.formatStageScoreForSummary(stage1, w1));
       put(row, 7, w1);
@@ -523,7 +526,7 @@ export class ScoreSummaryComponent implements OnInit {
       put(row, 12, contribution ?? 'N/A');
     });
 
-    const hpScore = contributions.length === clos.length && clos.length > 0 ? this.roundScore(contributions.reduce((sum, score) => sum + score, 0)) : null;
+    const hpScore=detail.finalResult?.final_hp_score ?? null;
     put(totalRow, 2, 'ĐIỂM HỌC PHẦN (HP = Sum CLOi * alpha_i)');
     put(totalRow, 10, this.formatExportScore(hpScore, 100));
 
@@ -838,15 +841,8 @@ export class ScoreSummaryComponent implements OnInit {
   }
 
   private getConditionResult(clos: any[], cloCode: string, detail: any): string {
-    const clo = clos.find(item => item.clo_code === cloCode);
-    if (!clo) return 'CHƯA ĐẠT';
-    const stage1 = this.getStageData(detail, clo, 'M1').stageAverage;
-    const stage2 = this.getStageData(detail, clo, 'M2').stageAverage;
-    const w1 = this.toPercentFraction(this.toNumber(clo.m1_weight, detail.m1Weight));
-    const w2 = this.toPercentFraction(this.toNumber(clo.m2_weight, detail.m2Weight));
-    const activeWeight = (stage1 !== null ? w1 : 0) + (stage2 !== null ? w2 : 0);
-    const score = activeWeight > 0 ? ((stage1 || 0) * (stage1 !== null ? w1 : 0) + (stage2 || 0) * (stage2 !== null ? w2 : 0)) / activeWeight : null;
-    return score !== null && score >= 4 ? 'ĐẠT' : 'CHƯA ĐẠT';
+    const outcome=(detail.finalResult?.clo_outcomes || []).find((o:any)=>o.code===cloCode);
+    return outcome?.score==null ? 'CHƯA ĐỦ ĐIỂM' : outcome.achieved ? 'ĐẠT' : 'CHƯA ĐẠT';
   }
 
   private getShortCloName(description: string): string {

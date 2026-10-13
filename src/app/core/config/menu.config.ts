@@ -6,6 +6,7 @@ export interface MenuItem {
 }
 
 export const adminMenu: MenuItem[] = [
+  { title: 'Ngành & Hội đồng', icon: 'school', route: '/admin/academic' },
   { title: 'Bảng điều khiển', icon: 'dashboard', route: '/admin/dashboard', exact: true },
   { title: 'Quản lý đợt ĐATN', icon: 'assignment_ind', route: '/admin/campaigns' },
   { title: 'Quản lý Khoa/Bộ môn', icon: 'apartment', route: '/admin/departments' },
@@ -14,6 +15,7 @@ export const adminMenu: MenuItem[] = [
 ];
 
 export const ldkbmMenu: MenuItem[] = [
+  { title: 'Ngành, CLO SV & Hội đồng', icon: 'school', route: '/ldkbm/academic' },
   { title: 'Bảng điều khiển', icon: 'dashboard', route: '/ldkbm/general-dashboard', exact: true },
   { title: 'Cấu hình CLO & Rubric', icon: 'fact_check', route: '/ldkbm/clo-config' },
   { title: 'Phân công GVHD ĐATN', icon: 'group_add', route: '/ldkbm/student-assignment' },
@@ -28,6 +30,7 @@ export const studentMenu: MenuItem[] = [
 ];
 
 export const teacherMenu: MenuItem[] = [
+  { title: 'Hội đồng — Chấm M3', icon: 'groups', route: '/teacher/council-scoring' },
   { title: 'Bảng điều khiển', icon: 'dashboard', route: '/teacher/dashboard', exact: true },
   { title: 'Sinh viên hướng dẫn', icon: 'groups', route: '/teacher/students' },
   { title: 'Yêu cầu Phê duyệt', icon: 'fact_check', route: '/teacher/approval-requests' },

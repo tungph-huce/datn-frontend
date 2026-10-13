@@ -9,6 +9,8 @@ import { HttpParams } from '@angular/common/http';
  * { code, name, academic_year, semester, description, start_date, end_date }
  */
 export interface CampaignRequest {
+  m3_start_date?: string;
+  m3_deadline?: string;
   week_count?: number;
   code?: string;
   name: string;
@@ -31,6 +33,8 @@ export interface CampaignTimelinePreviewRequest {
 }
 
 export interface CampaignTimelinePreviewResponse {
+  m3_start_date?: string;
+  m3_deadline?: string;
   week_count: number;
   start_date: string;
   end_date: string;

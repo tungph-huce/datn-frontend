@@ -31,6 +31,8 @@ export class EvaluationService {
     private http: HttpClient
   ) {}
 
+  studentClos(id:number): Observable<any[]> { return this.apiService.get<any[]>(`/base/academic/students/${id}/clos`); }
+
   submitEvaluation(request: EvaluationRequest): Observable<any> {
     return this.apiService.post<any>('/base/evaluations', request);
   }

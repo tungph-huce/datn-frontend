@@ -5,7 +5,8 @@ import { BaseResponse } from '../models/base.model';
 import { HttpParams } from '@angular/common/http';
 
 export interface FinalResultResponse {
-  clo_outcomes?: Array<{ code: string; score: number | null; rawScore: number | null; achieved: boolean; required: boolean; description: string; m1: number | null; m2: number | null; alphaWeight: number; m1Weight: number; m2Weight: number }>;
+  m3_score?: number | null; m3_locked?: boolean;
+  clo_outcomes?: Array<{ code: string; score: number | null; rawScore: number | null; achieved: boolean; required: boolean; description: string; m1: number | null; m2: number | null; alphaWeight: number; m1Weight: number; m2Weight: number; m3?: number | null; m3Weight?: number }>;
   id?: number;
   student_campaign_id: number;
   student_code: string;

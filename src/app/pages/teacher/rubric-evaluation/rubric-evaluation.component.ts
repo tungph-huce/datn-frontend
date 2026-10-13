@@ -323,18 +323,9 @@ export class RubricEvaluationComponent implements OnInit {
       }
     });
 
-    // Load CLO config
-    this.departmentCampaignService.findOrCreate(this.selectedStudent.campaign_id, this.selectedStudent.department_id).subscribe({
-      next: (dc) => {
-        if (dc) {
-          this.departmentM1Weight = this.toNumber(dc.m1_weight, 40);
-          this.departmentM2Weight = this.toNumber(dc.m2_weight, 60);
-          if (dc.clo_configs && dc.clo_configs.length) {
-            this.criteria = dc.clo_configs.map((clo: any, idx: number) => this.buildCriterion(clo, idx));
-            this.applySavedScores();
-          }
-        }
-      }
+    this.evaluationService.studentClos(id).subscribe({
+      next: clos => { this.criteria=clos.map((clo:any,index:number)=>this.buildCriterion(clo,index));this.applySavedScores(); },
+      error: err => {this.criteria=[];this.toastService.error(err.message || 'SV chưa được gán bộ CLO.');}
     });
 
     // Load existing evaluations
