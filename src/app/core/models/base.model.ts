@@ -101,6 +101,8 @@ export interface UserResponse {
   department_name: string | null;
   status: string; // "ACTIVE" | "INACTIVE"
   phone?: string;
+  academic_degree?: string | null;
+  external_supervisor?: boolean;
   created_at: string;
 }
 

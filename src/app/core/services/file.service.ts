@@ -21,9 +21,12 @@ export class FileService {
     return this.http.get(`${environment.apiUrl}${path}`, { responseType: 'blob' });
   }
 
-  uploadFile(file: File): Observable<FileResponse> {
+  /** Lưu vào kho số của hồ sơ; backend đặt tên theo quy cách Điều 9.4. */
+  uploadFile(file: File, studentCampaignId: number, documentType: string = 'Baocao'): Observable<FileResponse> {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('student_campaign_id', String(studentCampaignId));
+    formData.append('document_type', documentType);
     return this.apiService.post<FileResponse>('/base/files/upload', formData);
   }
 }

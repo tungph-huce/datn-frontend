@@ -11,6 +11,8 @@ export interface UserRequest {
   role: string;
   department_id?: number | null;
   phone?: string;
+  /** DAI_HOC | THAC_SI | TIEN_SI — Điều 10, 15.3 */
+  academic_degree?: string | null;
 }
 
 @Injectable({

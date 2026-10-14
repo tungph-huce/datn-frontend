@@ -17,8 +17,9 @@ export class AcademicManagementComponent implements OnInit {
   departments:any[]=[];campaigns:any[]=[];majors:any[]=[];sets:any[]=[];bindings:any[]=[];students:any[]=[];teachers:any[]=[];councils:any[]=[];
   departmentId:number|null=null;campaignId:number|null=null;dcId:number|null=null;majorId:number|null=null;cohort='68';setId:number|null=null;
   majorCode='';majorName='';query='';councilName='';councilId:number|null=null;
-  memberRows:any[]=[{user_id:null,role:'PRESIDENT'},{user_id:null,role:'SECRETARY'},{user_id:null,role:'MEMBER'}];
-  external={full_name:'',email:'',organization:'',position:'',expertise:'',phone:'',password:''};
+  memberRows:any[]=[{user_id:null,role:'PRESIDENT',weight:null},{user_id:null,role:'SECRETARY',weight:null},{user_id:null,role:'MEMBER',weight:null}];
+  councilDate='';councilRoom='';rescheduleDate='';rescheduleRoom='';
+  external={full_name:'',email:'',organization:'',position:'',expertise:'',phone:'',password:'',academic_degree:'THAC_SI'};
   constructor(private api:ApiService,private auth:AuthService,private campaignService:CampaignService,private departmentService:DepartmentService,private toast:ToastService) {}
   ngOnInit() {
     const user=this.auth.getCurrentUser();this.departmentId=user?.departmentId || null;
@@ -46,6 +47,15 @@ export class AcademicManagementComponent implements OnInit {
   search(){if(this.departmentId)this.api.get<any[]>(`/base/academic/supervisors?department_id=${this.departmentId}&q=${encodeURIComponent(this.query)}`).subscribe({next:r=>this.teachers=r,error:this.error});}
   invite(t:any){this.api.post(`/base/student-campaigns/eligible-teachers/${t.id}?campaign_id=${this.campaignId}&department_id=${this.departmentId}`,{}).subscribe({next:()=>this.toast.success('Đã mời người hướng dẫn; có thể phân công ở danh sách SV.'),error:this.error});}
   addExternal(){this.api.post('/base/academic/external-supervisors',{...this.external,department_id:this.departmentId,campaign_id:this.campaignId}).subscribe({next:()=>{this.external.password='';this.toast.success('Đã tạo tài khoản và mời người hướng dẫn ngoài trường.');this.search();},error:this.error});}
-  createCouncil(){this.api.post('/base/councils',{department_campaign_id:this.dcId,name:this.councilName,members:this.memberRows}).subscribe({next:()=>{this.toast.success('Đã tạo hội đồng.');this.load();},error:this.error});}
+  /** datetime-local "2026-10-20T08:00" → định dạng backend "2026-10-20 08:00:00". */
+  private toApiDate(value:string){return value?value.replace('T',' ')+(value.length===16?':00':''):null;}
+  degreeLabel(d:string|null){return d==='TIEN_SI'?'TS':d==='THAC_SI'?'ThS':d==='DAI_HOC'?'ĐH':'chưa khai báo trình độ';}
+  roleLabel(r:string){return r==='PRESIDENT'?'Chủ tịch':r==='SECRETARY'?'Thư ký':'Ủy viên';}
+  weightTotal(){const w=this.memberRows.filter(m=>m.weight!==null && m.weight!=='' && m.weight!==undefined);return w.length?w.reduce((s,m)=>s+Number(m.weight),0):null;}
+  createCouncil(){
+    const members=this.memberRows.map(m=>({user_id:m.user_id,role:m.role,weight:m.weight===''||m.weight===undefined?null:m.weight}));
+    this.api.post('/base/councils',{department_campaign_id:this.dcId,name:this.councilName,members,evaluation_date:this.toApiDate(this.councilDate),room:this.councilRoom||null}).subscribe({next:()=>{this.toast.success('Đã tạo hội đồng.');this.load();},error:this.error});
+  }
+  reschedule(){this.api.put(`/base/councils/${this.councilId}/schedule`,{evaluation_date:this.toApiDate(this.rescheduleDate),room:this.rescheduleRoom}).subscribe({next:()=>{this.toast.success('Đã cập nhật lịch và gửi thông báo.');this.load();},error:this.error});}
   assignCouncil(){const ids=this.students.filter(s=>s.selected).map(s=>s.id);if(!ids.length){this.toast.error('Hãy chọn SV trong bảng.');return;}this.api.post(`/base/councils/${this.councilId}/students`,ids).subscribe({next:()=>{this.toast.success('Đã phân công hội đồng.');this.load();},error:this.error});}
 }

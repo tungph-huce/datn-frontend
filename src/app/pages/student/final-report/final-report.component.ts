@@ -30,6 +30,20 @@ export class FinalReportComponent implements OnInit {
   uploadingFile: UploadingFile | null = null;
 
   isAgreed: boolean = false;
+  /** Loại tài liệu theo Điều 9.4b; thuyết minh PDF là bắt buộc (Điều 9.2). */
+  documentType = 'Baocao';
+  readonly documentTypes = [
+    { value: 'Baocao', label: 'Thuyết minh ĐATN (PDF bắt buộc)' },
+    { value: 'Tomtat', label: 'Bản tóm tắt' },
+    { value: 'Slides', label: 'Slide bảo vệ' },
+    { value: 'Drawings', label: 'Bản vẽ / mô hình' },
+    { value: 'Code', label: 'Mã nguồn' },
+    { value: 'Data', label: 'Dữ liệu / bảng tính' },
+    { value: 'Similarity', label: 'Kết quả kiểm tra trùng lặp' },
+    { value: 'Forms', label: 'Phiếu, biên bản' },
+    { value: 'Khac', label: 'Khác' }
+  ];
+  readonly acceptedTypes = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.zip,.rar,.7z,.dwg,.dxf,.ifc,.rvt,.png,.jpg,.jpeg';
   canAccess = false; // Status Gate: chỉ mở khi M1_EVALUATED trở lên
 
   constructor(private toastService: ToastService, private studentCampaignService: StudentCampaignService,
@@ -129,7 +143,7 @@ export class FinalReportComponent implements OnInit {
       }
     }, 200);
 
-    this.fileService.uploadFile(file).subscribe({
+    this.fileService.uploadFile(file, this.studentCampaign!.id, this.documentType).subscribe({
       next: (res) => {
         clearInterval(interval);
         const fileRes = res;
@@ -184,6 +198,11 @@ export class FinalReportComponent implements OnInit {
     const pendingFiles = this.getPendingFiles();
     if (pendingFiles.length === 0) {
       this.showError('Vui lòng tải lên ít nhất một file báo cáo trước khi nộp.');
+      return;
+    }
+
+    if (!this.attachedFiles.some(f => (f.file_url || '').toLowerCase().endsWith('.pdf'))) {
+      this.showError('Hồ sơ phải có file thuyết minh định dạng PDF (Điều 9.2).');
       return;
     }
 
@@ -268,9 +287,11 @@ export class FinalReportComponent implements OnInit {
     }
     this.fileService.downloadFile(file.file_url).subscribe({
       next: blob => {
+        // Gắn thẻ <a> vào DOM và thu hồi URL sau khi trình duyệt bắt đầu tải; thu hồi ngay sẽ làm hỏng tệp ở một số trình duyệt.
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a'); link.href = url; link.download = file.file_name;
-        link.click(); URL.revokeObjectURL(url);
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
       },
       error: () => this.toastService.error('Không thể tải báo cáo.')
     });

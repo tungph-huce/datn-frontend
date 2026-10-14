@@ -147,6 +147,14 @@
             </div>
         </div>
 
+        <div *ngIf="formRole === 'GVHD'" class="flex flex-col gap-1.5">
+            <label class="font-label-md text-[13px] text-slate-600">Trình độ <span class="text-slate-400 font-normal">(bắt buộc để được phân công hướng dẫn/Hội đồng — Điều 10, 15.3)</span></label>
+            <select [(ngModel)]="formAcademicDegree" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
+                <option [ngValue]="null">— Chưa khai báo —</option>
+                <option *ngFor="let d of academicDegrees" [ngValue]="d.value">{{ d.label }}</option>
+            </select>
+        </div>
+
         <div *ngIf="requiresDepartmentSelection()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex flex-col gap-1.5">
                 <label class="font-label-md text-[13px] text-slate-600">Khoa <span class="text-red-500">*</span></label>

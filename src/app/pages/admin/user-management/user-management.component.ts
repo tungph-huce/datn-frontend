@@ -29,6 +29,12 @@ export class UserManagementComponent implements OnInit {
   formPassword = '';
   formFullName = '';
   formRole = '';
+  formAcademicDegree: string | null = null;
+  readonly academicDegrees = [
+    { value: 'DAI_HOC', label: 'Đại học' },
+    { value: 'THAC_SI', label: 'Thạc sĩ' },
+    { value: 'TIEN_SI', label: 'Tiến sĩ (PGS/GS)' }
+  ];
   formFacultyId: number | null = null;
   formSubDepartmentId: number | null = null;
 
@@ -136,6 +142,7 @@ export class UserManagementComponent implements OnInit {
     this.formEmail = user.email || '';
     this.formFullName = user.full_name || '';
     this.formRole = user.role || '';
+    this.formAcademicDegree = user.academic_degree || null;
     
     // Determine faculty and sub-department from single department_id
     this.formFacultyId = null;
@@ -170,6 +177,7 @@ export class UserManagementComponent implements OnInit {
     this.formPassword = '';
     this.formFullName = '';
     this.formRole = '';
+    this.formAcademicDegree = null;
     this.formFacultyId = null;
     this.formSubDepartmentId = null;
     this.subDepartments = [];
@@ -211,7 +219,8 @@ export class UserManagementComponent implements OnInit {
       password: this.formPassword.trim() || undefined,
       full_name: this.formFullName.trim(),
       role: this.formRole,
-      department_id: finalDepartmentId
+      department_id: finalDepartmentId,
+      academic_degree: this.formRole === 'GVHD' ? this.formAcademicDegree : null
     };
 
     this.isLoading = true;

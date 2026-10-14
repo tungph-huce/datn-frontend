@@ -71,7 +71,7 @@ export class EvaluationService {
     );
   }
 
-  exportStageDatn07(studentCampaignId: number, stage: 'M1' | 'M2'): Observable<Blob> {
+  exportStageDatn07(studentCampaignId: number, stage: 'M1' | 'M2' | 'M3'): Observable<Blob> {
     return this.http.get(`${environment.apiUrl}/base/evaluations/stage/${stage}/${studentCampaignId}/datn-07`, { responseType: 'blob' });
   }
 

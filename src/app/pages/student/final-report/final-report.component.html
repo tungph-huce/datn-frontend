@@ -38,14 +38,23 @@
         <!-- Left Column: Upload Area (Takes up 2 columns on lg) -->
         <div class="lg:col-span-2 space-y-6">
 
+            <!-- Loại tài liệu: quyết định tên tệp theo quy cách Điều 9.4 -->
+            <div class="bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-2">
+                <label class="text-sm font-semibold text-slate-700">Loại tài liệu sắp tải lên</label>
+                <select [(ngModel)]="documentType" class="border border-slate-300 rounded px-3 py-2 text-sm" [disabled]="isSaving || uploadingFile != null">
+                    <option *ngFor="let t of documentTypes" [value]="t.value">{{ t.label }}</option>
+                </select>
+                <p class="text-xs text-slate-500">Hệ thống tự đặt tên tệp theo mẫu [Đợt]_[Khoa]_[Ngành]_[MSSV]_[HọTên]_[Loại]_[YYYYMMDD]_v#.</p>
+            </div>
+
             <!-- Drag & Drop Zone -->
             <label class="bg-white rounded-xl border border-slate-200 p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors border-dashed border-2 cursor-pointer min-h-[300px] relative">
-                <input type="file" class="hidden" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.zip,.rar" [disabled]="isSaving || uploadingFile != null" />
+                <input type="file" class="hidden" (change)="onFileSelected($event)" [accept]="acceptedTypes" [disabled]="isSaving || uploadingFile != null" />
                 <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-[#00429D]">
                     <span class="material-symbols-outlined text-[32px]">cloud_upload</span>
                 </div>
                 <h3 class="text-base font-semibold text-slate-900 mb-2">Kéo thả tệp vào đây hoặc nhấn để tải lên</h3>
-                <p class="text-sm text-slate-500 mb-4">Hỗ trợ các định dạng: PDF, DOCX, ZIP (Tối đa 50MB)</p>
+                <p class="text-sm text-slate-500 mb-4">Hỗ trợ: PDF, DOCX, PPTX, XLSX/CSV, ZIP/RAR/7Z, DWG/DXF/IFC/RVT, ảnh (tối đa 50MB). Bắt buộc có thuyết minh PDF.</p>
                 <div class="bg-[#00429D] text-white px-4 py-2 rounded text-sm font-medium transition-colors hover:bg-blue-800">
                     Chọn Tệp
                 </div>
