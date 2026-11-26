@@ -8,11 +8,13 @@ import { CampaignService } from '../../core/services/campaign.service';
 import { DepartmentService } from '../../core/services/department.service';
 import { ToastService } from '../../core/services/toast.service';
 
-@Component({selector:'app-academic-management',standalone:true,imports:[CommonModule,FormsModule,RouterModule],templateUrl:'./academic-management.component.html',styles:[`
- :host {display:block} section {background:white;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin:18px 0}
- h2 {font-size:24px;font-weight:700} h3 {font-size:18px;font-weight:650;margin-bottom:12px} label {display:inline-flex;flex-direction:column;gap:5px;margin:6px 12px 8px 0;font-size:14px}
- input,select,textarea {border:1px solid #cbd5e1;border-radius:6px;padding:8px;background:white;max-width:100%}button {padding:8px 14px;border-radius:6px;background:#00429d;color:white;margin:5px}button:disabled{opacity:.4}td,th{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}table{width:100%}.muted{color:#64748b;font-size:13px}
-`]})
+@Component({
+  selector: 'app-academic-management',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './academic-management.component.html',
+  styleUrls: ['./academic-management.component.scss']
+})
 export class AcademicManagementComponent implements OnInit {
   departments:any[]=[];campaigns:any[]=[];majors:any[]=[];sets:any[]=[];bindings:any[]=[];students:any[]=[];teachers:any[]=[];councils:any[]=[];
   departmentId:number|null=null;campaignId:number|null=null;dcId:number|null=null;majorId:number|null=null;cohort='68';setId:number|null=null;

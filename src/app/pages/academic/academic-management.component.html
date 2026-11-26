@@ -1,40 +1,238 @@
-<h2>Ngành, CLO sinh viên và Hội đồng M3</h2>
-<p class="muted">Chọn nhóm chuyên môn và đợt để quản lý. Khóa được lấy từ hai chữ số cuối của MSSV.</p>
-<section>
- <label>Nhóm chuyên môn<select [(ngModel)]="departmentId" (ngModelChange)="load()"><option *ngFor="let d of departments" [ngValue]="d.id">{{d.name}}</option></select></label>
- <label>Đợt ĐATN<select [(ngModel)]="campaignId" (ngModelChange)="load()"><option *ngFor="let c of campaigns" [ngValue]="c.id">{{c.name}}</option></select></label>
-</section>
-<section><h3>1. Ngành thuộc nhóm chuyên môn</h3>
- <span *ngFor="let m of majors" class="inline-block px-3 py-1 m-1 rounded bg-blue-50">{{m.code}} · {{m.name}}</span>
- <div><label>Mã ngành<input [(ngModel)]="majorCode"></label><label>Tên ngành<input [(ngModel)]="majorName"></label><button (click)="createMajor()" [disabled]="!majorName || !majorCode">Thêm ngành</button></div>
-</section>
-<section><h3>2. Gán CLO theo đợt, ngành và khóa</h3>
- <p class="muted">Tạo bộ CLO trong mục “Cấu hình CLO & Rubric”, sau đó gán tại đây. Bộ đã gán trên hồ sơ SV được giữ nguyên khi thay đổi cấu hình mặc định.</p>
- <label>Ngành<select [(ngModel)]="majorId" (ngModelChange)="setId=null"><option [ngValue]="null">Chọn ngành</option><option *ngFor="let m of majors" [ngValue]="m.id">{{m.name}}</option></select></label>
- <label>Khóa<input [(ngModel)]="cohort" maxlength="2" (ngModelChange)="setId=null"></label>
- <label>Bộ CLO<select [(ngModel)]="setId"><option [ngValue]="null">Chọn bộ đúng ngành/khóa</option><option *ngFor="let s of matchingSets" [ngValue]="s.id">{{s.name}}</option></select></label>
- <button (click)="bind()" [disabled]="!setId || !campaignId">Gán vào đợt</button>
- <p *ngFor="let b of bindings" class="muted">{{majorLabel(b.major_id)}} · K{{b.cohort}} → {{setName(b.clo_set_id)}}</p>
- <div class="overflow-auto"><table><thead><tr><th>Chọn</th><th>SV</th><th>Ngành / Khóa</th><th>Bộ CLO riêng</th><th>Thao tác</th></tr></thead><tbody><tr *ngFor="let s of students"><td><input type="checkbox" [(ngModel)]="s.selected"></td><td>{{s.full_name}}<div class="muted">{{s.student_code}}</div></td><td>{{s.major_name || 'Chưa cập nhật'}} · K{{s.cohort}}</td><td>{{setName(s.clo_set_id)}}</td><td><button (click)="assignClo(s)">Gán CLO theo đợt/khóa</button></td></tr></tbody></table></div>
-</section>
-<section><h3>3. Người hướng dẫn trong và ngoài trường</h3>
- <label>Tìm theo tên, email, đơn vị<input [(ngModel)]="query" (keyup.enter)="search()"></label><button (click)="search()">Tìm</button>
- <div class="overflow-auto max-h-72"><table><tr *ngFor="let t of teachers"><td>{{t.full_name}}<div class="muted">{{t.email}}</div></td><td>{{t.external_supervisor ? 'Ngoài trường' : 'Giảng viên'}} · {{degreeLabel(t.academic_degree)}} · {{t.organization}}</td><td><button (click)="invite(t)" [disabled]="!campaignId">Mời hướng dẫn</button></td></tr></table></div>
- <h3 class="mt-6">Thêm người hướng dẫn từ đơn vị bên ngoài</h3>
- <label>Họ tên<input [(ngModel)]="external.full_name"></label><label>Email đăng nhập<input type="email" [(ngModel)]="external.email"></label><label>Đơn vị<input [(ngModel)]="external.organization"></label>
- <label>Chức danh<input [(ngModel)]="external.position"></label><label>Chuyên môn<input [(ngModel)]="external.expertise"></label><label>Điện thoại<input [(ngModel)]="external.phone"></label><label>Trình độ<select [(ngModel)]="external.academic_degree"><option value="THAC_SI">Thạc sĩ (đủ chuẩn hướng dẫn độc lập)</option><option value="TIEN_SI">Tiến sĩ</option><option value="DAI_HOC">Đại học (chỉ ủy viên Hội đồng)</option></select></label><label>Mật khẩu ban đầu (từ 10 ký tự)<input type="password" autocomplete="new-password" [(ngModel)]="external.password"></label>
- <button (click)="addExternal()" [disabled]="!campaignId || !external.full_name || !external.organization || external.password.length < 10">Tạo tài khoản hướng dẫn ngoài</button>
-</section>
-<section><h3>4. Hội đồng chấm M3</h3>
- <p class="muted">Ít nhất 3 thành viên; Chủ tịch là GV cơ hữu có học vị tiến sĩ, Thư ký là GV cơ hữu từ thạc sĩ, ủy viên từ thạc sĩ (chuyên gia từ đại học) — Điều 15.3. Hội đồng phải bao gồm người hướng dẫn của SV.
-  Trọng số γj để trống = chia đều; nếu nhập thì nhập cho tất cả và tổng bằng 100% (Điều 27.1). Lịch bảo vệ phải công bố trước tối thiểu 5 ngày (Điều 15.4).</p>
- <label>Tên hội đồng<input [(ngModel)]="councilName"></label>
- <label>Thời gian bảo vệ<input type="datetime-local" [(ngModel)]="councilDate"></label><label>Phòng<input [(ngModel)]="councilRoom"></label>
- <div *ngFor="let m of memberRows; let i = index"><label>Thành viên<select [(ngModel)]="m.user_id"><option [ngValue]="null">Chọn thành viên</option><option *ngFor="let t of teachers" [ngValue]="t.id">{{t.full_name}} · {{degreeLabel(t.academic_degree)}} — {{t.email}}</option></select></label><label>Vai trò<select [(ngModel)]="m.role"><option value="PRESIDENT">Chủ tịch</option><option value="SECRETARY">Thư ký</option><option value="MEMBER">Ủy viên</option></select></label><label>γj (%)<input type="number" min="0" max="100" step="0.1" [(ngModel)]="m.weight" class="w-24"></label><button *ngIf="memberRows.length > 3" (click)="memberRows.splice(i,1)">Bỏ</button></div>
- <p class="muted" *ngIf="weightTotal() !== null">Tổng γj: {{weightTotal()}}%</p>
- <button (click)="memberRows.push({user_id:null,role:'MEMBER',weight:null})">Thêm thành viên</button><button (click)="createCouncil()" [disabled]="!dcId || !councilName">Tạo hội đồng</button>
- <hr class="my-4">
- <table *ngIf="councils.length"><thead><tr><th>Hội đồng</th><th>Lịch bảo vệ</th><th>Thành viên (vai trò · trình độ · γj)</th></tr></thead><tbody><tr *ngFor="let c of councils"><td>{{c.name}}</td><td>{{c.evaluation_date || 'Chưa xếp lịch'}}<div class="muted">{{c.room}}</div></td><td><div *ngFor="let m of c.members">{{roleLabel(m.role)}}: {{m.full_name}} · {{degreeLabel(m.academic_degree)}}{{m.weight != null ? ' · ' + m.weight + '%' : ''}}</div></td></tr></tbody></table>
- <label>Hội đồng<select [(ngModel)]="councilId"><option *ngFor="let c of councils" [ngValue]="c.id">{{c.name}}</option></select></label><button (click)="assignCouncil()" [disabled]="!councilId">Gán hội đồng cho SV đã chọn</button>
- <div><label>Đổi lịch bảo vệ<input type="datetime-local" [(ngModel)]="rescheduleDate"></label><label>Phòng<input [(ngModel)]="rescheduleRoom"></label><button (click)="reschedule()" [disabled]="!councilId || !rescheduleDate || !rescheduleRoom">Cập nhật lịch &amp; thông báo</button></div>
-</section>
+<div class="academic-page mx-auto grid max-w-[1440px] gap-6 max-sm:gap-4">
+  <header>
+    <p class="text-xs font-semibold text-[#00429D] mb-2">QUẢN LÝ HỌC VỤ</p>
+    <h1 class="text-2xl font-bold text-slate-800">Ngành, CLO sinh viên &amp; Hội đồng M3</h1>
+    <p class="text-sm text-slate-500 mt-2">Quản lý ngành đào tạo, chuẩn đầu ra và hội đồng đánh giá theo từng đợt ĐATN.</p>
+  </header>
+
+  <section class="academic-card min-w-0 rounded-xl border border-slate-200 bg-white p-6 max-sm:p-4" aria-labelledby="academic-scope">
+    <div class="card-heading mb-5 flex items-start gap-3 max-sm:flex-wrap">
+      <span class="step-number grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-50 text-[13px] font-bold text-[#00429D] material-symbols-outlined text-[18px]" aria-hidden="true">tune</span>
+      <div>
+        <h2 id="academic-scope" class="card-title text-base font-bold text-slate-800">Phạm vi quản lý</h2>
+        <p class="hint mt-1 text-xs font-normal leading-relaxed text-slate-500">Chọn nhóm chuyên môn và đợt ĐATN để xem dữ liệu tương ứng.</p>
+      </div>
+    </div>
+    <div class="form-grid md:grid-cols-2">
+      <label class="field">Nhóm chuyên môn
+        <select [(ngModel)]="departmentId" (ngModelChange)="load()">
+          <option [ngValue]="null" disabled>Chọn nhóm chuyên môn</option>
+          <option *ngFor="let d of departments" [ngValue]="d.id">{{d.name}}</option>
+        </select>
+      </label>
+      <label class="field">Đợt ĐATN
+        <select [(ngModel)]="campaignId" (ngModelChange)="load()">
+          <option [ngValue]="null" disabled>Chọn đợt ĐATN</option>
+          <option *ngFor="let c of campaigns" [ngValue]="c.id">{{c.name}}</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section class="academic-card min-w-0 rounded-xl border border-slate-200 bg-white p-6 max-sm:p-4" aria-labelledby="academic-majors">
+    <div class="card-heading mb-5 flex items-start gap-3 max-sm:flex-wrap">
+      <span class="step-number grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-50 text-[13px] font-bold text-[#00429D]" aria-hidden="true">01</span>
+      <div class="flex-1 min-w-0">
+        <h2 id="academic-majors" class="card-title text-base font-bold text-slate-800">Ngành thuộc nhóm chuyên môn</h2>
+        <p class="hint mt-1 text-xs font-normal leading-relaxed text-slate-500">Quản lý danh mục ngành để sử dụng khi nhập và phân công sinh viên.</p>
+      </div>
+      <span class="count-pill shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">{{majors.length}} ngành</span>
+    </div>
+    <div *ngIf="majors.length" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 mb-5">
+      <div *ngFor="let m of majors" class="rounded-lg border border-blue-100 bg-blue-50 p-3 min-w-0">
+        <span class="text-xs font-bold text-[#00429D]">{{m.code}}</span>
+        <p class="text-sm text-slate-700 mt-1 break-words">{{m.name}}</p>
+      </div>
+    </div>
+    <div *ngIf="!majors.length" class="mb-4 flex items-center gap-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+      <span class="material-symbols-outlined text-[18px]" aria-hidden="true">school</span>
+      <p>{{departmentId ? 'Nhóm chuyên môn chưa có ngành đào tạo.' : 'Chọn nhóm chuyên môn để xem danh sách ngành.'}}</p>
+    </div>
+    <div class="form-row major-form">
+      <label class="field">Mã ngành
+        <input [(ngModel)]="majorCode" placeholder="Ví dụ: CNPM">
+      </label>
+      <label class="field">Tên ngành
+        <input [(ngModel)]="majorName" placeholder="Nhập tên ngành đào tạo">
+      </label>
+      <button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-primary" (click)="createMajor()" [disabled]="!departmentId || !majorName || !majorCode">
+        <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>Thêm ngành
+      </button>
+    </div>
+  </section>
+
+  <section class="academic-card min-w-0 rounded-xl border border-slate-200 bg-white p-6 max-sm:p-4" aria-labelledby="academic-clo">
+    <div class="card-heading mb-5 flex items-start gap-3 max-sm:flex-wrap">
+      <span class="step-number grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-50 text-[13px] font-bold text-[#00429D]" aria-hidden="true">02</span>
+      <div class="flex-1 min-w-0">
+        <h2 id="academic-clo" class="card-title text-base font-bold text-slate-800">Gán CLO theo ngành và khóa</h2>
+        <p class="hint mt-1 text-xs font-normal leading-relaxed text-slate-500">Khóa được lấy từ hai chữ số cuối MSSV. Tạo bộ CLO tại mục “Cấu hình CLO &amp; Rubric” trước khi gán.</p>
+      </div>
+    </div>
+    <div class="form-row clo-form">
+      <label class="field">Ngành
+        <select [(ngModel)]="majorId" (ngModelChange)="setId=null">
+          <option [ngValue]="null">Chọn ngành</option>
+          <option *ngFor="let m of majors" [ngValue]="m.id">{{m.name}}</option>
+        </select>
+      </label>
+      <label class="field">Khóa
+        <input [(ngModel)]="cohort" maxlength="2" (ngModelChange)="setId=null" placeholder="68">
+      </label>
+      <label class="field">Bộ CLO
+        <select [(ngModel)]="setId">
+          <option [ngValue]="null">Chọn bộ đúng ngành / khóa</option>
+          <option *ngFor="let s of matchingSets" [ngValue]="s.id">{{s.name}}</option>
+        </select>
+      </label>
+      <button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-primary" (click)="bind()" [disabled]="!setId || !campaignId">Gán vào đợt</button>
+    </div>
+    <div *ngIf="bindings.length" class="mt-4 flex flex-wrap gap-2">
+      <span *ngFor="let b of bindings" class="rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-800">
+        {{majorLabel(b.major_id)}} · K{{b.cohort}} → {{setName(b.clo_set_id)}}
+      </span>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-2 mt-6 mb-3">
+      <h3 class="text-sm font-semibold text-slate-700">CLO trên hồ sơ sinh viên</h3>
+      <span class="count-pill shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">{{students.length}} sinh viên</span>
+    </div>
+    <p class="hint mt-1 text-xs font-normal leading-relaxed text-slate-500 mb-3">Bộ CLO đã gán trên hồ sơ sinh viên được giữ nguyên khi thay đổi cấu hình mặc định.</p>
+    <div class="academic-table-wrap max-w-full overflow-auto rounded-lg border border-slate-200 max-h-96">
+      <table [class.empty-table]="!students.length">
+        <thead><tr><th scope="col">Chọn</th><th scope="col">Sinh viên</th><th scope="col">Ngành / Khóa</th><th scope="col">Bộ CLO riêng</th><th scope="col" class="text-right">Thao tác</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let s of students">
+            <td><input type="checkbox" class="h-4 w-4 cursor-pointer accent-[#00429D]" [(ngModel)]="s.selected" [attr.aria-label]="'Chọn sinh viên ' + s.full_name"></td>
+            <td><div class="font-medium text-slate-800">{{s.full_name}}</div><div class="cell-subtitle mt-1 text-xs text-slate-400 [overflow-wrap:anywhere]">{{s.student_code}}</div></td>
+            <td>{{s.major_name || 'Chưa cập nhật'}}<div class="cell-subtitle mt-1 text-xs text-slate-400 [overflow-wrap:anywhere]">Khóa {{s.cohort || '—'}}</div></td>
+            <td>{{setName(s.clo_set_id)}}</td>
+            <td class="text-right"><button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-secondary whitespace-nowrap" (click)="assignClo(s)">Gán CLO theo đợt / khóa</button></td>
+          </tr>
+          <tr *ngIf="!students.length"><td colspan="5"><div class="empty-state grid justify-items-center gap-2 px-4 py-7 text-center text-[13px] text-slate-400"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">groups</span><p>Chưa có sinh viên trong phạm vi đã chọn.</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="academic-card min-w-0 rounded-xl border border-slate-200 bg-white p-6 max-sm:p-4" aria-labelledby="academic-supervisors">
+    <div class="card-heading mb-5 flex items-start gap-3 max-sm:flex-wrap">
+      <span class="step-number grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-50 text-[13px] font-bold text-[#00429D]" aria-hidden="true">03</span>
+      <div>
+        <h2 id="academic-supervisors" class="card-title text-base font-bold text-slate-800">Người hướng dẫn</h2>
+        <p class="hint mt-1 text-xs font-normal leading-relaxed text-slate-500">Tìm và mời giảng viên, chuyên gia trong hoặc ngoài trường tham gia đợt ĐATN.</p>
+      </div>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-3 items-end mb-4">
+      <label class="field w-full">Tìm người hướng dẫn
+        <input [(ngModel)]="query" (keyup.enter)="search()" placeholder="Tìm theo tên, email hoặc đơn vị">
+      </label>
+      <button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-secondary shrink-0" (click)="search()" [disabled]="!departmentId"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">search</span>Tìm kiếm</button>
+    </div>
+    <div class="academic-table-wrap max-w-full overflow-auto rounded-lg border border-slate-200 max-h-80">
+      <table [class.empty-table]="!teachers.length">
+        <thead><tr><th scope="col">Người hướng dẫn</th><th scope="col">Trình độ / Đơn vị</th><th scope="col" class="text-right">Thao tác</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let t of teachers">
+            <td><div class="font-medium text-slate-800">{{t.full_name}}</div><div class="cell-subtitle mt-1 text-xs text-slate-400 [overflow-wrap:anywhere]">{{t.email}}</div></td>
+            <td><div>{{t.external_supervisor ? 'Ngoài trường' : 'Giảng viên'}} · {{degreeLabel(t.academic_degree)}}</div><div class="cell-subtitle mt-1 text-xs text-slate-400 [overflow-wrap:anywhere]">{{t.organization || 'Chưa cập nhật đơn vị'}}</div></td>
+            <td class="text-right"><button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-secondary whitespace-nowrap" (click)="invite(t)" [disabled]="!campaignId">Mời hướng dẫn</button></td>
+          </tr>
+          <tr *ngIf="!teachers.length"><td colspan="3"><div class="empty-state grid justify-items-center gap-2 px-4 py-7 text-center text-[13px] text-slate-400"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">person_search</span><p>{{departmentId ? 'Không tìm thấy người hướng dẫn phù hợp.' : 'Chọn nhóm chuyên môn để tìm người hướng dẫn.'}}</p></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="form-panel mt-5 rounded-lg border border-slate-200 bg-slate-50 p-5 max-sm:p-4">
+      <h3 class="text-sm font-semibold text-slate-800">Thêm người hướng dẫn ngoài trường</h3>
+      <p class="hint mt-1 text-xs font-normal leading-relaxed text-slate-500 mb-4">Tạo tài khoản và mời người hướng dẫn từ đơn vị bên ngoài vào đợt đang chọn.</p>
+      <div class="form-grid md:grid-cols-2 xl:grid-cols-3">
+        <label class="field">Họ tên<input [(ngModel)]="external.full_name" placeholder="Nhập họ và tên"></label>
+        <label class="field">Email đăng nhập<input type="email" [(ngModel)]="external.email" placeholder="Nhập địa chỉ email"></label>
+        <label class="field">Đơn vị<input [(ngModel)]="external.organization" placeholder="Tên cơ quan / tổ chức"></label>
+        <label class="field">Chức danh<input [(ngModel)]="external.position" placeholder="Nhập chức danh"></label>
+        <label class="field">Chuyên môn<input [(ngModel)]="external.expertise" placeholder="Lĩnh vực chuyên môn"></label>
+        <label class="field">Điện thoại<input type="tel" [(ngModel)]="external.phone" placeholder="Số điện thoại liên hệ"></label>
+        <label class="field">Trình độ
+          <select [(ngModel)]="external.academic_degree"><option value="THAC_SI">Thạc sĩ (hướng dẫn độc lập)</option><option value="TIEN_SI">Tiến sĩ</option><option value="DAI_HOC">Đại học (chỉ ủy viên Hội đồng)</option></select>
+        </label>
+        <label class="field">Mật khẩu ban đầu<input type="password" autocomplete="new-password" [(ngModel)]="external.password" placeholder="Tối thiểu 10 ký tự"></label>
+      </div>
+      <div class="flex justify-end mt-4">
+        <button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-primary" (click)="addExternal()" [disabled]="!departmentId || !campaignId || !external.full_name || !external.email || !external.organization || external.password.length < 10">
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">person_add</span>Tạo tài khoản người hướng dẫn
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="academic-card min-w-0 rounded-xl border border-slate-200 bg-white p-6 max-sm:p-4" aria-labelledby="academic-councils">
+    <div class="card-heading mb-5 flex items-start gap-3 max-sm:flex-wrap">
+      <span class="step-number grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-50 text-[13px] font-bold text-[#00429D]" aria-hidden="true">04</span>
+      <div class="flex-1 min-w-0">
+        <h2 id="academic-councils" class="card-title text-base font-bold text-slate-800">Hội đồng chấm M3</h2>
+        <p class="hint mt-1 text-xs font-normal leading-relaxed text-slate-500">Thiết lập thành viên, lịch bảo vệ và phân công sinh viên vào hội đồng.</p>
+      </div>
+      <span class="count-pill shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">{{councils.length}} hội đồng</span>
+    </div>
+    <div class="rounded-lg border border-blue-100 bg-blue-50 p-4 mb-5">
+      <p class="text-xs leading-relaxed text-blue-900">Hội đồng có ít nhất 3 thành viên và bao gồm GVHD của sinh viên. Chủ tịch là GV cơ hữu có học vị tiến sĩ; Thư ký là GV cơ hữu từ thạc sĩ; ủy viên từ thạc sĩ hoặc chuyên gia từ đại học (Điều 15.3).</p>
+      <p class="text-xs leading-relaxed text-blue-900 mt-2">Trọng số γj để trống sẽ chia đều. Nếu nhập, cần nhập cho tất cả thành viên với tổng 100% (Điều 27.1). Lịch bảo vệ phải công bố trước tối thiểu 5 ngày (Điều 15.4).</p>
+    </div>
+    <div class="form-grid md:grid-cols-2 xl:grid-cols-3 mb-5">
+      <label class="field">Tên hội đồng<input [(ngModel)]="councilName" placeholder="Nhập tên hội đồng"></label>
+      <label class="field">Thời gian bảo vệ<input type="datetime-local" [(ngModel)]="councilDate"></label>
+      <label class="field">Phòng<input [(ngModel)]="councilRoom" placeholder="Ví dụ: P.301"></label>
+    </div>
+    <h3 class="text-sm font-semibold text-slate-700 mb-3">Thành viên hội đồng</h3>
+    <div class="grid gap-3">
+      <div *ngFor="let m of memberRows; let i = index" class="member-row">
+        <label class="field member-person">Thành viên {{i + 1}}
+          <select [(ngModel)]="m.user_id"><option [ngValue]="null">Chọn thành viên</option><option *ngFor="let t of teachers" [ngValue]="t.id">{{t.full_name}} · {{degreeLabel(t.academic_degree)}} — {{t.email}}</option></select>
+        </label>
+        <label class="field">Vai trò
+          <select [(ngModel)]="m.role"><option value="PRESIDENT">Chủ tịch</option><option value="SECRETARY">Thư ký</option><option value="MEMBER">Ủy viên</option></select>
+        </label>
+        <label class="field">γj (%)<input type="number" min="0" max="100" step="0.1" [(ngModel)]="m.weight" placeholder="Đều"></label>
+        <button *ngIf="memberRows.length > 3" type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-secondary btn-icon w-[42px] !p-0" (click)="memberRows.splice(i,1)" [attr.aria-label]="'Bỏ thành viên ' + (i + 1)"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">close</span></button>
+      </div>
+    </div>
+    <p class="hint mt-1 text-xs font-normal leading-relaxed text-slate-500 mt-3" *ngIf="weightTotal() !== null">Tổng trọng số γj: <strong [class.text-red-600]="weightTotal() !== 100" [class.text-emerald-600]="weightTotal() === 100">{{weightTotal()}}%</strong> / 100%</p>
+    <div class="flex flex-wrap justify-between gap-3 mt-4">
+      <button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-secondary" (click)="memberRows.push({user_id:null,role:'MEMBER',weight:null})"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>Thêm thành viên</button>
+      <button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-primary" (click)="createCouncil()" [disabled]="!dcId || !councilName"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">groups</span>Tạo hội đồng</button>
+    </div>
+
+    <div class="border-t border-slate-100 mt-6 pt-5">
+      <h3 class="text-sm font-semibold text-slate-700 mb-3">Hội đồng trong đợt</h3>
+      <div class="academic-table-wrap max-w-full overflow-auto rounded-lg border border-slate-200">
+        <table [class.empty-table]="!councils.length">
+          <thead><tr><th scope="col">Hội đồng</th><th scope="col">Lịch bảo vệ</th><th scope="col">Thành viên</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let c of councils">
+              <td class="font-medium text-slate-800">{{c.name}}</td>
+              <td>{{c.evaluation_date || 'Chưa xếp lịch'}}<div class="cell-subtitle mt-1 text-xs text-slate-400 [overflow-wrap:anywhere]">{{c.room || 'Chưa xếp phòng'}}</div></td>
+              <td><div *ngFor="let m of c.members" class="text-xs leading-relaxed">{{roleLabel(m.role)}}: {{m.full_name}} · {{degreeLabel(m.academic_degree)}}{{m.weight != null ? ' · ' + m.weight + '%' : ''}}</div></td>
+            </tr>
+            <tr *ngIf="!councils.length"><td colspan="3"><div class="empty-state grid justify-items-center gap-2 px-4 py-7 text-center text-[13px] text-slate-400"><span class="material-symbols-outlined text-[18px]" aria-hidden="true">event_note</span><p>Chưa có hội đồng trong phạm vi đã chọn.</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-panel mt-5 rounded-lg border border-slate-200 bg-slate-50 p-5 max-sm:p-4">
+      <h3 class="text-sm font-semibold text-slate-800">Phân công sinh viên &amp; cập nhật lịch</h3>
+      <p class="hint mt-1 text-xs font-normal leading-relaxed text-slate-500 mb-4">Chọn sinh viên tại bảng CLO phía trên, sau đó chọn hội đồng để phân công.</p>
+      <div class="form-grid md:grid-cols-2">
+        <label class="field">Hội đồng
+          <select [(ngModel)]="councilId"><option [ngValue]="null">Chọn hội đồng</option><option *ngFor="let c of councils" [ngValue]="c.id">{{c.name}}</option></select>
+        </label>
+        <button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-secondary" (click)="assignCouncil()" [disabled]="!councilId">Gán hội đồng cho SV đã chọn</button>
+      </div>
+      <div class="form-grid md:grid-cols-2 xl:grid-cols-3 mt-4">
+        <label class="field">Đổi lịch bảo vệ<input type="datetime-local" [(ngModel)]="rescheduleDate"></label>
+        <label class="field">Phòng mới<input [(ngModel)]="rescheduleRoom" placeholder="Nhập phòng bảo vệ"></label>
+        <button type="button" class="btn focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 btn-primary" (click)="reschedule()" [disabled]="!councilId || !rescheduleDate || !rescheduleRoom">Cập nhật lịch &amp; thông báo</button>
+      </div>
+    </div>
+  </section>
+</div>

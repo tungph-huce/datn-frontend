@@ -30,6 +30,7 @@ export interface PaginationRequest {
  * Khớp với backend LoginResponse.java
  */
 export interface LoginResponse {
+  password_change_required?: boolean;
   token: string;
   user_id: number;
   email: string;
@@ -42,6 +43,7 @@ export interface LoginResponse {
  * Thông tin user đang đăng nhập (lưu trong localStorage)
  */
 export interface UserInfo {
+  passwordChangeRequired?: boolean;
   userId: number;
   email: string;
   fullName: string;
@@ -93,6 +95,11 @@ export interface DepartmentResponse {
  * Khớp với backend UserResponse.java
  */
 export interface UserResponse {
+  student_campaign?: StudentEnrollment | null;
+  enrollment_conflict?: boolean;
+  student_campaigns?: StudentEnrollment[];
+  student_code?: string | null;
+  class_name?: string | null;
   id: number;
   email: string;
   full_name: string;
@@ -104,6 +111,19 @@ export interface UserResponse {
   academic_degree?: string | null;
   external_supervisor?: boolean;
   created_at: string;
+}
+
+export interface StudentEnrollment {
+  student_campaign_id: number;
+  campaign_id: number;
+  campaign_name: string;
+  campaign_status: string | null;
+  department_id: number;
+  department_name: string | null;
+  faculty_id: number | null;
+  major_id: number | null;
+  major_name: string | null;
+  cohort: string | null;
 }
 
 /**

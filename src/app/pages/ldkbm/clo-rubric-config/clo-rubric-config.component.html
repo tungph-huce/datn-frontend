@@ -4,16 +4,35 @@
  <label>Đợt ĐATN <select class="border p-2 rounded" [(ngModel)]="selectedCampaignId" (ngModelChange)="onCampaignChange()"><option *ngFor="let c of campaigns" [ngValue]="c.id">{{c.name}}</option></select></label>
  <p class="text-sm text-slate-500">Mỗi lần lưu tạo một bộ CLO mới. Sau khi lưu, gán bộ vào đợt/ngành/khóa và từng SV tại mục Ngành, CLO SV & Hội đồng.</p>
  <div class="flex flex-wrap gap-4"><label>Ngành<select class="border p-2 rounded ml-2" [(ngModel)]="majorId"><option [ngValue]="null">Chọn ngành</option><option *ngFor="let m of majors" [ngValue]="m.id">{{m.name}}</option></select></label><label>Khóa<input class="border p-2 rounded w-20 ml-2" maxlength="2" [(ngModel)]="cohort"></label></div>
- <label class="block">Chương trình <select class="border p-2 rounded" [(ngModel)]="programType"><option value="STANDARD">Chuẩn</option><option value="STEM">Tài năng / STEM</option></select></label>
+ <div class="flex flex-wrap items-center gap-3">
+  <label>Chương trình <select class="border p-2 rounded ml-2" [(ngModel)]="programId" [disabled]="isLoadingPrograms || programLoadError || isLoading || isSaving">
+   <option [ngValue]="null">{{ isLoadingPrograms ? 'Đang tải chương trình...' : 'Chọn chương trình' }}</option>
+   <option *ngFor="let program of programs" [ngValue]="program.id">{{program.name}} ({{program.code}})</option>
+  </select></label>
+ </div>
+ <p *ngIf="programLoadError" class="text-sm text-red-700" role="alert">Không thể tải danh sách chương trình. Vui lòng tải lại trang.</p>
+ <p *ngIf="!isLoadingPrograms && !programLoadError && programs.length === 0" class="text-sm text-amber-700">Chưa có chương trình. Vui lòng liên hệ Admin để bổ sung.</p>
  <label class="block">Chính sách hoàn thành <select class="border p-2 rounded" [(ngModel)]="completionRule"><option value="">Chưa xác nhận</option><option value="INCLUSIVE">Từ mức quy định trở lên</option><option value="ABOVE">Trên mức quy định</option></select></label>
- <div class="flex gap-4"><label>M1 % <input class="border p-2 w-20" type="number" min="0" max="100" [(ngModel)]="m1Weight"></label><label>M2 % <input class="border p-2 w-20" type="number" min="0" max="100" [(ngModel)]="m2Weight"></label><label>M3 % <input class="border p-2 w-20" type="number" min="0" max="100" [(ngModel)]="m3Weight"></label><span>Tổng {{totalStageWeight}}%</span></div>
+ <div class="flex flex-wrap items-center gap-4">
+  <label>M1 % <input #stageM1 class="border p-2 w-20" type="number" min="0" max="100" step="0.01" aria-label="Trọng số M1 chung" [ngModel]="m1Weight" (ngModelChange)="onStageWeightChange(1, $event, stageM1)"></label>
+  <label>M2 % <input #stageM2 class="border p-2 w-20" type="number" min="0" max="100" step="0.01" aria-label="Trọng số M2 chung" [ngModel]="m2Weight" (ngModelChange)="onStageWeightChange(2, $event, stageM2)"></label>
+  <label>M3 % <input #stageM3 class="border p-2 w-20" type="number" min="0" max="100" step="0.01" aria-label="Trọng số M3 chung" [ngModel]="m3Weight" (ngModelChange)="onStageWeightChange(3, $event, stageM3)"></label>
+  <span [class.text-red-700]="!isStageWeightValid">Tổng {{totalStageWeight}}%</span>
+ </div>
+ <p class="text-sm text-slate-500">Tổng M1 + M2 + M3 luôn bằng 100%. Khi thay đổi một mốc, các trọng số còn lại tự điều chỉnh.</p>
  <div><input [(ngModel)]="newCloSetName" placeholder="Tên bộ CLO mới" class="border p-2 rounded mr-3"><button (click)="startCreatingNew()" class="border rounded p-2">Tạo bộ mới (20/30/50)</button></div>
  <div *ngIf="!hasDefinedCloCount"><label>Số CLO <input type="number" min="1" max="20" [(ngModel)]="cloCount" class="border p-2 w-20"></label><button (click)="defineCloCount()" class="ml-3 p-2 rounded bg-blue-800 text-white">Tạo danh sách CLO</button></div>
  <section *ngFor="let clo of clos; let i=index" class="border rounded p-4 space-y-3">
   <div class="flex gap-3"><input [(ngModel)]="clo.clo_code" aria-label="Mã CLO" class="border p-2 w-24"><input [(ngModel)]="clo.description" placeholder="Nội dung chuẩn đầu ra" class="border p-2 flex-1"><button (click)="removeClo(i)" class="text-red-700">Xóa</button></div>
   <label class="block"><input type="checkbox" [(ngModel)]="clo.required_for_completion"> CLO bắt buộc để công nhận hoàn thành</label>
-  <div class="flex flex-wrap gap-4"><label>Alpha % <input type="number" min="0" max="100" [(ngModel)]="clo.alpha_weight" class="border p-2 w-20"></label><label>M1 % <input type="number" min="0" max="100" [(ngModel)]="clo.m1_weight" class="border p-2 w-20"></label><label>M2 % <input type="number" min="0" max="100" [(ngModel)]="clo.m2_weight" class="border p-2 w-20"></label><label>M3 % <input type="number" min="0" max="100" [(ngModel)]="clo.m3_weight" class="border p-2 w-20"></label></div>
+  <div class="flex flex-wrap items-center gap-4">
+   <label>Alpha % <input type="number" min="0" max="100" [(ngModel)]="clo.alpha_weight" class="border p-2 w-20"></label>
+   <label>M1 % <input #cloM1 type="number" min="0" max="100" step="0.01" [attr.aria-label]="'Trọng số M1 ' + clo.clo_code" [ngModel]="clo.m1_weight" (ngModelChange)="onStageWeightChange(1, $event, cloM1, clo)" class="border p-2 w-20"></label>
+   <label>M2 % <input #cloM2 type="number" min="0" max="100" step="0.01" [attr.aria-label]="'Trọng số M2 ' + clo.clo_code" [ngModel]="clo.m2_weight" (ngModelChange)="onStageWeightChange(2, $event, cloM2, clo)" class="border p-2 w-20"></label>
+   <label>M3 % <input #cloM3 type="number" min="0" max="100" step="0.01" [attr.aria-label]="'Trọng số M3 ' + clo.clo_code" [ngModel]="clo.m3_weight" (ngModelChange)="onStageWeightChange(3, $event, cloM3, clo)" class="border p-2 w-20"></label>
+   <span>Tổng {{totalCloStageWeight(clo)}}%</span>
+  </div>
   <div *ngFor="let r of clo.rubrics" class="flex gap-3"><span>Mức {{r.score_level}}</span><input [(ngModel)]="r.description" class="border p-2 flex-1" placeholder="Mô tả tiêu chí"></div>
  </section>
- <p>Tổng Alpha: {{totalAlphaWeight}}%</p><button (click)="addClo()" class="p-2 border rounded mr-3">Thêm CLO</button><button (click)="saveConfigs()" [disabled]="isSaving || !isAlphaWeightValid || !isStageWeightValid" class="p-3 bg-blue-800 text-white rounded disabled:opacity-40">Lưu bộ CLO mới</button>
+ <p>Tổng Alpha: {{totalAlphaWeight}}%</p><button (click)="addClo()" class="p-2 border rounded mr-3">Thêm CLO</button><button (click)="saveConfigs()" [disabled]="isSaving || isLoading || !isProgramValid || !isAlphaWeightValid || !isStageWeightValid || !areCloStageWeightsValid" class="p-3 bg-blue-800 text-white rounded disabled:opacity-40">Lưu bộ CLO mới</button>
 </div>

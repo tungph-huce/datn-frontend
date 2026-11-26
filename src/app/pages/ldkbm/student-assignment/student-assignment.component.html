@@ -209,6 +209,7 @@
 <!-- Modal Thêm Thủ công -->
 <app-modal [isOpen]="isManualModalOpen" title="Thêm Sinh viên" saveText="Thêm" (close)="closeManualModal()" (save)="saveManualStudent()">
     <div class="space-y-4">
+        <p class="rounded border border-blue-100 bg-blue-50 p-3 text-sm text-slate-700">Tài khoản sinh viên mới có mật khẩu ban đầu <strong>Abc@1234</strong> và phải đổi mật khẩu khi đăng nhập lần đầu. Sinh viên đã có tài khoản sử dụng mật khẩu hiện tại; nhập đúng MSSV để thêm vào đợt ĐATN đang chọn.</p>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex flex-col gap-1.5">

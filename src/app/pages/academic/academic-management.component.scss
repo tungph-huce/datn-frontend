@@ -1,0 +1,23 @@
+:host { display: block; min-width: 0; color: #334155; }
+.form-grid, .form-row { display: grid; gap: 16px; align-items: end; }
+.major-form { grid-template-columns: minmax(120px, 1fr) minmax(180px, 2fr) auto; }
+.clo-form { grid-template-columns: minmax(0, 1fr) 90px minmax(0, 1.4fr) auto; }
+.field { display: flex; flex-direction: column; gap: 7px; min-width: 0; color: #475569; font-size: 13px; font-weight: 500; }
+.field :is(input, select, textarea) { width: 100%; min-width: 0; height: 42px; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #1e293b; font: inherit; }
+.field :is(input, select, textarea):focus { outline: 2px solid #bfdbfe; outline-offset: 1px; border-color: #00429d; }
+.field input::placeholder { color: #94a3b8; font-weight: 400; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; padding: 9px 14px; border: 1px solid transparent; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-primary { background: #00429d; color: #fff; }
+.btn-primary:hover:enabled { background: #00337b; }
+.btn-secondary { border-color: #cbd5e1; background: #fff; color: #475569; }
+.btn-secondary:hover:enabled { background: #f1f5f9; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 13px; }
+.empty-table { min-width: 0; }
+.empty-table th { white-space: normal; }
+th { padding: 12px 16px; background: #f8fafc; color: #64748b; font-size: 12px; font-weight: 600; text-align: left; white-space: nowrap; }
+td { padding: 14px 16px; border-top: 1px solid #f1f5f9; vertical-align: middle; }
+tbody tr:hover { background: #fafcff; }
+.member-row { display: grid; grid-template-columns: minmax(0, 1fr) 140px 92px 42px; gap: 12px; align-items: end; padding: 14px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+@media (max-width: 1200px) { .clo-form { grid-template-columns: minmax(0, 1fr) 130px; } }
+@media (max-width: 900px) { .major-form, .clo-form { grid-template-columns: minmax(0, 1fr); } .member-row { grid-template-columns: 1fr 1fr; } .member-person { grid-column: 1 / -1; } }

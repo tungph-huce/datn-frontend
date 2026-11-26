@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { BasePagination, PaginationRequest, UserResponse } from '../models/base.model';
 import { HttpParams } from '@angular/common/http';
 
+export type UserAccountType = 'STUDENT' | 'STAFF';
+
 export interface UserRequest {
   email: string;
   password?: string;
@@ -11,6 +13,10 @@ export interface UserRequest {
   role: string;
   department_id?: number | null;
   phone?: string;
+  student_code?: string | null;
+  class_name?: string | null;
+  campaign_id?: number;
+  major_id?: number;
   /** DAI_HOC | THAC_SI | TIEN_SI — Điều 10, 15.3 */
   academic_degree?: string | null;
 }
@@ -21,7 +27,7 @@ export interface UserRequest {
 export class UserService {
   constructor(private apiService: ApiService) {}
 
-  getUsers(pageRequest: PaginationRequest, role?: string, departmentId?: number): Observable<BasePagination<UserResponse>> {
+  getUsers(pageRequest: PaginationRequest, role?: string, departmentId?: number, accountType?: UserAccountType): Observable<BasePagination<UserResponse>> {
     let params = new HttpParams()
       .set('page', pageRequest.page.toString())
       .set('limit', pageRequest.limit.toString());
@@ -37,6 +43,9 @@ export class UserService {
     }
     if (departmentId) {
       params = params.set('departmentId', departmentId.toString());
+    }
+    if (accountType) {
+      params = params.set('accountType', accountType);
     }
 
     return this.apiService.get<BasePagination<UserResponse>>('/base/users', params);

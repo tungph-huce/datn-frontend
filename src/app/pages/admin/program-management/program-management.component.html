@@ -1,0 +1,74 @@
+<section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+  <div>
+    <h2 class="text-2xl font-bold text-slate-800">Quản lý chương trình</h2>
+    <p class="text-sm text-slate-500 mt-1">Danh mục chương trình dùng chung khi cấu hình CLO & Rubric theo ngành / khóa.</p>
+  </div>
+  <button type="button" (click)="openCreate()" class="flex items-center gap-2 px-4 py-2 bg-[#00429D] text-white rounded hover:bg-blue-800">
+    <span class="material-symbols-outlined text-[18px]">add</span> Thêm chương trình
+  </button>
+</section>
+
+<div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+  <div class="p-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200">
+    <label class="flex items-center gap-2 w-full sm:w-96 border border-slate-300 rounded px-3 py-2">
+      <span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+      <input class="w-full outline-none text-sm" [(ngModel)]="query" aria-label="Tìm chương trình" placeholder="Tìm theo mã, tên hoặc mô tả...">
+    </label>
+    <span class="text-sm text-slate-500">{{ filteredPrograms.length }} chương trình</span>
+  </div>
+  <div *ngIf="loadError" role="alert" class="p-4 text-red-700 bg-red-50 flex items-center justify-between gap-3">
+    Không thể tải danh sách chương trình.
+    <button type="button" class="underline" (click)="loadPrograms()">Thử lại</button>
+  </div>
+  <app-table [data]="filteredPrograms" [columns]="columns" [isLoading]="isLoading" emptyMessage="Chưa có chương trình phù hợp.">
+    <ng-template appTableCell="code" let-program><span class="font-semibold text-[#00429D]">{{ program.code }}</span></ng-template>
+    <ng-template appTableCell="name" let-program>
+      <div class="font-medium">{{ program.name }}</div>
+      <p *ngIf="program.description" class="text-xs text-slate-500 mt-1 whitespace-pre-wrap break-words">{{ program.description }}</p>
+    </ng-template>
+    <ng-template appTableCell="grading_type" let-program>{{ program.grading_type === 'STEM' ? 'Tài năng / STEM' : 'Chuẩn' }}</ng-template>
+    <ng-template appTableCell="in_use" let-program>
+      <span class="text-xs rounded-full px-2 py-1" [ngClass]="program.in_use ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'">{{ program.in_use ? 'Đang sử dụng' : 'Chưa sử dụng' }}</span>
+    </ng-template>
+    <ng-template appTableCell="actions" let-program>
+      <div class="flex justify-center gap-3">
+        <button type="button" (click)="openEdit(program)" class="text-[#00429D] hover:underline">Sửa</button>
+        <button type="button" (click)="deletingProgram = program" [disabled]="program.in_use" [title]="program.in_use ? 'Không thể xóa chương trình đang sử dụng' : 'Xóa chương trình'" class="text-red-600 hover:underline disabled:opacity-40 disabled:cursor-not-allowed">Xóa</button>
+      </div>
+    </ng-template>
+  </app-table>
+</div>
+
+<app-modal [isOpen]="isModalOpen" [title]="editingProgram ? 'Chỉnh sửa chương trình' : 'Thêm chương trình'" [showFooter]="false" (close)="closeModal()">
+  <form #programForm="ngForm" (ngSubmit)="save()" class="space-y-4">
+    <label class="block text-sm font-medium text-slate-700">Mã chương trình <span class="text-red-600">*</span>
+      <input name="code" required maxlength="50" pattern="[a-zA-Z0-9][a-zA-Z0-9_-]*" [(ngModel)]="form.code" [disabled]="isSaving || !!editingProgram?.in_use" placeholder="VD: CLC" class="block w-full border rounded p-2 mt-1 disabled:bg-slate-100">
+    </label>
+    <label class="block text-sm font-medium text-slate-700">Tên chương trình <span class="text-red-600">*</span>
+      <input name="name" required maxlength="255" [(ngModel)]="form.name" [disabled]="isSaving" placeholder="VD: Chương trình chất lượng cao" class="block w-full border rounded p-2 mt-1">
+    </label>
+    <label class="block text-sm font-medium text-slate-700">Ngưỡng đánh giá CLO <span class="text-red-600">*</span>
+      <select name="gradingType" required [(ngModel)]="form.grading_type" [disabled]="isSaving || !!editingProgram?.in_use" class="block w-full border rounded p-2 mt-1 disabled:bg-slate-100">
+        <option value="STANDARD">Chuẩn</option>
+        <option value="STEM">Tài năng / STEM</option>
+      </select>
+    </label>
+    <p class="text-xs text-slate-500">Ngưỡng này kết hợp với chính sách hoàn thành trong cấu hình CLO & Rubric để xét kết quả.</p>
+    <p *ngIf="editingProgram?.in_use" class="text-sm text-amber-700 bg-amber-50 p-3 rounded">Chương trình đang được sử dụng. Bạn có thể sửa tên và mô tả; mã và ngưỡng đánh giá được giữ cố định.</p>
+    <label class="block text-sm font-medium text-slate-700">Mô tả
+      <textarea name="description" maxlength="1000" rows="3" [(ngModel)]="form.description" [disabled]="isSaving" class="block w-full border rounded p-2 mt-1"></textarea>
+    </label>
+    <div class="flex justify-end gap-3 pt-3 border-t">
+      <button type="button" (click)="closeModal()" [disabled]="isSaving" class="px-4 py-2 border rounded disabled:opacity-40">Hủy bỏ</button>
+      <button type="submit" [disabled]="isSaving || programForm.invalid" class="px-5 py-2 bg-[#00429D] text-white rounded disabled:opacity-40">{{ isSaving ? 'Đang lưu...' : 'Lưu chương trình' }}</button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal [isOpen]="!!deletingProgram" title="Xóa chương trình" [showFooter]="false" (close)="closeDelete()">
+  <p>Bạn muốn xóa chương trình <strong>{{ deletingProgram?.name }}</strong> ({{ deletingProgram?.code }})?</p>
+  <div class="flex justify-end gap-3 mt-6">
+    <button type="button" (click)="closeDelete()" [disabled]="isDeleting" class="px-4 py-2 border rounded disabled:opacity-40">Hủy bỏ</button>
+    <button type="button" (click)="deleteProgram()" [disabled]="isDeleting" class="px-4 py-2 bg-red-600 text-white rounded disabled:opacity-40">{{ isDeleting ? 'Đang xóa...' : 'Xóa chương trình' }}</button>
+  </div>
+</app-modal>

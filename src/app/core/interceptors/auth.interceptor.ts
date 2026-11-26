@@ -36,6 +36,10 @@ export class AuthInterceptor implements HttpInterceptor {
           // Token hết hạn hoặc không hợp lệ → auto logout
           this.authService.logout();
         } else if (error.status === 403) {
+          if (error.error?.code === 'PASSWORD_CHANGE_REQUIRED') {
+            this.authService.requirePasswordChange();
+            return throwError(() => error);
+          }
           // Nếu token không còn hợp lệ (backend trả 403 do anonymous) → logout
           const token = this.authService.getToken();
           if (!token) {

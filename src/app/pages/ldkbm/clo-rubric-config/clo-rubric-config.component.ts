@@ -6,6 +6,7 @@ import { CampaignService } from '../../../core/services/campaign.service';
 import { CampaignResponse } from '../../../core/models/base.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { DepartmentService } from '../../../core/services/department.service';
+import { TrainingProgram, TrainingProgramService } from '../../../core/services/training-program.service';
 
 @Component({
   selector: 'app-clo-rubric-config',
@@ -21,7 +22,10 @@ export class CloRubricConfigComponent implements OnInit {
   selectedCampaignId: number | null = null;
   departmentId: number | null = null;
   departmentCampaignId: number | null = null;
-  programType = 'STANDARD';
+  programs: TrainingProgram[] = [];
+  programId: number | null = null;
+  isLoadingPrograms = false;
+  programLoadError = false;
   completionRule = '';
   m1Weight: number = 20;
   m2Weight: number = 30;
@@ -37,9 +41,11 @@ export class CloRubricConfigComponent implements OnInit {
 
   constructor(private departmentService: DepartmentService, private api:ApiService, private toastService: ToastService, private deptCampaignService: DepartmentCampaignService,
     private campaignService: CampaignService,
-    private authService: AuthService) {}
+    private authService: AuthService,
+    private programService: TrainingProgramService) {}
 
   ngOnInit(): void {
+    this.loadPrograms();
     const user = this.authService.getCurrentUser();
     if (user && user.departmentId) {
       this.departmentId = user.departmentId;
@@ -50,6 +56,26 @@ export class CloRubricConfigComponent implements OnInit {
       this.api.get<any[]>(`/base/academic/majors?department_id=${this.departmentId}`).subscribe(r=>this.majors=r);
     }
     this.loadCampaigns();
+  }
+
+  loadPrograms(): void {
+    this.isLoadingPrograms = true;
+    this.programLoadError = false;
+    this.programService.getAll().subscribe({
+      next: programs => {
+        this.programs = programs;
+        this.isLoadingPrograms = false;
+      },
+      error: err => {
+        this.isLoadingPrograms = false;
+        this.programLoadError = true;
+        this.toastService.error(err.message || 'Không thể tải danh sách chương trình.');
+      }
+    });
+  }
+
+  get isProgramValid(): boolean {
+    return !this.isLoadingPrograms && !this.programLoadError && this.programs.some(program => program.id === this.programId);
   }
 
   loadCampaigns(): void {
@@ -86,6 +112,7 @@ export class CloRubricConfigComponent implements OnInit {
     }
     
     this.isLoading = true;
+    this.programId = null;
     this.showConfig = false;
     this.hasDefinedCloCount = false;
     this.hasExistingConfig = false;
@@ -97,7 +124,7 @@ export class CloRubricConfigComponent implements OnInit {
     this.deptCampaignService.findOrCreate(this.selectedCampaignId, this.departmentId).subscribe({
       next: (res: any) => {
         this.departmentCampaignId = res.id;
-        this.programType = res.program_type || 'STANDARD';
+        this.programId = res.program_id ?? null;
         this.completionRule = res.completion_rule || '';
         this.currentCloSetId = res.clo_set_id || null;
 
@@ -183,7 +210,7 @@ export class CloRubricConfigComponent implements OnInit {
         }
         
         // Tự động phân bổ lại tổng điểm (nếu chưa lưu weight nào)
-        if (this.clos.length > 0 && this.m1Weight === 0 && this.m2Weight === 0) {
+        if (this.clos.length > 0 && this.m1Weight === 0 && this.m2Weight === 0 && this.m3Weight === 0) {
           this.m1Weight = 50;
           this.m2Weight = 50;
         }
@@ -277,29 +304,53 @@ export class CloRubricConfigComponent implements OnInit {
   }
 
   get totalStageWeight(): number {
-    return (this.m1Weight || 0) + (this.m2Weight || 0) + (this.m3Weight || 0);
+    return Number(((this.m1Weight || 0) + (this.m2Weight || 0) + (this.m3Weight || 0)).toFixed(2));
   }
 
   get isStageWeightValid(): boolean {
-    return this.totalStageWeight === 100;
+    return this.stageWeightsValid([this.m1Weight, this.m2Weight, this.m3Weight]);
   }
 
-  onStage1WeightChange(): void {
-    this.m2Weight = 100 - (this.m1Weight || 0);
+  get areCloStageWeightsValid(): boolean {
+    return this.clos.every(clo => this.stageWeightsValid([clo.m1_weight, clo.m2_weight, clo.m3_weight ?? 0]));
   }
 
-  onCloStage1WeightChange(clo: CloItem): void {
-    clo.m2_weight = 100 - (clo.m1_weight || 0);
+  totalCloStageWeight(clo: CloItem): number {
+    return Number(((clo.m1_weight || 0) + (clo.m2_weight || 0) + (clo.m3_weight || 0)).toFixed(2));
   }
 
-  setStageWeights(stage1: number): void {
-    this.m1Weight = stage1;
-    this.m2Weight = 100 - stage1;
+  onStageWeightChange(stage: 1 | 2 | 3, value: number | null, input: HTMLInputElement, clo?: CloItem): void {
+    const weights = clo
+      ? [clo.m1_weight, clo.m2_weight, clo.m3_weight ?? 0]
+      : [this.m1Weight, this.m2Weight, this.m3Weight];
+    // Work in hundredths of a percent to keep the total exact with decimal inputs.
+    const units = (weight: number | null): number => Number.isFinite(weight)
+      ? Math.round(Math.max(0, Math.min(100, weight!)) * 100) : 0;
+    const changed = stage - 1;
+    // Balance M3 when editing M1/M2, and balance M2 when editing M3.
+    const balanced = stage === 3 ? 1 : 2;
+    const preserved = 3 - changed - balanced;
+    const result = weights.map(units);
+    result[changed] = units(value);
+    result[preserved] = Math.min(result[preserved], 10000 - result[changed]);
+    result[balanced] = 10000 - result[changed] - result[preserved];
+    const [m1, m2, m3] = result.map(weight => weight / 100);
+    if (clo) {
+      clo.m1_weight = m1;
+      clo.m2_weight = m2;
+      clo.m3_weight = m3;
+    } else {
+      this.m1Weight = m1;
+      this.m2Weight = m2;
+      this.m3Weight = m3;
+    }
+    // Also correct the displayed input if clamping leaves the model unchanged.
+    if (value !== result[changed] / 100) input.value = String(result[changed] / 100);
   }
 
-  setCloStageWeights(clo: CloItem, stage1: number): void {
-    clo.m1_weight = stage1;
-    clo.m2_weight = 100 - stage1;
+  private stageWeightsValid(weights: number[]): boolean {
+    return weights.every(weight => Number.isFinite(weight) && weight >= 0 && weight <= 100)
+      && Math.abs(weights.reduce((sum, weight) => sum + weight, 0) - 100) <= 0.00001;
   }
 
   applyPreset(clo: CloItem, presetType: string): void {
@@ -338,7 +389,11 @@ export class CloRubricConfigComponent implements OnInit {
   }
 
   saveConfigs(): void {
-    if (!this.departmentCampaignId) return;
+    if (!this.departmentCampaignId || this.isSaving || this.isLoading) return;
+    if (!this.isProgramValid) {
+      this.showError('Vui lòng chọn chương trình hợp lệ trước khi lưu cấu hình CLO & Rubric.');
+      return;
+    }
     if(!this.majorId || !/^[0-9]{2}$/.test(this.cohort)){this.showError('Chọn ngành và khóa gồm hai chữ số.');return;}
 
     // Validate
@@ -351,8 +406,7 @@ export class CloRubricConfigComponent implements OnInit {
       }
       totalAlpha += clo.alpha_weight || 0;
 
-      const totalCloStageWeight = (clo.m1_weight || 0) + (clo.m2_weight || 0) + (clo.m3_weight || 0);
-      if (Math.abs(totalCloStageWeight - 100) > 0.01) {
+      if (!this.stageWeightsValid([clo.m1_weight, clo.m2_weight, clo.m3_weight ?? 0])) {
         this.showError(`Tổng trọng số M1 + M2 + M3 của ${clo.clo_code} phải bằng 100%.`);
         return;
       }
@@ -382,7 +436,7 @@ export class CloRubricConfigComponent implements OnInit {
       }
     }
 
-    if (this.m1Weight + this.m2Weight + this.m3Weight !== 100) {
+    if (!this.isStageWeightValid) {
       this.showError('Tổng trọng số mốc M1, M2 và M3 phải bằng 100%.');
       return;
     }
@@ -399,7 +453,7 @@ export class CloRubricConfigComponent implements OnInit {
 
     const request: CloConfigRequest = {
       major_id: this.majorId || undefined, cohort: this.cohort,
-      program_type: this.programType,
+      program_id: this.programId!,
       completion_rule: this.completionRule || undefined,
       department_campaign_id: this.departmentCampaignId,
       m1_weight: this.m1Weight,

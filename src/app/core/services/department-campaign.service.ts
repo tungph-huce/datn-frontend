@@ -22,6 +22,7 @@ export interface CloItem {
 export interface CloConfigRequest {
   major_id?: number; cohort?: string; m3_weight?: number;
   program_type?: string;
+  program_id?: number;
   completion_rule?: string;
   department_campaign_id: number;
   m1_weight: number;

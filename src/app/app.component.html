@@ -1,3 +1,14 @@
 <app-toast></app-toast>
-<router-outlet></router-outlet>
+<ng-container *ngIf="auth.sessionState$ | async as state">
+  <router-outlet *ngIf="state === 'READY' || state === 'SIGNED_OUT'"></router-outlet>
+  <app-first-login-password *ngIf="state === 'PASSWORD_CHANGE_REQUIRED'"></app-first-login-password>
+  <div *ngIf="state === 'CHECKING'" class="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600" role="status">Đang xác minh phiên đăng nhập...</div>
+  <div *ngIf="state === 'ERROR'" class="min-h-screen flex flex-col items-center justify-center gap-4 bg-slate-50 px-6">
+    <p role="alert" class="text-slate-700">Không thể xác minh phiên đăng nhập. Vui lòng thử lại.</p>
+    <div class="flex gap-4">
+      <button type="button" (click)="auth.restoreSession()" class="px-4 py-2 rounded bg-blue-800 text-white">Thử lại</button>
+      <button type="button" (click)="auth.logout()" class="px-4 py-2 rounded border">Đăng xuất</button>
+    </div>
+  </div>
+</ng-container>
 

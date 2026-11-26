@@ -10,7 +10,9 @@ export const adminMenu: MenuItem[] = [
   { title: 'Bảng điều khiển', icon: 'dashboard', route: '/admin/dashboard', exact: true },
   { title: 'Quản lý đợt ĐATN', icon: 'assignment_ind', route: '/admin/campaigns' },
   { title: 'Quản lý Khoa/Bộ môn', icon: 'apartment', route: '/admin/departments' },
-  { title: 'Tài khoản Nhân sự', icon: 'group_add', route: '/admin/users' },
+  { title: 'Quản lý chương trình', icon: 'menu_book', route: '/admin/programs' },
+  { title: 'Tài khoản sinh viên', icon: 'school', route: '/admin/student-accounts' },
+  { title: 'Tài khoản cán bộ', icon: 'group_add', route: '/admin/staff-accounts' },
   { title: 'Cấu hình thông báo', icon: 'notifications_active', route: '/admin/notifications' },
 ];
 

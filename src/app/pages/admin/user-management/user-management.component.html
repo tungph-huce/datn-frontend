@@ -1,12 +1,12 @@
 <!-- Header Section -->
 <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
     <div>
-        <h2 class="font-headline-xl text-[24px] font-bold text-slate-800">Tài khoản Nhân sự</h2>
-        <p class="font-body-md text-[14px] text-slate-500 mt-1">Quản lý tài khoản và phân quyền cho giảng viên, lãnh đạo Khoa, sinh viên.</p>
+        <h2 class="font-headline-xl text-[24px] font-bold text-slate-800">{{ pageTitle }}</h2>
+        <p class="font-body-md text-[14px] text-slate-500 mt-1">{{ isStudentManagement ? 'Quản lý tài khoản, mã sinh viên và lớp của sinh viên.' : 'Quản lý tài khoản giảng viên, lãnh đạo Khoa/Bộ môn và quản trị viên.' }}</p>
     </div>
     <button class="flex items-center gap-2 px-4 py-2 bg-[#00429D] text-white font-label-md text-[13px] rounded hover:bg-blue-800 transition-colors shadow-sm" (click)="openCreateModal()">
     <span class="material-symbols-outlined text-[18px]">person_add</span>
-    Thêm tài khoản
+    {{ isStudentManagement ? 'Thêm tài khoản sinh viên' : 'Thêm tài khoản cán bộ' }}
   </button>
 </section>
 
@@ -27,10 +27,10 @@
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div class="relative w-full md:w-64">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-                <input [(ngModel)]="searchQuery" (input)="onFilterChange()" class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] transition-shadow" placeholder="Tìm kiếm theo tên, email..."
+                <input [(ngModel)]="searchQuery" (input)="onFilterChange()" class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] transition-shadow" [placeholder]="isStudentManagement ? 'Tìm tên, email, mã sinh viên, lớp...' : 'Tìm kiếm theo tên, email...'"
                     type="text" />
             </div>
-            <div class="w-full md:w-48">
+            <div *ngIf="!isStudentManagement" class="w-full md:w-48">
                 <select [(ngModel)]="selectedRole" (change)="onFilterChange()" class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded text-[13px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
           <option value="">— Tất cả vai trò —</option>
           <option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</option>
@@ -61,7 +61,8 @@
                 <tr>
                     <th class="py-3 px-4 text-center font-label-md text-[13px] font-medium text-slate-500 uppercase tracking-wider w-16">STT</th>
                     <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase tracking-wider">Họ và tên / Email</th>
-                    <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase tracking-wider">Vai trò (Role)</th>
+                    <th *ngIf="isStudentManagement" class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase tracking-wider">Mã sinh viên / Lớp</th>
+                    <th *ngIf="!isStudentManagement" class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase tracking-wider">Vai trò</th>
                     <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase tracking-wider">Khoa / Bộ môn</th>
                     <th class="py-3 px-4 font-label-md text-[13px] font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
                     <th class="py-3 px-4 text-center font-label-md text-[13px] font-medium text-slate-500 uppercase tracking-wider">Thao tác</th>
@@ -76,7 +77,11 @@
                             <span class="material-symbols-outlined text-[14px]">mail</span> {{ user.email }}
                         </div>
                     </td>
-                    <td class="py-3 px-4">
+                    <td *ngIf="isStudentManagement" class="py-3 px-4">
+                        <div class="font-medium">{{ user.student_code || '—' }}</div>
+                        <div class="text-[13px] text-slate-500 mt-1">{{ user.class_name || '—' }}</div>
+                    </td>
+                    <td *ngIf="!isStudentManagement" class="py-3 px-4">
                         <span class="px-2.5 py-1 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[12px] font-medium">
               {{ getRoleLabel(user.role) }}
             </span>
@@ -117,8 +122,10 @@
 </section>
 
 <!-- Modal Component -->
-<app-modal [isOpen]="isModalOpen" [title]="isEditMode ? 'Chỉnh sửa Tài khoản' : 'Thêm Tài khoản mới'" [saveText]="isEditMode ? 'Cập nhật' : 'Tạo mới'" (close)="closeModal()" (save)="saveUser()">
-    <div class="space-y-4">
+<app-modal [isOpen]="isModalOpen" [title]="(isEditMode ? 'Chỉnh sửa ' : 'Thêm ') + (isStudentManagement ? 'tài khoản sinh viên' : 'tài khoản cán bộ')" [saveText]="isSaving ? 'Đang lưu...' : isEditMode ? 'Cập nhật' : 'Tạo mới'" (close)="closeModal()" (save)="saveUser()">
+    <p *ngIf="isLoadingDetail" class="text-sm text-slate-600" role="status">Đang tải hồ sơ đợt ĐATN...</p>
+    <p *ngIf="detailLoadError" class="text-sm text-red-700" role="alert">Không thể tải hồ sơ đợt ĐATN. <button type="button" class="underline" (click)="loadStudentDetail()">Tải lại</button></p>
+    <fieldset class="space-y-4" [disabled]="isLoadingDetail || detailLoadError">
 
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -130,16 +137,31 @@
                 <label class="font-label-md text-[13px] text-slate-600">Email <span class="text-red-500">*</span></label>
                 <input [(ngModel)]="formEmail" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="name@huce.edu.vn" type="email" />
             </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="font-label-md text-[13px] text-slate-600">Số điện thoại</label>
+                <input [(ngModel)]="formPhone" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px]" placeholder="Nhập số điện thoại" type="tel" />
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1.5">
-                <label class="font-label-md text-[13px] text-slate-600">Mật khẩu <span *ngIf="!isEditMode" class="text-red-500">*</span></label>
-                <input [(ngModel)]="formPassword" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" [placeholder]="isEditMode ? 'Bỏ trống nếu không đổi' : 'Nhập mật khẩu'"
+        <div *ngIf="isStudentManagement" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="flex flex-col gap-1.5 text-[13px] text-slate-600"><span>Mã sinh viên <span *ngIf="isCreatingStudent" class="text-red-500">*</span></span>
+                <input [(ngModel)]="formStudentCode" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px]" placeholder="Nhập mã sinh viên" type="text" />
+                <span *ngIf="isCreatingStudent" class="text-xs text-slate-500">Hai số cuối mã sinh viên là khóa học.</span>
+            </label>
+            <label class="flex flex-col gap-1.5 text-[13px] text-slate-600">Lớp
+                <input [(ngModel)]="formClassName" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px]" placeholder="Nhập lớp" type="text" />
+            </label>
+        </div>
+
+        <p *ngIf="!isEditMode" class="text-sm text-slate-700 bg-blue-50 border border-blue-100 rounded p-3">Tài khoản mới được cấp mật khẩu mặc định: <strong>{{ defaultPassword }}</strong>. Người dùng phải đổi mật khẩu trong lần đăng nhập đầu tiên.</p>
+        <div *ngIf="!isStudentManagement || isEditMode" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div *ngIf="isEditMode" class="flex flex-col gap-1.5">
+                <label class="font-label-md text-[13px] text-slate-600">Mật khẩu mới</label>
+                <input [(ngModel)]="formPassword" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]" placeholder="Bỏ trống nếu không đổi"
                     type="password" />
             </div>
-            <div class="flex flex-col gap-1.5">
-                <label class="font-label-md text-[13px] text-slate-600">Vai trò (Role) <span class="text-red-500">*</span></label>
+            <div *ngIf="!isStudentManagement" class="flex flex-col gap-1.5">
+                <label class="font-label-md text-[13px] text-slate-600">Vai trò <span class="text-red-500">*</span></label>
                 <select [(ngModel)]="formRole" (change)="onRoleChange()" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
           <option value="">— Chọn vai trò —</option>
           <option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</option>
@@ -155,9 +177,9 @@
             </select>
         </div>
 
-        <div *ngIf="requiresDepartmentSelection()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div *ngIf="!selectedEnrollment && (isStudentManagement || requiresDepartmentSelection())" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex flex-col gap-1.5">
-                <label class="font-label-md text-[13px] text-slate-600">Khoa <span class="text-red-500">*</span></label>
+                <label class="font-label-md text-[13px] text-slate-600">Khoa <span *ngIf="requiresDepartmentSelection()" class="text-red-500">*</span></label>
                 <select [(ngModel)]="formFacultyId" (change)="onFacultyChange()" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D]">
           <option [ngValue]="null">— Chọn Khoa —</option>
           <option *ngFor="let f of faculties" [ngValue]="f.id">{{ f.name }}</option>
@@ -168,15 +190,46 @@
                 <label class="font-label-md text-[13px] text-slate-600">
           Bộ môn
           <span *ngIf="requiresSubDepartmentSelection()" class="text-red-500">*</span>
-          <span *ngIf="!requiresSubDepartmentSelection()" class="text-slate-400 font-normal">(nếu quản lý cấp Bộ môn)</span>
+          <span *ngIf="!requiresSubDepartmentSelection()" class="text-slate-400 font-normal">{{ isStudentManagement ? '(tùy chọn)' : '(nếu quản lý cấp Bộ môn)' }}</span>
         </label>
-                <select [(ngModel)]="formSubDepartmentId" [disabled]="!formFacultyId || subDepartments.length === 0" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] disabled:bg-slate-100 disabled:text-slate-400">
+                <select [(ngModel)]="formSubDepartmentId" (ngModelChange)="onSubDepartmentChange()" [disabled]="!formFacultyId || subDepartments.length === 0" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#00429D] focus:ring-1 focus:ring-[#00429D] disabled:bg-slate-100 disabled:text-slate-400">
           <option [ngValue]="null">— Chọn Bộ môn —</option>
           <option *ngFor="let sub of subDepartments" [ngValue]="sub.id">{{ sub.name }}</option>
         </select>
             </div>
         </div>
-    </div>
+
+        <div *ngIf="isStudentManagement" class="space-y-3 rounded border border-slate-200 bg-slate-50 p-4">
+            <div *ngIf="enrollmentConflict" class="text-sm text-red-700" role="alert">
+                <p class="font-semibold">Dữ liệu cũ đang có nhiều hồ sơ đợt. Mỗi sinh viên chỉ được gán một đợt ĐATN; cần đối chiếu trước khi cập nhật.</p>
+                <ul class="list-disc pl-5"><li *ngFor="let enrollment of studentEnrollments">{{ enrollment.campaign_name }} — {{ enrollment.department_name }} — {{ enrollment.major_name }}</li></ul>
+            </div>
+            <p *ngIf="isEditMode && !isLoadingDetail && !detailLoadError && !studentEnrollments.length" class="text-sm text-slate-600">Sinh viên chưa được gán vào đợt ĐATN nào.</p>
+            <p *ngIf="selectedEnrollment" class="text-sm text-slate-700">Bộ môn: {{ selectedEnrollment.department_name }}. Ngành: {{ selectedEnrollment.major_name }}. Khóa: {{ selectedEnrollment.cohort }}.</p>
+            <p *ngIf="!selectedEnrollment" class="text-sm text-slate-700">Chọn đợt và ngành để thêm sinh viên vào danh sách phân công GVHD.</p>
+            <p class="text-sm text-slate-600">Mỗi sinh viên chỉ được gán một đợt ĐATN. Đợt đã gán được tải từ hồ sơ phân công.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="flex flex-col gap-1.5 text-[13px] text-slate-600"><span>Đợt ĐATN <span *ngIf="isCreatingStudent" class="text-red-500">*</span></span>
+                    <select aria-label="Đợt ĐATN" [(ngModel)]="formCampaignId" (ngModelChange)="onCampaignChange()" [disabled]="isLoadingCampaigns || campaignLoadError || studentEnrollments.length > 0" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] disabled:bg-slate-100">
+                        <option [ngValue]="null">— Chọn đợt ĐATN —</option>
+                        <option *ngFor="let campaign of campaignOptions" [ngValue]="campaign.id">{{ campaign.name }}</option>
+                    </select>
+                    <span *ngIf="isLoadingCampaigns" class="text-xs text-slate-500">Đang tải đợt ĐATN...</span>
+                    <span *ngIf="!isLoadingCampaigns && !campaignLoadError && campaignOptions.length === 0" class="text-xs text-amber-700">Chưa có đợt ĐATN đang hoạt động.</span>
+                </label>
+                <label *ngIf="!selectedEnrollment" class="flex flex-col gap-1.5 text-[13px] text-slate-600"><span>Ngành <span *ngIf="isEnrollingStudent" class="text-red-500">*</span></span>
+                    <select aria-label="Ngành" [(ngModel)]="formMajorId" [disabled]="!formSubDepartmentId || isLoadingMajors || majorLoadError || academicMajors.length === 0" class="w-full border border-slate-300 rounded px-3 py-2 text-[14px] disabled:bg-slate-100">
+                        <option [ngValue]="null">— Chọn ngành —</option>
+                        <option *ngFor="let major of academicMajors" [ngValue]="major.id">{{ major.code }} — {{ major.name }}</option>
+                    </select>
+                    <span *ngIf="isLoadingMajors" class="text-xs text-slate-500">Đang tải ngành...</span>
+                    <span *ngIf="formSubDepartmentId && !isLoadingMajors && !majorLoadError && academicMajors.length === 0" class="text-xs text-amber-700">Bộ môn đã chọn chưa có ngành.</span>
+                </label>
+            </div>
+            <p *ngIf="campaignLoadError" class="text-sm text-red-700" role="alert">Không thể tải đợt ĐATN. <button type="button" class="underline" (click)="loadCampaignOptions()">Tải lại</button></p>
+            <p *ngIf="majorLoadError" class="text-sm text-red-700" role="alert">Không thể tải ngành. <button type="button" class="underline" (click)="onSubDepartmentChange()">Tải lại</button></p>
+        </div>
+    </fieldset>
 </app-modal>
 
 <app-modal [isOpen]="isDeleteConfirmOpen" title="Xác nhận xóa tài khoản" saveText="Xóa tài khoản" cancelText="Hủy bỏ" (close)="closeDeleteConfirm()" (save)="confirmDeleteUser()">
@@ -198,7 +251,7 @@
         </div>
 
         <p class="text-sm text-slate-600">
-            Điều kiện xóa: GVHD chưa có điểm đánh giá; sinh viên chưa thuộc bất kỳ đợt ĐATN nào.
+            {{ isStudentManagement ? 'Sinh viên chỉ được xóa khi chưa thuộc bất kỳ đợt ĐATN nào.' : 'Giảng viên chỉ được xóa khi chưa có dữ liệu chấm điểm và chưa được phân công hướng dẫn.' }}
         </p>
     </div>
 </app-modal>

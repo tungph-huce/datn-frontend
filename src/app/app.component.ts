@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from './core/services/auth.service';
 import { ToastService } from './core/services/toast.service';
 
 @Component({
@@ -6,10 +7,10 @@ import { ToastService } from './core/services/toast.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'intership-frontend';
 
-  constructor(private toastService: ToastService) {
+  constructor(private toastService: ToastService, public auth: AuthService) {
     window.alert = (message: string) => {
       const lower = String(message).toLowerCase();
       if (lower.includes('thành công') || lower.includes('cảm ơn') || lower.includes('ghi nhận')) {
@@ -20,5 +21,9 @@ export class AppComponent {
         this.toastService.warning(message);
       }
     };
+  }
+
+  ngOnInit(): void {
+    this.auth.restoreSession();
   }
 }

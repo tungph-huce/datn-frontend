@@ -1,4 +1,5 @@
 import { AcademicManagementComponent } from './pages/academic/academic-management.component';
+import { ProgramManagementComponent } from './pages/admin/program-management/program-management.component';
 import { CouncilScoringComponent } from './pages/academic/council-scoring.component';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
@@ -49,8 +50,11 @@ const routes: Routes = [
       { path: 'dashboard', component: AdminDashboardComponent },
       { path: 'campaigns', component: CampaignManagementComponent },
       { path: 'departments', component: DepartmentManagementComponent },
+      { path: 'programs', component: ProgramManagementComponent },
       { path: 'academic', component: AcademicManagementComponent },
-      { path: 'users', component: UserManagementComponent },
+      { path: 'student-accounts', component: UserManagementComponent, data: { accountType: 'STUDENT' } },
+      { path: 'staff-accounts', component: UserManagementComponent, data: { accountType: 'STAFF' } },
+      { path: 'users', redirectTo: 'staff-accounts', pathMatch: 'full' },
       { path: 'settings', component: SystemSettingsComponent },
       { path: 'notifications', component: NotificationManagementComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
