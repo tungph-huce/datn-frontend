@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { StudentCampaignService } from '../../../core/services/student-campaign.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { hasPendingDatnInfo, hasPendingDatnPlan } from '../../../core/utils/teacher-approval';
+import { WeeklyLogService } from '../../../core/services/weekly-log.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -10,6 +13,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class TeacherDashboardComponent implements OnInit {
   teacherName = 'Giảng viên';
   isLoading = true;
+  loadError = false;
   
   // Thống kê tổng quan
   overviewStats = {
@@ -22,7 +26,8 @@ export class TeacherDashboardComponent implements OnInit {
   // Yêu cầu chờ xử lý
   pendingRequests = {
     datn01: 0, // Chờ duyệt Nhiệm vụ ĐATN
-    datnPlan: 0  // Chờ duyệt kế hoạch thực hiện ĐATN
+    datnPlan: 0,  // Chờ duyệt kế hoạch thực hiện ĐATN
+    weeklyLogs: 0
   };
 
   // Cảnh báo tiến độ sinh viên
@@ -30,7 +35,8 @@ export class TeacherDashboardComponent implements OnInit {
 
   constructor(
     private studentCampaignService: StudentCampaignService,
-    private authService: AuthService
+    private authService: AuthService,
+    private weeklyLogService: WeeklyLogService
   ) {}
 
   ngOnInit(): void {
@@ -41,8 +47,9 @@ export class TeacherDashboardComponent implements OnInit {
 
   loadDashboardData(): void {
     this.isLoading = true;
-    this.studentCampaignService.getMyAssignedStudents().subscribe({
-      next: (res) => {
+    this.loadError = false;
+    forkJoin({ students: this.studentCampaignService.getMyAssignedStudents(), logs: this.weeklyLogService.getPending() }).subscribe({
+      next: ({ students: res, logs }) => {
         const data = Array.isArray(res) ? res : (res.data || res.payload || []);
 
         // 1. Thống kê nhanh
@@ -58,12 +65,14 @@ export class TeacherDashboardComponent implements OnInit {
         ).length;
 
         // 2. Yêu cầu chờ xử lý
-        this.pendingRequests.datn01 = data.filter((s: any) => s.status === 'DATN_DECLARED').length;
-        this.pendingRequests.datnPlan = data.filter((s: any) => s.status === 'DATN_APPROVED' || s.status === 'IN_PROGRESS').length;
+        this.pendingRequests.datn01 = data.filter(hasPendingDatnInfo).length;
+        this.pendingRequests.datnPlan = data.filter(hasPendingDatnPlan).length;
+        this.pendingRequests.weeklyLogs = logs.length;
 
         // 3. Cảnh báo tiến độ sinh viên
         this.studentAlerts = data
-          .filter((s: any) => ['IMPORTED', 'DATN_DECLARED', 'DATN_APPROVED', 'IN_PROGRESS'].includes(s.status))
+          .filter((s: any) => ['IMPORTED', 'DATN_DECLARED', 'DATN_APPROVED', 'IN_PROGRESS'].includes(s.status)
+            || logs.some(entry => entry.student_campaign_id === s.id))
           .map((s: any) => {
             let issue = '';
             let type = 'warning';
@@ -71,9 +80,14 @@ export class TeacherDashboardComponent implements OnInit {
               issue = 'Chưa kê khai Nhiệm vụ ĐATN';
             } else if (s.status === 'DATN_DECLARED') {
               issue = 'Chờ duyệt Nhiệm vụ ĐATN (ĐATN-01)';
-            } else if (s.status === 'DATN_APPROVED') {
+            } else if (hasPendingDatnPlan(s)) {
+              issue = 'Đã nộp kế hoạch thực hiện ĐATN, chờ GVHD phê duyệt';
+            } else if (logs.some(entry => entry.student_campaign_id === s.id)) {
+              const weeks = logs.filter(entry => entry.student_campaign_id === s.id).map(entry => entry.weekly_log.week_number).join(', ');
+              issue = `Nhật ký tuần ${weeks} đang chờ GVHD xác nhận`;
+            } else if (!(s.datn_plans || []).length) {
               issue = 'Chưa nộp kế hoạch thực hiện ĐATN';
-            } else if (s.status === 'IN_PROGRESS') {
+            } else if (s.status === 'IN_PROGRESS' || s.status === 'DATN_APPROVED') {
               issue = 'Chưa đánh giá mốc M1';
             }
             return {
@@ -87,6 +101,7 @@ export class TeacherDashboardComponent implements OnInit {
         this.isLoading = false;
       },
       error: () => {
+        this.loadError = true;
         this.isLoading = false;
       }
     });

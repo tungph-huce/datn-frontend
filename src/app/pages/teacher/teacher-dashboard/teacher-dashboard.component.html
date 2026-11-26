@@ -5,8 +5,9 @@
 
     <!-- Loading -->
     <app-dashboard-loading *ngIf="isLoading" message="Đang tải dữ liệu..."></app-dashboard-loading>
+    <p *ngIf="loadError" class="text-sm text-red-700" role="alert">Không thể tải yêu cầu chờ xử lý. <button type="button" (click)="loadDashboardData()" class="underline">Tải lại</button></p>
 
-    <div *ngIf="!isLoading" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div *ngIf="!isLoading && !loadError" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Cột trái (Chính) -->
         <div class="lg:col-span-2 space-y-6">
 
@@ -28,7 +29,7 @@
                     <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
                         <span class="material-symbols-outlined text-[#00429D]">fact_check</span> Yêu cầu cần Phê duyệt
                     </h3>
-                    <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">{{ pendingRequests.datn01 + pendingRequests.datnPlan }} yêu cầu</span>
+                    <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">{{ pendingRequests.datn01 + pendingRequests.datnPlan + pendingRequests.weeklyLogs }} yêu cầu</span>
                 </div>
 
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -70,6 +71,10 @@
                         </div>
                     </div>
                 </div>
+                <a routerLink="/teacher/approval-requests" [queryParams]="{type: 'WEEKLY_LOG'}" class="mx-6 mb-6 border border-slate-200 rounded-lg p-4 flex items-center justify-between hover:border-blue-300">
+                    <div><p class="font-bold text-slate-800">Xác nhận nhật ký ĐATN-02</p><p class="text-sm text-slate-500">Nhật ký theo tuần sinh viên đã gửi</p></div>
+                    <span class="text-2xl font-black text-[#00429D]">{{ pendingRequests.weeklyLogs }}</span>
+                </a>
             </div>
         </div>
 

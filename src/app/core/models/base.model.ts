@@ -156,6 +156,29 @@ export interface DatnPlanResponse {
   gvhd_status: string;
 }
 
+export interface WeeklyLogResponse {
+  id: number;
+  student_campaign_id: number;
+  week_number: number;
+  content: string;
+  results: string;
+  completion_percentage: number;
+  supervisor_status: string;
+  supervisor_comment?: string | null;
+  submitted_at?: string | null;
+}
+
+export interface WeeklyLogApprovalResponse {
+  student_campaign_id: number;
+  student_code: string;
+  full_name: string;
+  class_name: string;
+  campaign_id: number;
+  department_id: number;
+  thesis_title?: string | null;
+  weekly_log: WeeklyLogResponse;
+}
+
 export interface StudentCampaignResponse {
   major_id?: number; major_name?: string; cohort?: string; clo_set_id?: number;
   id: number;

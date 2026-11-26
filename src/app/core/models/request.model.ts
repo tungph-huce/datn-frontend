@@ -126,6 +126,7 @@ export interface DatnPlanRequest {
 }
 
 export interface WeeklyLogRequest {
+  submit_for_confirmation?: boolean;
   week_number: number;
   content: string;
   results: string;

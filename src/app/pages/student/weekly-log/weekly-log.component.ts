@@ -13,6 +13,7 @@ interface Evidence {
 
 interface WeeklyLog {
   id?: number;
+  submittedAt?: string | null;
   weekNumber: number;
   startDate?: string;
   endDate?: string;
@@ -120,6 +121,7 @@ export class WeeklyLogComponent implements OnInit {
 
             return {
               id: item.id,
+              submittedAt: item.submitted_at,
               weekNumber: weekNo,
               status: status,
               tasks: item.content ? item.content.split('\n') : [],
@@ -179,7 +181,11 @@ export class WeeklyLogComponent implements OnInit {
     }
   }
 
-  submitLog() {
+  get hasSubmittedActiveLog(): boolean {
+    return !!this.logs.find(l => l.weekNumber === Number(this.activeWeekNumber))?.submittedAt;
+  }
+
+  submitLog(submitForConfirmation = true) {
     if (!this.campaign) return;
     if (!this.activeLogTasks.trim()) {
       this.toastService.error('Vui lòng nhập nội dung công việc!');
@@ -188,6 +194,7 @@ export class WeeklyLogComponent implements OnInit {
 
     this.isSaving = true;
     const payload: WeeklyLogRequest = {
+      submit_for_confirmation: submitForConfirmation,
       student_campaign_id: this.campaign.id,
       week_number: Number(this.activeWeekNumber),
       content: this.activeLogTasks,
@@ -197,7 +204,7 @@ export class WeeklyLogComponent implements OnInit {
 
     this.weeklyLogService.createOrUpdate(payload).subscribe({
       next: () => {
-        this.toastService.success('Lưu nhật ký thành công!');
+        this.toastService.success(submitForConfirmation ? 'Đã gửi nhật ký chờ GVHD xác nhận.' : 'Đã lưu bản nháp nhật ký.');
         this.isSaving = false;
         // Reload logs
         this.isLoading = true;

@@ -1,8 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { StudentCampaignService } from '../../../core/services/student-campaign.service';
-import { StudentCampaignResponse } from '../../../core/models/base.model';
+import { StudentCampaignResponse, WeeklyLogResponse } from '../../../core/models/base.model';
+import { WeeklyLogService } from '../../../core/services/weekly-log.service';
+import { forkJoin } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 import { CampaignService } from '../../../core/services/campaign.service';
+import { hasPendingDatnInfo, hasPendingDatnPlan } from '../../../core/utils/teacher-approval';
+
+type RequestType = 'DATN' | 'PLAN' | 'WEEKLY_LOG';
+interface ApprovalRequest extends StudentCampaignResponse { weekly_log?: WeeklyLogResponse; }
 
 @Component({
   selector: 'app-approval-requests',
@@ -12,14 +19,19 @@ import { CampaignService } from '../../../core/services/campaign.service';
 export class ApprovalRequestsComponent implements OnInit {
   isLoading = true;
   isProcessing = false;
-  requests: StudentCampaignResponse[] = [];
-  filteredRequests: StudentCampaignResponse[] = [];
+  loadError = false;
+  requests: ApprovalRequest[] = [];
+  filteredRequests: ApprovalRequest[] = [];
   
-  selectedRequest: StudentCampaignResponse | null = null;
-  requestType: 'DATN' | 'PLAN' | null = null;
+  selectedRequest: ApprovalRequest | null = null;
+  requestType: RequestType | null = null;
+  filterType: RequestType | 'ALL' = 'ALL';
+  supervisorComment = '';
   showModal = false;
   campaigns: any[] = [];
   activeCampaignIds = new Set<number>();
+  activeCampaignsLoaded = false;
+  activeCampaignsError = false;
   
   selectedCampaignId: number | null = null;
   searchQuery = '';
@@ -27,10 +39,14 @@ export class ApprovalRequestsComponent implements OnInit {
   constructor(
     private studentCampaignService: StudentCampaignService,
     private toastService: ToastService,
-    private campaignService: CampaignService
+    private campaignService: CampaignService,
+    private weeklyLogService: WeeklyLogService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    const type = this.route.snapshot.queryParamMap.get('type');
+    if (type === 'DATN' || type === 'PLAN' || type === 'WEEKLY_LOG') this.filterType = type;
     this.loadCampaigns();
     this.loadRequests();
   }
@@ -48,18 +64,14 @@ export class ApprovalRequestsComponent implements OnInit {
       next: (res) => {
         const activeList = res || [];
         this.activeCampaignIds = new Set(activeList.map((c: any) => Number(c.id)));
-      }
+        this.activeCampaignsLoaded = true;
+      },
+      error: () => { this.activeCampaignsError = true; }
     });
   }
 
   isCampaignActive(campaignId: number): boolean {
-    if (!campaignId) return true;
-    // Nếu danh sách active đã tải, kiểm tra xem ID có nằm trong activeCampaignIds hay không
-    if (this.activeCampaignIds.size > 0) {
-      return this.activeCampaignIds.has(Number(campaignId));
-    }
-    // Mặc định cho phép thao tác
-    return true; 
+    return this.activeCampaignsLoaded && this.activeCampaignIds.has(Number(campaignId));
   }
 
   getCampaignName(campaignId?: number): string {
@@ -70,17 +82,21 @@ export class ApprovalRequestsComponent implements OnInit {
 
   loadRequests(): void {
     this.isLoading = true;
-    this.studentCampaignService.getMyAssignedStudents().subscribe({
-      next: (res) => {
-        // Lọc các sinh viên đang chờ GVHD duyệt ĐATN-01
+    this.loadError = false;
+    forkJoin({ students: this.studentCampaignService.getMyAssignedStudents(), logs: this.weeklyLogService.getPending() }).subscribe({
+      next: ({ students: res, logs }) => {
         const allStudents = Array.isArray(res) ? res : (res.data || res.payload || []);
-        this.requests = allStudents.filter((s: any) => 
-          s.status === 'DATN_DECLARED'
-        );
+        this.requests = allStudents.filter((s: StudentCampaignResponse) => hasPendingDatnInfo(s) || hasPendingDatnPlan(s));
+        this.requests.push(...logs.map(entry => ({
+          id: entry.student_campaign_id, student_code: entry.student_code, full_name: entry.full_name,
+          class_name: entry.class_name, campaign_id: entry.campaign_id, department_id: entry.department_id,
+          status: '', datn_info: { thesis_title: entry.thesis_title || '' }, weekly_log: entry.weekly_log
+        })));
         this.applyFilters();
         this.isLoading = false;
       },
       error: () => {
+        this.loadError = true;
         this.isLoading = false;
       }
     });
@@ -88,6 +104,7 @@ export class ApprovalRequestsComponent implements OnInit {
 
   applyFilters(): void {
     let result = [...this.requests];
+    if (this.filterType !== 'ALL') result = result.filter(r => this.getRequestType(r) === this.filterType);
 
     if (this.selectedCampaignId !== null) {
       result = result.filter(r => Number(r.campaign_id) === Number(this.selectedCampaignId));
@@ -99,6 +116,7 @@ export class ApprovalRequestsComponent implements OnInit {
         (r.full_name && r.full_name.toLowerCase().includes(query)) ||
         (r.student_code && r.student_code.toLowerCase().includes(query)) ||
         (r.class_name && r.class_name.toLowerCase().includes(query)) ||
+        (r.weekly_log?.content && r.weekly_log.content.toLowerCase().includes(query)) ||
         (r.datn_info?.thesis_title && r.datn_info.thesis_title.toLowerCase().includes(query))
       );
     }
@@ -106,35 +124,60 @@ export class ApprovalRequestsComponent implements OnInit {
     this.filteredRequests = result;
   }
 
-  openRequest(req: StudentCampaignResponse) {
+  openRequest(req: ApprovalRequest) {
     this.selectedRequest = req;
-    this.requestType = 'DATN';
+    this.requestType = this.getRequestType(req);
+    this.supervisorComment = req.weekly_log?.supervisor_comment || '';
     this.showModal = true;
   }
 
+  getRequestType(req: ApprovalRequest): RequestType {
+    return req.weekly_log ? 'WEEKLY_LOG' : hasPendingDatnInfo(req) ? 'DATN' : 'PLAN';
+  }
+
+  getRequestLabel(req: ApprovalRequest): string {
+    return req.weekly_log ? `Nhật ký ĐATN-02 — Tuần ${req.weekly_log.week_number}`
+      : this.isPlanRequest(req) ? 'Kế hoạch thực hiện ĐATN' : 'ĐATN-01 (Nhiệm vụ ĐATN)';
+  }
+
+  isPlanRequest(req: ApprovalRequest): boolean {
+    if (req.weekly_log) return false;
+    return !hasPendingDatnInfo(req) && hasPendingDatnPlan(req);
+  }
+
   closeModal() {
+    if (this.isProcessing) return;
     this.showModal = false;
     this.selectedRequest = null;
     this.requestType = null;
+    this.supervisorComment = '';
   }
 
   approve() {
-    if (!this.selectedRequest || !this.requestType) return;
+    if (!this.selectedRequest || !this.requestType || this.isProcessing || !this.isCampaignActive(this.selectedRequest.campaign_id)) return;
     
     this.isProcessing = true;
-    this.studentCampaignService.approveDatnInfo(this.selectedRequest.id).subscribe({
+    const selected = this.selectedRequest;
+    const type = this.requestType;
+    const approval = type === 'WEEKLY_LOG' && selected.weekly_log
+      ? this.weeklyLogService.approveWeeklyLog(selected.weekly_log.id, this.supervisorComment.trim())
+      : type === 'PLAN'
+      ? this.studentCampaignService.approveDatnPlan(this.selectedRequest.id)
+      : this.studentCampaignService.approveDatnInfo(this.selectedRequest.id);
+    approval.subscribe({
       next: () => {
-        this.toastService.success('Đã duyệt Nhiệm vụ ĐATN (ĐATN-01) thành công!');
+        this.toastService.success(type === 'WEEKLY_LOG' ? 'Đã xác nhận nhật ký tuần ' + selected.weekly_log!.week_number
+          : type === 'PLAN' ? 'Đã duyệt kế hoạch thực hiện ĐATN thành công!' : 'Đã duyệt Nhiệm vụ ĐATN (ĐATN-01) thành công!');
         this.isProcessing = false;
         
         // Loại bỏ khỏi danh sách chờ
-        this.requests = this.requests.filter(r => r.id !== this.selectedRequest!.id);
+        this.requests = this.requests.filter(r => r !== selected);
         this.applyFilters();
         
-        setTimeout(() => this.closeModal(), 1200);
+        this.closeModal();
       },
       error: (err) => {
-        const msg = err.error?.message || 'Có lỗi xảy ra khi phê duyệt.';
+        const msg = err.error?.message || err.message || 'Có lỗi xảy ra khi phê duyệt.';
         this.toastService.error(msg);
         this.isProcessing = false;
       }

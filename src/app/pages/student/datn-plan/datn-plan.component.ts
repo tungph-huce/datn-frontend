@@ -131,11 +131,11 @@ export class DatnPlanComponent implements OnInit {
 
     this.isSaving = true;
     this.studentCampaignService.submitDatnPlan(payload).subscribe({
-      next: () => {
+      next: (plans) => {
         this.toastService.success('Nộp kế hoạch thành công!');
         this.isSaving = false;
         this.isLocked = true;
-        this.campaign!.status = 'DATN_APPROVED';
+        this.campaign!.datn_plans = plans;
         this.updateStatus();
       },
       error: (err: any) => {

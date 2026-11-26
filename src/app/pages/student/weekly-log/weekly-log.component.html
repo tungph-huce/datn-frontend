@@ -129,7 +129,7 @@
                             <p class="text-sm text-[#002d70] mt-0.5">{{ log.startDate }} - {{ log.endDate }}</p>
                         </div>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-[#002d70] text-sm border border-blue-200">
-                            <span class="material-symbols-outlined text-[16px]">edit_document</span> Đang ghi nhận
+                            <span class="material-symbols-outlined text-[16px]">edit_document</span> {{ log.submittedAt ? 'Chờ xác nhận' : 'Đang ghi nhận' }}
                         </span>
                     </div>
                     <!-- Student Content (Editable Form) -->
@@ -174,7 +174,7 @@
 
                         <!-- Actions -->
                         <div class="flex justify-end gap-4 pt-4 border-t border-slate-200">
-                            <button (click)="submitLog()" [disabled]="isSaving" class="px-5 py-2.5 rounded-lg border border-slate-400 text-slate-900 text-sm hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button (click)="submitLog(false)" [disabled]="isSaving || hasSubmittedActiveLog" class="px-5 py-2.5 rounded-lg border border-slate-400 text-slate-900 text-sm hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                 Lưu bản nháp
                             </button>
                             <button (click)="submitLog()" [disabled]="isSaving" class="px-5 py-2.5 rounded-lg bg-[#00429D] text-white text-sm hover:bg-[#002d70] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">

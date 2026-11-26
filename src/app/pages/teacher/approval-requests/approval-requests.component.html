@@ -1,7 +1,7 @@
 <div class="mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
         <h2 class="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">Yêu cầu Cần phê duyệt</h2>
-        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Danh sách các biểu mẫu Nhiệm vụ ĐATN (ĐATN-01) do sinh viên kê khai cần GVHD xét duyệt.</p>
+        <p class="text-xs md:text-sm text-slate-500 mt-0.5">Nhiệm vụ ĐATN, kế hoạch và nhật ký theo tuần do sinh viên gửi chờ GVHD xác nhận.</p>
     </div>
 </div>
 
@@ -14,7 +14,10 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-2.5 flex-1 justify-end max-w-xl">
+        <div class="flex flex-wrap items-center gap-2.5 flex-1 justify-end max-w-xl">
+            <select aria-label="Loại yêu cầu" [(ngModel)]="filterType" (ngModelChange)="applyFilters()" class="border border-slate-300 rounded px-2 py-1.5 text-[13px]">
+                <option value="ALL">Tất cả loại yêu cầu</option><option value="DATN">Nhiệm vụ ĐATN</option><option value="PLAN">Kế hoạch ĐATN</option><option value="WEEKLY_LOG">Nhật ký ĐATN-02</option>
+            </select>
             <!-- Dropdown Chọn Đợt ĐATN -->
             <div class="flex items-center gap-1.5 bg-white px-3 py-1.5 border border-slate-300 rounded text-[13px] shadow-xs w-48 sm:w-56 shrink-0">
                 <span class="material-symbols-outlined text-slate-400 text-[18px]">event</span>
@@ -38,7 +41,8 @@
         <p class="text-sm">Đang tải danh sách yêu cầu phê duyệt...</p>
     </div>
 
-    <div *ngIf="!isLoading" class="overflow-x-auto">
+    <p *ngIf="loadError" class="p-4 text-sm text-red-700" role="alert">Không thể tải yêu cầu chờ xử lý. <button type="button" class="underline" (click)="loadRequests()">Tải lại</button></p>
+    <div *ngIf="!isLoading && !loadError" class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50 text-[11px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
@@ -71,26 +75,26 @@
                     </td>
                     <td class="py-3 px-4">
                         <span class="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-              ĐATN-01 (Nhiệm vụ ĐATN)
+              {{ getRequestLabel(req) }}
             </span>
                     </td>
                     <td class="py-3 px-4 text-slate-600 max-w-[200px] truncate" [title]="req.datn_info?.thesis_title || 'Chưa có thông tin'">
                         {{ req.datn_info?.thesis_title || 'Chưa có thông tin' }}
                     </td>
                     <td class="py-3 px-4 text-slate-500 font-mono text-xs">
-                        {{ req.created_at | date:'dd/MM/yyyy' }}
+                        {{ req.weekly_log ? (req.weekly_log.submitted_at | date:'dd/MM/yyyy HH:mm') : isPlanRequest(req) ? '—' : (req.created_at | date:'dd/MM/yyyy') }}
                     </td>
                     <td class="py-3 px-4 text-center">
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-              Chờ duyệt
+              {{ req.weekly_log ? 'Chờ xác nhận' : 'Chờ duyệt' }}
             </span>
                     </td>
                     <td class="py-3 px-4 text-center">
                         <button *ngIf="isCampaignActive(req.campaign_id)" (click)="openRequest(req)" class="text-[#00429D] hover:text-blue-800 hover:underline font-semibold text-[13px] inline-flex items-center gap-1 cursor-pointer">
-              Xem & Duyệt
+              {{ req.weekly_log ? 'Xem & Xác nhận' : 'Xem & Duyệt' }}
             </button>
                         <span *ngIf="!isCampaignActive(req.campaign_id)" class="text-red-500 font-medium text-xs flex items-center justify-center gap-1">
-              <span class="material-symbols-outlined text-[14px]">lock</span> Đóng
+              <span class="material-symbols-outlined text-[14px]">lock</span> {{ activeCampaignsLoaded ? 'Đóng' : activeCampaignsError ? 'Lỗi tải đợt' : 'Đang tải đợt' }}
                         </span>
                     </td>
                 </tr>
@@ -105,7 +109,7 @@
         <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center shrink-0 bg-slate-50">
             <div>
                 <h3 class="text-base font-bold text-slate-900">
-                    Chi tiết Yêu cầu: Nhiệm vụ Đồ án tốt nghiệp (ĐATN-01)
+                    {{ requestType === 'WEEKLY_LOG' ? 'Xác nhận nhật ký ĐATN-02 — Tuần ' + selectedRequest?.weekly_log?.week_number : requestType === 'PLAN' ? 'Chi tiết Kế hoạch thực hiện ĐATN' : 'Chi tiết Nhiệm vụ Đồ án tốt nghiệp (ĐATN-01)' }}
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">Xem xét thông tin do sinh viên kê khai trước khi phê duyệt.</p>
             </div>
@@ -128,7 +132,7 @@
             </div>
 
             <div>
-                <ng-container>
+                <ng-container *ngIf="requestType === 'DATN'">
                     <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Nội dung Nhiệm vụ ĐATN (ĐATN-01)</label>
                     <div class="text-xs text-slate-800 p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2.5">
                         <p><strong>Tên đề tài ĐATN:</strong> <span class="font-medium text-slate-900">{{ selectedRequest?.datn_info?.thesis_title }}</span></p>
@@ -145,9 +149,27 @@
                         <p class="whitespace-pre-wrap text-slate-700 bg-white p-2.5 rounded border border-slate-200 text-xs">{{ selectedRequest?.datn_info?.expected_results || '---' }}</p>
                     </div>
                 </ng-container>
+                <div *ngIf="requestType === 'PLAN'" class="space-y-3">
+                    <section *ngFor="let plan of selectedRequest?.datn_plans" class="rounded-lg border border-slate-200 p-4 text-sm space-y-2">
+                        <h4 class="font-bold text-[#00429D]">Tuần {{ plan.week }}</h4>
+                        <p class="whitespace-pre-wrap"><strong>Công việc:</strong> {{ plan.task }}</p>
+                        <p class="whitespace-pre-wrap"><strong>Kết quả dự kiến:</strong> {{ plan.expected_result || '—' }}</p>
+                        <p class="whitespace-pre-wrap"><strong>Minh chứng:</strong> {{ plan.evidence_form || '—' }}</p>
+                        <p *ngIf="plan.clo_mapped"><strong>CLO:</strong> {{ plan.clo_mapped }}</p>
+                    </section>
+                </div>
+                <div *ngIf="requestType === 'WEEKLY_LOG'" class="text-sm space-y-3">
+                    <p><strong>Ngày gửi:</strong> {{ selectedRequest?.weekly_log?.submitted_at | date:'dd/MM/yyyy HH:mm' }}</p>
+                    <p><strong>Mức độ hoàn thành:</strong> {{ selectedRequest?.weekly_log?.completion_percentage }}%</p>
+                    <div><h4 class="font-semibold">Nội dung công việc</h4><p class="whitespace-pre-wrap rounded border border-slate-200 p-3">{{ selectedRequest?.weekly_log?.content || '—' }}</p></div>
+                    <div><h4 class="font-semibold">Kết quả đạt được</h4><p class="whitespace-pre-wrap rounded border border-slate-200 p-3">{{ selectedRequest?.weekly_log?.results || '—' }}</p></div>
+                    <label class="block font-semibold">Nhận xét của GVHD (tùy chọn)
+                        <textarea aria-label="Nhận xét xác nhận nhật ký" [(ngModel)]="supervisorComment" maxlength="2000" rows="3" [disabled]="isProcessing" class="mt-2 w-full border border-slate-300 rounded p-3 font-normal"></textarea>
+                    </label>
+                </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-200">
+            <div *ngIf="requestType === 'DATN'" class="pt-3 border-t border-slate-200">
                 <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nhận xét của GVHD (Tùy chọn)</label>
                 <textarea rows="2" class="w-full text-xs border border-slate-300 rounded p-2 focus:ring-1 focus:ring-[#00429D] focus:border-[#00429D] outline-none" placeholder="Nhập nhận xét hoặc lưu ý cho sinh viên..."></textarea>
             </div>
@@ -155,21 +177,22 @@
 
         <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-between items-center shrink-0">
             <div class="flex-1">
-                <div *ngIf="selectedRequest && !isCampaignActive(selectedRequest.campaign_id)" class="text-red-500 font-medium text-xs flex items-center gap-1">
+                <div *ngIf="activeCampaignsLoaded && selectedRequest && !isCampaignActive(selectedRequest.campaign_id)" class="text-red-500 font-medium text-xs flex items-center gap-1">
                     <span class="material-symbols-outlined text-[16px]">lock</span> Đợt ĐATN đã kết thúc, bạn chỉ có thể xem dữ liệu.
                 </div>
+                <p *ngIf="activeCampaignsError" class="text-xs text-red-600">Không thể xác nhận trạng thái đợt. Vui lòng tải lại trang.</p>
             </div>
             <div class="flex gap-2.5">
                 <button (click)="closeModal()" [disabled]="isProcessing" class="px-4 py-2 border border-slate-300 shadow-xs text-xs font-medium rounded text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer">
           Đóng
         </button>
-                <button *ngIf="selectedRequest && isCampaignActive(selectedRequest.campaign_id)" (click)="reject()" [disabled]="isProcessing" class="px-4 py-2 border border-transparent shadow-xs text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 cursor-pointer">
+                <button *ngIf="requestType === 'DATN' && selectedRequest && isCampaignActive(selectedRequest.campaign_id)" (click)="reject()" [disabled]="isProcessing" class="px-4 py-2 border border-transparent shadow-xs text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 cursor-pointer">
           Từ chối
         </button>
                 <button *ngIf="selectedRequest && isCampaignActive(selectedRequest.campaign_id)" (click)="approve()" [disabled]="isProcessing" class="px-4 py-2 border border-transparent shadow-xs text-xs font-semibold rounded text-white bg-emerald-600 hover:bg-emerald-700 flex items-center gap-1.5 disabled:opacity-50 cursor-pointer">
           <span *ngIf="isProcessing" class="material-symbols-outlined animate-spin text-[15px]">autorenew</span>
           <span *ngIf="!isProcessing" class="material-symbols-outlined text-[16px]">check</span>
-          Phê duyệt
+          {{ requestType === 'WEEKLY_LOG' ? 'Xác nhận nhật ký' : 'Phê duyệt' }}
         </button>
             </div>
         </div>

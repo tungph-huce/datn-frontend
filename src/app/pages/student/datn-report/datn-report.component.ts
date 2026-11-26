@@ -131,7 +131,8 @@ export class DatnReportComponent implements OnInit {
   getDatn03Status(): string {
     if (!this.campaign) return '';
     if (this.isDatn03Approved()) return 'Đã duyệt';
-    if (this.weeklyLogs.length > 0) return 'Chờ xác nhận';
+    if (this.weeklyLogs.some(log => log.submitted_at && log.supervisor_status === 'PENDING')) return 'Chờ xác nhận';
+    if (this.weeklyLogs.length > 0) return 'Đang ghi nhận';
     return 'Chưa nhập';
   }
 
